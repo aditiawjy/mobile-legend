@@ -19,6 +19,6 @@ export default async function handler(req, res) {
     })
   } catch (error) {
     console.error('Error fetching categories:', error)
-    res.status(500).json({ error: 'Failed to fetch categories', categories: [] })
+    res.status(200).json({ categories: [], count: 0 })
   }
 }

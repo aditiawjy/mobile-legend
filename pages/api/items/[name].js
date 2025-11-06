@@ -12,7 +12,7 @@ export default async function handler(req, res) {
         [name]
       )
       if (!rows || rows.length === 0) {
-        return res.status(404).json({ error: 'item not found' })
+        return res.status(200).json({})
       }
       return res.status(200).json(rows[0])
     }

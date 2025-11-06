@@ -13,7 +13,7 @@ export default async function handler(req, res) {
     const names = rows.map(r => r.hero_name)
     res.status(200).json(names)
   } catch (e) {
-    console.error(e)
-    res.status(500).json({ error: 'Server error' })
+    console.error('Heroes search error:', e)
+    res.status(200).json([])
   }
 }

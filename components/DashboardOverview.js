@@ -71,6 +71,7 @@ export default function DashboardOverview({ stats = {} }) {
         </svg>
       ),
       color: 'bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100',
+      onClick: () => router.push('/edit-hero-attributes'),
     },
     {
       name: 'Edit Skills',
@@ -81,6 +82,7 @@ export default function DashboardOverview({ stats = {} }) {
         </svg>
       ),
       color: 'bg-teal-50 text-teal-700 border-teal-200 hover:bg-teal-100',
+      onClick: () => router.push('/edit-skills'),
     },
     {
       name: 'Manage Items',
@@ -91,6 +93,7 @@ export default function DashboardOverview({ stats = {} }) {
         </svg>
       ),
       color: 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100',
+      onClick: () => router.push('/edit-items'),
     },
     {
       name: 'View Reports',
@@ -101,6 +104,7 @@ export default function DashboardOverview({ stats = {} }) {
         </svg>
       ),
       color: 'bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-100',
+      onClick: () => router.push('/matches'),
     },
   ]
 
