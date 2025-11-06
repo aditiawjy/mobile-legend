@@ -1,8 +1,18 @@
 import { useState } from 'react'
 import { colors, shadows, borderRadius, spacing, typography } from '../lib/design-system'
 
-export default function HeroCard({ hero, heroAttrs, onEdit }) {
+export default function HeroCard({ hero, heroAttrs, heroAdjs, onEdit }) {
   const [activeSkillTab, setActiveSkillTab] = useState(0)
+  
+  const formatDate = (dateString) => {
+    if (!dateString) return '-'
+    const date = new Date(dateString)
+    if (isNaN(date)) return '-'
+    const day = String(date.getDate()).padStart(2, '0')
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const year = date.getFullYear()
+    return `${day}-${month}-${year}`
+  }
   
   if (!hero) return null
 
@@ -129,6 +139,35 @@ export default function HeroCard({ hero, heroAttrs, onEdit }) {
             )}
           </div>
         </div>
+
+        {/* Adjustments History */}
+        {heroAdjs && heroAdjs.length > 0 && (
+          <div className="border-t border-gray-100 pt-4 mt-4">
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="text-sm font-medium text-gray-900">Hero Adjustments</h4>
+              <button
+                onClick={() => window.location.href = `/edit-hero-adjustments?name=${encodeURIComponent(hero.hero_name)}`}
+                className="text-xs text-purple-600 hover:text-purple-800 underline"
+              >
+                Manage
+              </button>
+            </div>
+            <div className="space-y-2">
+              {heroAdjs.map((adj) => (
+                <div key={adj.id} className="bg-purple-50 rounded-lg p-3 border border-purple-100">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-medium text-purple-700">
+                        {formatDate(adj.adj_date)} • {adj.season || 'N/A'}
+                      </p>
+                      <p className="text-sm text-purple-900 mt-1 whitespace-pre-wrap">{adj.description}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Additional Note */}
         {hero.additional_note && (

@@ -8,6 +8,7 @@ export default function HeroDetailPage() {
   const name = typeof router.query.name === 'string' ? router.query.name : ''
   const [detail, setDetail] = useState(null)
   const [heroAttrs, setHeroAttrs] = useState(null)
+  const [heroAdjs, setHeroAdjs] = useState(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -23,9 +24,15 @@ export default function HeroDetailPage() {
           .then(r => r.ok ? r.json() : null)
           .then(a => setHeroAttrs(a || null))
           .catch(() => setHeroAttrs(null))
+        // Load adjustments in parallel (non-blocking)
+        fetch(`/api/heroes/${encodeURIComponent(name)}/adjustments`)
+          .then(r => r.ok ? r.json() : null)
+          .then(a => setHeroAdjs(Array.isArray(a) ? a : null))
+          .catch(() => setHeroAdjs(null))
       } catch {
         setDetail(null)
         setHeroAttrs(null)
+        setHeroAdjs(null)
       } finally {
         setLoading(false)
       }
@@ -70,6 +77,7 @@ export default function HeroDetailPage() {
               <HeroCard
                 hero={detail}
                 heroAttrs={heroAttrs}
+                heroAdjs={heroAdjs}
                 onEdit={(type) => {
                   if (type === 'skills' && detail.hero_name) {
                     window.location.href = `/edit-skills?name=${encodeURIComponent(detail.hero_name)}`
