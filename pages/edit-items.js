@@ -16,7 +16,7 @@ const fields = [
   { key: 'armor', label: 'Physical Defense', type: 'number' },
   { key: 'magic_resist', label: 'Magic Defense', type: 'number' },
   { key: 'movement_speed', label: 'Movement Speed (%)', type: 'number' },
-  { key: 'cooldown_reduction', label: 'Cooldown Reduction', type: 'number', step: '0.01' },
+  { key: 'cooldown_reduction', label: 'Cooldown Reduction (%)', type: 'number', step: '1' },
   { key: 'mana_regen', label: 'Mana Regen', type: 'number' },
   { key: 'hp_regen', label: 'HP Regen', type: 'number' },
 ]
@@ -78,6 +78,10 @@ export default function EditItemsPage() {
         return { ...result, item_name: name }
       })
       .then(d => {
+        // Convert cooldown_reduction from decimal to percentage for display
+        if (d.cooldown_reduction != null) {
+          d.cooldown_reduction = d.cooldown_reduction * 100
+        }
         const completeData = { ...Object.fromEntries(fields.map(f => [f.key, ''])), ...d }
         setData(completeData)
       })
@@ -154,6 +158,10 @@ export default function EditItemsPage() {
         const value = data[f.key]
         if (value !== undefined) fieldsToUpdate[f.key] = value
       })
+      // Convert cooldown_reduction from percentage to decimal
+      if (fieldsToUpdate.cooldown_reduction !== undefined && fieldsToUpdate.cooldown_reduction !== '') {
+        fieldsToUpdate.cooldown_reduction = parseFloat(fieldsToUpdate.cooldown_reduction) / 100
+      }
       const res = await fetch(`/api/items/${encodeURIComponent(name)}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -165,6 +173,10 @@ export default function EditItemsPage() {
       }
       const updatedData = await res.json()
       setOk('Perubahan berhasil disimpan')
+      // Convert cooldown_reduction back to percentage for display
+      if (updatedData.cooldown_reduction != null) {
+        updatedData.cooldown_reduction = updatedData.cooldown_reduction * 100
+      }
       setData(prev => ({ ...prev, ...updatedData, item_name: name }))
     } catch (e) {
       setErr(e.message || 'Error')

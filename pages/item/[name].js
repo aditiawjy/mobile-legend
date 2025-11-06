@@ -51,7 +51,7 @@ export default function ItemDetailPage() {
             armor: data.armor != null ? data.armor : '',
             magic_resist: data.magic_resist != null ? data.magic_resist : '',
             movement_speed: data.movement_speed != null ? data.movement_speed : '',
-            cooldown_reduction: data.cooldown_reduction != null ? data.cooldown_reduction : '',
+            cooldown_reduction: data.cooldown_reduction != null ? data.cooldown_reduction * 100 : '',
             mana_regen: data.mana_regen != null ? data.mana_regen : '',
             hp_regen: data.hp_regen != null ? data.hp_regen : ''
           })
@@ -83,7 +83,7 @@ export default function ItemDetailPage() {
         armor: editData.armor ? parseInt(editData.armor) : null,
         magic_resist: editData.magic_resist ? parseInt(editData.magic_resist) : null,
         movement_speed: editData.movement_speed ? parseInt(editData.movement_speed) : null,
-        cooldown_reduction: editData.cooldown_reduction ? parseFloat(editData.cooldown_reduction) : null,
+        cooldown_reduction: editData.cooldown_reduction ? parseFloat(editData.cooldown_reduction) / 100 : null,
         mana_regen: editData.mana_regen ? parseInt(editData.mana_regen) : null,
         hp_regen: editData.hp_regen ? parseInt(editData.hp_regen) : null
       }
@@ -248,8 +248,8 @@ export default function ItemDetailPage() {
                         <input type="number" value={editData.movement_speed} onChange={(e) => setEditData({ ...editData, movement_speed: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="0" />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Cooldown Reduction</label>
-                        <input type="number" step="0.01" value={editData.cooldown_reduction} onChange={(e) => setEditData({ ...editData, cooldown_reduction: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="0.00" />
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Cooldown Reduction (%)</label>
+                        <input type="number" step="1" value={editData.cooldown_reduction} onChange={(e) => setEditData({ ...editData, cooldown_reduction: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="10" />
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Mana Regen</label>
@@ -354,8 +354,8 @@ export default function ItemDetailPage() {
 
                     {/* Cooldown Reduction */}
                     <div className="p-4 bg-gray-50 rounded-xl">
-                      <p className="text-xs font-semibold text-gray-500 uppercase">Cooldown Reduction</p>
-                      <p className="text-gray-700 mt-1 text-sm">{detail.cooldown_reduction || '-'}</p>
+                      <p className="text-xs font-semibold text-gray-500 uppercase">Cooldown Reduction (%)</p>
+                      <p className="text-gray-700 mt-1 text-sm">{detail.cooldown_reduction != null ? (detail.cooldown_reduction * 100) : '-'}</p>
                     </div>
 
                     {/* Mana Regen */}
