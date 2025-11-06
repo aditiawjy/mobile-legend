@@ -10,7 +10,7 @@ export default async function handler(req, res) {
   try {
     // Fetch all heroes from database
     const heroes = await query(
-      `SELECT hero_name, role, damage_type, difficulty, price, image_url 
+      `SELECT hero_name, role, damage_type, price, image_url 
        FROM heroes 
        ORDER BY hero_name ASC`
     )
@@ -20,9 +20,9 @@ export default async function handler(req, res) {
     }
 
     // Convert to CSV format
-    const csvHeader = 'Hero Name,Role,Damage Type,Difficulty,Price,Image URL\n'
+    const csvHeader = 'Hero Name,Role,Damage Type,Price,Image URL\n'
     const csvRows = heroes.map(h => 
-      `"${escapeCSV(h.hero_name || '')}","${escapeCSV(h.role || '')}","${escapeCSV(h.damage_type || '')}",${h.difficulty || 0},${h.price || 0},"${escapeCSV(h.image_url || '')}"`
+      `"${escapeCSV(h.hero_name || '')}","${escapeCSV(h.role || '')}","${escapeCSV(h.damage_type || '')}",${h.price || 0},"${escapeCSV(h.image_url || '')}"`
     ).join('\n')
 
     const csvContent = csvHeader + csvRows
