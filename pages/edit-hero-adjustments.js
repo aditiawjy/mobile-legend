@@ -113,6 +113,16 @@ export default function EditHeroAdjustmentsPage() {
     return date.toISOString().slice(0, 10)
   }
 
+  const formatDateDisplay = (dateString) => {
+    if (!dateString) return '-'
+    const date = new Date(dateString)
+    if (isNaN(date)) return '-'
+    const day = String(date.getDate()).padStart(2, '0')
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const year = date.getFullYear()
+    return `${day}-${month}-${year}`
+  }
+
   const onSubmit = async (e) => {
     e.preventDefault()
     if (!name) return
@@ -284,7 +294,7 @@ export default function EditHeroAdjustmentsPage() {
                             </div>
                           ) : (
                             <>
-                              <p className="text-sm text-gray-500">{row.adj_date || '-'} • {row.season || '-'}</p>
+                              <p className="text-sm text-gray-500">{formatDateDisplay(row.adj_date)} • {row.season || '-'}</p>
                               <p className="text-sm text-gray-700 mt-1 whitespace-pre-wrap">{row.description}</p>
                             </>
                           )}
