@@ -195,11 +195,14 @@ export default function ItemsHome() {
         setTimeout(() => setCsvMessage(''), 3000)
       } else {
         const error = await response.json()
-        setCsvMessage(`✗ Error: ${error.error}`)
+        console.error('Items CSV error:', error)
+        const errorMsg = error.details || error.error || 'Unknown error'
+        setCsvMessage(`✗ Error: ${errorMsg}`)
+        setTimeout(() => setCsvMessage(''), 5000)
       }
     } catch (error) {
       console.error('Error updating items CSV:', error)
-      setCsvMessage('✗ Error updating CSV')
+      setCsvMessage(`✗ Error: ${error.message || 'Failed to update'}`)
     } finally {
       setCsvUpdating(false)
     }

@@ -43,6 +43,7 @@ export default async function handler(req, res) {
 
     // Generate Items CSV
     try {
+      console.log('[INIT-CSV] Fetching items...')
       const items = await query(
         `SELECT item_name, category, price, attack, attack_speed, crit_chance, armor_pen, spell_vamp, 
                 magic_power, hp, armor, magic_resist, movement_speed, cooldown_reduction, mana_regen, 
@@ -50,6 +51,8 @@ export default async function handler(req, res) {
          FROM items 
          ORDER BY item_name ASC`
       )
+
+      console.log(`[INIT-CSV] Got ${items ? items.length : 0} items`)
 
       if (items && items.length > 0) {
         const csvHeader = 'Item Name,Category,Price,Attack,Attack Speed,Crit Chance,Armor Penetration,Spell Vamp,Magic Power,HP,Armor,Magic Resist,Movement Speed,Cooldown Reduction,Mana Regen,HP Regen,Description\n'
@@ -59,9 +62,14 @@ export default async function handler(req, res) {
         
         const itemsPath = path.join(csvDir, 'items.csv')
         fs.writeFileSync(itemsPath, csvHeader + csvRows, 'utf-8')
+        console.log(`[INIT-CSV] Items CSV saved: ${itemsPath}`)
         results.items = { count: items.length, status: 'success' }
+      } else {
+        console.log('[INIT-CSV] No items found or query returned empty')
+        results.items = { count: 0, status: 'no_data' }
       }
     } catch (e) {
+      console.error('[INIT-CSV] Items error:', e.message)
       results.errors.push(`Items CSV: ${e.message}`)
     }
 

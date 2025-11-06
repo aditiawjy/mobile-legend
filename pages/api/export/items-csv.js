@@ -8,6 +8,8 @@ export default async function handler(req, res) {
   }
 
   try {
+    console.log('[ITEMS-CSV] Starting items export...')
+    
     // Fetch all items from database
     const items = await query(
       `SELECT item_name, category, price, attack, attack_speed, crit_chance, armor_pen, spell_vamp, 
@@ -17,8 +19,11 @@ export default async function handler(req, res) {
        ORDER BY item_name ASC`
     )
 
+    console.log(`[ITEMS-CSV] Fetched ${items ? items.length : 0} items from database`)
+
     if (!items || items.length === 0) {
-      return res.status(400).json({ error: 'No items found' })
+      console.log('[ITEMS-CSV] No items found in database')
+      return res.status(400).json({ error: 'No items found in database' })
     }
 
     // Convert to CSV format
@@ -40,7 +45,7 @@ export default async function handler(req, res) {
 
     const stats = fs.statSync(filepath)
     
-    console.log(`[EXPORT] Items CSV updated: items.csv (${items.length} items, ${stats.size} bytes)`)
+    console.log(`[ITEMS-CSV] Success! Items CSV updated: items.csv (${items.length} items, ${stats.size} bytes)`)
 
     // Return success response
     return res.status(200).json({ 
@@ -52,8 +57,13 @@ export default async function handler(req, res) {
       url: '/csv/items.csv'
     })
   } catch (e) {
-    console.error('[EXPORT-ITEMS-CSV] error:', e)
-    return res.status(500).json({ error: 'Server error', details: e.message })
+    console.error('[ITEMS-CSV] ERROR:', e.message)
+    console.error('[ITEMS-CSV] Full error:', e)
+    return res.status(500).json({ 
+      error: 'Server error', 
+      details: e.message,
+      code: e.code
+    })
   }
 }
 
