@@ -155,7 +155,10 @@ export default function EditHeroAdjustmentsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       })
-      if (!res.ok) throw new Error('Gagal menyimpan perubahan')
+      if (!res.ok) {
+        const errData = await res.json()
+        throw new Error(errData.error || 'Gagal menyimpan perubahan')
+      }
       setOk('Adjustment berhasil ditambahkan')
       setForm({ adj_date: '', season: '', description: '' })
       // Refresh list
@@ -363,11 +366,15 @@ export default function EditHeroAdjustmentsPage() {
                                       headers: { 'Content-Type': 'application/json' },
                                       body: JSON.stringify(payload),
                                     })
-                                    if (!resp.ok) throw new Error('Gagal menyimpan')
+                                    if (!resp.ok) {
+                                      const errData = await resp.json()
+                                      throw new Error(errData.error || 'Gagal menyimpan')
+                                    }
                                     // update list locally
                                     setList(prev => prev.map(x => x.id === row.id ? { ...x, ...payload } : x))
                                     setEditingId(null)
                                     setEditForm({ adj_date: '', season: '', description: '' })
+                                    setOk('Adjustment berhasil diperbarui')
                                   } catch (e) {
                                     alert(e.message || 'Error')
                                   }
