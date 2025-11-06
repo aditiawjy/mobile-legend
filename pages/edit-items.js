@@ -15,7 +15,7 @@ const fields = [
   { key: 'hp', label: 'HP', type: 'number' },
   { key: 'armor', label: 'Physical Defense', type: 'number' },
   { key: 'magic_resist', label: 'Magic Defense', type: 'number' },
-  { key: 'movement_speed', label: 'Movement Speed', type: 'number' },
+  { key: 'movement_speed', label: 'Movement Speed (%)', type: 'number' },
   { key: 'cooldown_reduction', label: 'Cooldown Reduction', type: 'number', step: '0.01' },
   { key: 'mana_regen', label: 'Mana Regen', type: 'number' },
   { key: 'hp_regen', label: 'HP Regen', type: 'number' },
