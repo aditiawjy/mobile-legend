@@ -191,7 +191,7 @@ export default function ItemsHome() {
       
       if (response.ok) {
         const data = await response.json()
-        setCsvMessage(`✓ CSV updated! (${data.itemCount} items)`)
+        setCsvMessage(`✓ Items CSV updated! (${data.itemCount} items)`)
         setTimeout(() => setCsvMessage(''), 3000)
       } else {
         const error = await response.json()
@@ -257,7 +257,7 @@ export default function ItemsHome() {
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                 </svg>
-                {csvUpdating ? 'Updating...' : 'Update CSV'}
+                {csvUpdating ? 'Updating...' : 'Items CSV'}
               </button>
               {csvMessage && (
                 <span className="text-xs font-medium text-green-700 bg-green-50 px-2 py-1 rounded whitespace-nowrap">
