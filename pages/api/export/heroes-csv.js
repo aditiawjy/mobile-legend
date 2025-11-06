@@ -3,7 +3,7 @@ import fs from 'fs'
 import path from 'path'
 
 export default async function handler(req, res) {
-  if (req.method !== 'GET') {
+  if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
@@ -27,28 +27,28 @@ export default async function handler(req, res) {
 
     const csvContent = csvHeader + csvRows
 
-    // Save to public/csv folder
+    // Save to public/csv folder with single filename
     const csvDir = path.join(process.cwd(), 'public', 'csv')
     if (!fs.existsSync(csvDir)) {
       fs.mkdirSync(csvDir, { recursive: true })
     }
 
-    const timestamp = new Date().toISOString().split('T')[0] // YYYY-MM-DD
-    const filename = `heroes-${timestamp}.csv`
-    const filepath = path.join(csvDir, filename)
-
+    const filepath = path.join(csvDir, 'heroes.csv')
     fs.writeFileSync(filepath, csvContent, 'utf-8')
 
-    // Also keep a "latest" copy
-    const latestPath = path.join(csvDir, 'heroes-latest.csv')
-    fs.writeFileSync(latestPath, csvContent, 'utf-8')
+    const stats = fs.statSync(filepath)
+    
+    console.log(`[EXPORT] CSV updated: heroes.csv (${heroes.length} heroes, ${stats.size} bytes)`)
 
-    console.log(`[EXPORT] CSV generated: ${filename} (${heroes.length} heroes)`)
-
-    // Return download response
-    res.setHeader('Content-Type', 'text/csv')
-    res.setHeader('Content-Disposition', `attachment; filename="heroes-${timestamp}.csv"`)
-    return res.status(200).send(csvContent)
+    // Return success response
+    return res.status(200).json({ 
+      success: true,
+      message: 'CSV updated successfully',
+      filename: 'heroes.csv',
+      heroCount: heroes.length,
+      fileSize: stats.size,
+      url: '/csv/heroes.csv'
+    })
   } catch (e) {
     console.error('[EXPORT-CSV] error:', e)
     return res.status(500).json({ error: 'Server error', details: e.message })

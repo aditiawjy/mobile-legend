@@ -28,12 +28,10 @@ export default function Home() {
   const [adjustmentsLoading, setAdjustmentsLoading] = useState(true)
   const [allHeroes, setAllHeroes] = useState([])
   const [allHeroesLoading, setAllHeroesLoading] = useState(false)
-  const [csvExporting, setCsvExporting] = useState(false)
-  const [csvFiles, setCsvFiles] = useState([])
-  const [showCsvMenu, setShowCsvMenu] = useState(false)
+  const [csvUpdating, setCsvUpdating] = useState(false)
+  const [csvMessage, setCsvMessage] = useState('')
   const dropdownRef = useRef(null)
   const inputRef = useRef(null)
-  const csvMenuRef = useRef(null)
 
   const showAllHeroes = router.query.showAll === 'true'
 
@@ -193,56 +191,34 @@ export default function Home() {
       if (!dropdownRef.current.contains(e.target) && e.target !== inputRef.current) {
         setSuggestions([])
       }
-      if (csvMenuRef.current && !csvMenuRef.current.contains(e.target)) {
-        setShowCsvMenu(false)
-      }
     }
     document.addEventListener('click', onDocClick)
     return () => document.removeEventListener('click', onDocClick)
   }, [])
 
-  const handleExportCSV = async () => {
-    setCsvExporting(true)
+  const handleUpdateCSV = async () => {
+    setCsvUpdating(true)
+    setCsvMessage('')
     try {
-      const response = await fetch('/api/export/heroes-csv')
+      const response = await fetch('/api/export/heroes-csv', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      })
+      
       if (response.ok) {
-        // Get filename from header
-        const filename = response.headers.get('content-disposition')?.split('filename="')[1]?.split('"')[0] || 'heroes.csv'
-        const blob = await response.blob()
-        const url = window.URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = filename
-        document.body.appendChild(a)
-        a.click()
-        window.URL.revokeObjectURL(url)
-        document.body.removeChild(a)
-        
-        // Refresh CSV files list
-        loadCSVFiles()
+        const data = await response.json()
+        setCsvMessage(`✓ CSV updated! (${data.heroCount} heroes)`)
+        setTimeout(() => setCsvMessage(''), 3000)
+      } else {
+        const error = await response.json()
+        setCsvMessage(`✗ Error: ${error.error}`)
       }
     } catch (error) {
-      console.error('Error exporting CSV:', error)
+      console.error('Error updating CSV:', error)
+      setCsvMessage('✗ Error updating CSV')
     } finally {
-      setCsvExporting(false)
+      setCsvUpdating(false)
     }
-  }
-
-  const loadCSVFiles = async () => {
-    try {
-      const response = await fetch('/api/export/list-csv')
-      if (response.ok) {
-        const files = await response.json()
-        setCsvFiles(files)
-      }
-    } catch (error) {
-      console.error('Error loading CSV files:', error)
-    }
-  }
-
-  const handleDownloadCSV = (url) => {
-    window.open(url, '_blank')
-    setShowCsvMenu(false)
   }
 
   return (
@@ -268,51 +244,22 @@ export default function Home() {
                   <a href="/items" className="text-sm inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-gray-200 text-gray-700 bg-white hover:bg-gray-100">Items</a>
                   <a href="/damage-composition" className="text-sm inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-purple-200 text-purple-700 bg-purple-50 hover:bg-purple-100">Analysis</a>
                   
-                  {/* CSV Export Dropdown */}
-                  <div ref={csvMenuRef} className="relative">
+                  {/* CSV Update Button */}
+                  <div className="flex items-center gap-2">
                     <button
-                      onClick={() => {
-                        setShowCsvMenu(!showCsvMenu)
-                        if (!showCsvMenu) loadCSVFiles()
-                      }}
-                      disabled={csvExporting}
+                      onClick={handleUpdateCSV}
+                      disabled={csvUpdating}
                       className="text-sm inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-green-200 text-green-700 bg-green-50 hover:bg-green-100 disabled:opacity-50"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                       </svg>
-                      {csvExporting ? 'Exporting...' : 'CSV'}
+                      {csvUpdating ? 'Updating...' : 'Update CSV'}
                     </button>
-                    
-                    {showCsvMenu && (
-                      <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
-                        <button
-                          onClick={handleExportCSV}
-                          disabled={csvExporting}
-                          className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 first:rounded-t-lg disabled:opacity-50"
-                        >
-                          <svg className="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                          </svg>
-                          Export Now
-                        </button>
-                        
-                        {csvFiles.length > 0 && (
-                          <>
-                            <div className="border-t border-gray-200 my-1"></div>
-                            <div className="px-4 py-2 text-xs font-semibold text-gray-500">Recent Files:</div>
-                            {csvFiles.slice(0, 5).map((file, idx) => (
-                              <button
-                                key={idx}
-                                onClick={() => handleDownloadCSV(file.url)}
-                                className="w-full text-left px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900 text-xs"
-                              >
-                                📥 {file.name}
-                              </button>
-                            ))}
-                          </>
-                        )}
-                      </div>
+                    {csvMessage && (
+                      <span className="text-xs font-medium text-green-700 bg-green-50 px-2 py-1 rounded">
+                        {csvMessage}
+                      </span>
                     )}
                   </div>
                   
