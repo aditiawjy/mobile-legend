@@ -24,6 +24,8 @@ export default function Home() {
     totalTeams: 0
   })
   const [statsLoading, setStatsLoading] = useState(true)
+  const [heroAdjustments, setHeroAdjustments] = useState([])
+  const [adjustmentsLoading, setAdjustmentsLoading] = useState(true)
   const [allHeroes, setAllHeroes] = useState([])
   const [allHeroesLoading, setAllHeroesLoading] = useState(false)
   const dropdownRef = useRef(null)
@@ -60,6 +62,24 @@ export default function Home() {
       }
     }
     fetchStats()
+  }, [])
+
+  useEffect(() => {
+    const fetchLatestAdjustments = async () => {
+      try {
+        const response = await fetch('/api/heroes/adjustments?limit=10&sort=date_desc')
+        if (response.ok) {
+          const data = await response.json()
+          setHeroAdjustments(Array.isArray(data) ? data : [])
+        }
+      } catch (error) {
+        console.error('Error fetching adjustments:', error)
+        setHeroAdjustments([])
+      } finally {
+        setAdjustmentsLoading(false)
+      }
+    }
+    fetchLatestAdjustments()
   }, [])
 
   useEffect(() => {
@@ -222,6 +242,58 @@ export default function Home() {
                 onSearch={(heroName) => { if (heroName) onSelect(heroName) }}
                 placeholder="Cari hero Mobile Legends..."
               />
+            </div>
+          )}
+
+          {/* Latest Hero Adjustments */}
+          {!showAllHeroes && (
+            <div className="mb-12">
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                  <svg className="w-6 h-6 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                  Latest Hero Adjustments
+                </h2>
+
+                {adjustmentsLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+                    <span className="ml-2 text-gray-600">Memuat adjustments...</span>
+                  </div>
+                ) : heroAdjustments.length > 0 ? (
+                  <div className="space-y-3">
+                    {heroAdjustments.map((adj, idx) => (
+                      <div key={idx} className="flex items-start justify-between p-4 bg-gradient-to-r from-orange-50 to-amber-50 rounded-lg border border-orange-200 hover:shadow-md transition-shadow">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <a href={`/hero/${encodeURIComponent(adj.hero_name)}`} className="font-semibold text-lg text-orange-700 hover:text-orange-900 transition-colors">
+                              {adj.hero_name}
+                            </a>
+                            <span className="text-xs px-2 py-1 rounded-full bg-orange-200 text-orange-800">
+                              {adj.season || 'Latest'}
+                            </span>
+                          </div>
+                          <p className="text-gray-700 text-sm">{adj.description}</p>
+                          <p className="text-xs text-gray-500 mt-2">
+                            {adj.adjustment_date ? new Date(adj.adjustment_date).toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' }) : 'N/A'}
+                          </p>
+                        </div>
+                        <a
+                          href={`/hero/${encodeURIComponent(adj.hero_name)}`}
+                          className="ml-4 px-3 py-1.5 text-sm bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors whitespace-nowrap"
+                        >
+                          View Hero
+                        </a>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <p>Tidak ada adjustments terbaru</p>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
