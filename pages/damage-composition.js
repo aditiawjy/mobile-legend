@@ -86,36 +86,43 @@ export default function DamageCompositionPage() {
   }
 
   // Generate item recommendations based on threat
-  const generateItemRecommendations = (comp) => {
+  const generateItemRecommendations = async (comp) => {
     const primary = comp.threat.primary
     
-    const recommendations = {
-      physical: [
-        { name: 'Antique Cuirass', role: 'Support', effect: '-5% DMG', gold: 2050, efficiency: 2050 / 5 },
-        { name: 'Twilight Armor', role: 'Tank', effect: '+900 HP, +60 ARM', gold: 2220, efficiency: 2220 / 60 },
-        { name: 'Blade Armor', role: 'Tank', effect: '+80 ARM, Counter 25%', gold: 2150, efficiency: 2150 / 80 },
-        { name: 'Brute Force', role: 'Damage', effect: '+140 ATK, +1000 HP', gold: 3050, efficiency: 3050 / 140 },
-      ],
-      magic: [
-        { name: 'Athenas Blessing', role: 'Support', effect: '-40% Magic DMG', gold: 2020, efficiency: 2020 / 40 },
-        { name: 'Hollow Radiance', role: 'Support', effect: '+900 HP, +56 MR', gold: 2180, efficiency: 2180 / 56 },
-        { name: 'Force of Nature', role: 'Tank', effect: '+1000 HP, +70 MR', gold: 2250, efficiency: 2250 / 70 },
-        { name: 'Immortality', role: 'Tank', effect: 'Revive when die', gold: 3250, efficiency: 3250 / 1 },
-      ],
-      true: [
-        { name: 'Oracle', role: 'Support', effect: '+30% HP Regen', gold: 1900, efficiency: 1900 / 30 },
-        { name: 'Dominance Ice', role: 'Support', effect: '-1 ATK SPD', gold: 2120, efficiency: 2120 / 1 },
-      ]
+    try {
+      // Fetch primary threat items
+      const res1 = await fetch('/api/analysis/recommend-items', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ threatType: primary, limit: 4 })
+      })
+      
+      // Fetch true damage items if not primary threat
+      let allItems = []
+      if (res1.ok) {
+        const primaryItems = await res1.json()
+        allItems = [...primaryItems]
+      }
+      
+      if (primary !== 'true') {
+        const res2 = await fetch('/api/analysis/recommend-items', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ threatType: 'true', limit: 4 })
+        })
+        if (res2.ok) {
+          const trueItems = await res2.json()
+          allItems = [...allItems, ...trueItems]
+        }
+      }
+      
+      // Sort by efficiency and limit
+      allItems.sort((a, b) => b.efficiency - a.efficiency)
+      setItemRecommendations(allItems.slice(0, 8))
+    } catch (e) {
+      console.error('Failed to fetch recommendations:', e)
+      setItemRecommendations([])
     }
-
-    // Get items for primary threat + mixed recommendations
-    let items = [...(recommendations[primary] || []), ...(recommendations.true || [])]
-    
-    // Sort by efficiency
-    items.sort((a, b) => a.efficiency - b.efficiency)
-    
-    // Limit to top recommendations
-    setItemRecommendations(items.slice(0, 8))
   }
 
   const getDamageColor = (type) => {
@@ -243,25 +250,34 @@ export default function DamageCompositionPage() {
                   <h3 className="text-lg font-semibold text-gray-800 mb-4">Rekomendasi Item Efisien</h3>
                   
                   <div className="space-y-3">
-                    {itemRecommendations.map((item, idx) => (
-                      <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200">
-                        <div className="flex-1">
-                          <p className="font-medium text-sm">{item.name}</p>
-                          <div className="flex gap-2 mt-1">
-                            <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
-                              {item.role}
-                            </span>
-                            <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">
-                              {item.effect}
-                            </span>
+                    {itemRecommendations.length > 0 ? (
+                      itemRecommendations.map((item, idx) => (
+                        <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
+                          <div className="flex-1">
+                            <p className="font-medium text-sm">{item.name}</p>
+                            <div className="flex gap-2 mt-1">
+                              <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                                {item.category}
+                              </span>
+                              <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">
+                                {item.stat_name}: +{item.defense_stat}
+                              </span>
+                            </div>
+                            {item.description && (
+                              <p className="text-xs text-gray-600 mt-1">{item.description}</p>
+                            )}
+                          </div>
+                          <div className="text-right">
+                            <p className="font-semibold text-sm">{item.price.toLocaleString()} gold</p>
+                            <p className="text-xs text-gray-500">{item.efficiency.toFixed(2)} efficiency</p>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <p className="font-semibold text-sm">{item.gold} gold</p>
-                          <p className="text-xs text-gray-500">{item.efficiency.toFixed(1)} per unit</p>
-                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center py-8 text-gray-500">
+                        <p>Analisis komposisi untuk melihat rekomendasi item</p>
                       </div>
-                    ))}
+                    )}
                   </div>
                 </div>
               </div>
