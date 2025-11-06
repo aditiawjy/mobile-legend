@@ -167,7 +167,7 @@ export default function HeroCard({ hero, heroAttrs, heroAdjs, onEdit }) {
                   <div className="flex items-start justify-between">
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-medium text-purple-700">
-                        {formatDate(adj.adj_date)} • {adj.season || 'N/A'}
+                        {formatDate(adj.adj_date)} {adj.season && `• ${adj.season}`}
                       </p>
                       <p className="text-sm text-purple-900 mt-1 whitespace-pre-wrap">{adj.description}</p>
                     </div>
