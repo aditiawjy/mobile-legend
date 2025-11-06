@@ -236,11 +236,11 @@ export default function ItemDetailPage() {
                         <input type="number" value={editData.hp} onChange={(e) => setEditData({ ...editData, hp: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="0" />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Armor</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Physical Defense</label>
                         <input type="number" value={editData.armor} onChange={(e) => setEditData({ ...editData, armor: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="0" />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Magic Resist</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Magic Defense</label>
                         <input type="number" value={editData.magic_resist} onChange={(e) => setEditData({ ...editData, magic_resist: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="0" />
                       </div>
                       <div>
@@ -334,15 +334,15 @@ export default function ItemDetailPage() {
                       <p className="text-gray-700 mt-1 text-sm">{detail.hp || '-'}</p>
                     </div>
 
-                    {/* Armor */}
+                    {/* Physical Defense */}
                     <div className="p-4 bg-gray-50 rounded-xl">
-                      <p className="text-xs font-semibold text-gray-500 uppercase">Armor</p>
+                      <p className="text-xs font-semibold text-gray-500 uppercase">Physical Defense</p>
                       <p className="text-gray-700 mt-1 text-sm">{detail.armor || '-'}</p>
                     </div>
 
-                    {/* Magic Resist */}
+                    {/* Magic Defense */}
                     <div className="p-4 bg-gray-50 rounded-xl">
-                      <p className="text-xs font-semibold text-gray-500 uppercase">Magic Resist</p>
+                      <p className="text-xs font-semibold text-gray-500 uppercase">Magic Defense</p>
                       <p className="text-gray-700 mt-1 text-sm">{detail.magic_resist || '-'}</p>
                     </div>
 
