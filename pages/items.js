@@ -22,7 +22,7 @@ export default function ItemsHome() {
   // Show all items toggle from query
   const showAll = router.query.showAll === 'true'
 
-  // Filter & Sort state
+  // Filter & Sort state - initialized from URL query
   const [filters, setFilters] = useState({
     category: '',
     sortBy: 'name',
@@ -30,6 +30,42 @@ export default function ItemsHome() {
     minPrice: null,
     maxPrice: null
   })
+
+  // Initialize filters from URL on mount
+  useEffect(() => {
+    if (!router.isReady) return
+    const { category, sortBy, sortOrder, minPrice, maxPrice } = router.query
+    setFilters({
+      category: category || '',
+      sortBy: sortBy || 'name',
+      sortOrder: sortOrder || 'asc',
+      minPrice: minPrice ? parseInt(minPrice) : null,
+      maxPrice: maxPrice ? parseInt(maxPrice) : null
+    })
+  }, [router.isReady])
+
+  // Update URL when filters change
+  const handleFilterChange = (newFilters) => {
+    setFilters(newFilters)
+    // Build query string with non-empty values
+    const query = {}
+    if (newFilters.category) query.category = newFilters.category
+    if (newFilters.sortBy !== 'name') query.sortBy = newFilters.sortBy
+    if (newFilters.sortOrder !== 'asc') query.sortOrder = newFilters.sortOrder
+    if (newFilters.minPrice !== null) query.minPrice = newFilters.minPrice
+    if (newFilters.maxPrice !== null) query.maxPrice = newFilters.maxPrice
+    if (showAll) query.showAll = 'true'
+    
+    // Update URL without full page reload
+    router.push(
+      {
+        pathname: router.pathname,
+        query
+      },
+      undefined,
+      { shallow: true }
+    )
+  }
 
   // Get categories for filter
   const { categories, isLoading: isLoadingCategories } = useCategories()
@@ -323,7 +359,7 @@ export default function ItemsHome() {
             {/* Filter & Sort */}
             <ItemsFilter
               filters={filters}
-              onFilterChange={setFilters}
+              onFilterChange={handleFilterChange}
               categories={categories}
               isLoadingCategories={isLoadingCategories}
             />
