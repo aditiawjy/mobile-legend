@@ -1,0 +1,285 @@
+Hero Name,Date,Season,Description
+"Arlott","04-11-2025","38","Arlott's damage was too high with the defense build, so we've slightly reduced his Base Damage.
+
+[Skill 2 Adjustments] Nerf
+Base Damage: 135-335 >> 135-285"
+"Cici","04-11-2025","38","Cici's Delight stacks decay gradually when not dealing damage, granting her Movement Speed and Spell Vamp boost most of the time, making it difficult for enemies to counter. Therefore, we have increased the decay speed.
+
+[Passive Adjustments] Nerf
+Stack Removal: 1 stack reduced every 1s >> 1 stack reduced every 0.3s"
+"Hilda","04-11-2025","38","Hilda's late-game minion clearing efficiency and durability are low, and she relies on Bushes to trigger her passive effect, leaving her with average performance in the Exp Lane.
+So this time we redesigned Hilda's passive skill, changing the enhanced Basic Attack originally obtained from Skill 1 to entering a Bush, improving her Exp lane presence and minion clearing efficiency. Meanwhile, Skill 1 has been redesigned to grant a shield and speed boost, reducing her dependence on bushes.We've also optimized the control experience of Basic Attacks after Skill 2, improving passive stacking efficiency and combo smoothness.
+To balance this, we've reduced how much the Passive Wilderness Mark reduces Physical & Magic Defense.
+
+[Passive Adjustments] Adjust
+Revamped :
+When entering a Bush, Hilda enhances her next Basic Attack to deal 140(+70% Total Physical Attack)(+9*hero level) Pyhsical Damage and slow the target by 40% for 3s. Enemies behind behind the target take 70 (+50% Total Physical Attack)(7*hero level) Physical Damage, After using the enhanced Basic Attack. it enters a 6s cooldown.
+Pursuit Speed of Enhanced Basic Attack : 10 >> 13
+Each stack reduces the target's Physical Defense and Magic Defense by: 4% >> 3%
+[Skill 1 Adjustments] Adjust
+Revamped:
+Hilda activates the runic power of her giant axe, increasing her Movement Speed by 60% and gaining a shield equal to 10-20% of her MAX HP for 3s.
+[Skill 2 Adjustments] Buff
+Reduced the foreswing of Skill 2's third attack by 33%.
+[Skill 3 Adjustments] Buff
+Optimited the Ultimate's pursuit range and increased its hit rate after locking on."
+"Balmond","03-11-2025","38","We aim slightly raise Balmond's control ceiling in high-level matches.
+
+[Passive Adjustments] Buff
+New Effect : Hitting an enemy hero reduces their Physical Defense by 40% for 3s.
+Slow Effect : 60% for 2s >> 40% for 3s
+Cooldown : 8-5s >> 8-6s"
+"Change","03-11-2025","38","Chang'e's tower pushing efficiency in the early-mid game is too high compared to other Mages, so we reduced her enhanced Basic Attack Damage. Damage and balanced it by reducing Skill 1's mid-late game cooldown.
+
+[Skill 1 Adjustments] Buff
+Cooldown : 7s at all levels >> 7-5s
+
+[Skill 2 Adjustments] Nerf
+Crescent Moon Damage : 20 (+35% Total Physical Atatck)(+35% Total Magic power) >> 20 (+35% Total Magic power)"
+"Xavier","03-11-2025","38","Xavier relies on continuously hitting enemies with Skills 1 and 2 to enhance and enter the Transcendence state for stronger damage output. This doesn't align with our design expectations. Therefore, we've increased the width of all skills, changed Stage I to a permanent passive, and removed the original Stage II effect, allowing Xavier to enter to Transcendence state more quickly. To balance this chane, we've reduced the duration of Skill 2's immobilization.
+
+[Passive Adjustments] Adjust
+When Xavier hits an enemy hero with his skills, he gains 50% Movement Speed that decays over 1.2s. Each enemy hero hit by Xavier's skills generates one Energy charge. Upon reaching three charges, his next skill cast will enter the Transcendence state.
+
+[Skill 1 Adjustments] Buff
+Skill Width in Normal State: 0.6 >> 0.9
+Mana cost : 50-75 >> 30-55
+
+[Skill 2 Adjustments] Adjust
+Immobilizing Time : 1.2s >> 0.8s
+Skill Width in Normal State : 3.5 >> 4.3
+Skill Width in Transcendence State : 5.0 >> 4.3
+
+[Skill 3 Adjustments] Adjust
+Skill Width in Normal State : 2.2 >> 3.0
+Skill Width in Transcendence State : 3.8 >> 3.0"
+"Minotaur","02-11-2025","38","As a tank-roaming hero, Minotaur's ability to provide healing and buffs to his team far exceeds his own survivability as a tank. We want his combat ability to better match his character.
+We've revamped the original Enraged Regen effect that enhanced Skill 2 as Minotaur's new passive to improve his durability in combat.
+We've also added Slow Effects to the firsrt 2 hits of his Ultimate to improve the hit rate of the final hit's Airborne effect.
+For balance, we have reduced Minotaur's ability to provide healing and buffs to allies, though he remains a unique tank with the ability to heal teammates.
+
+[Passive Adjustments] Adjust
+Revamped :
+Minotaur gains motivation for 3s after using the skill. When Enraged, the HP regen effect is doubled.
+Motivation: Recover HP equal to 5% of damage taken from enemy heroes (+1%*hero level).
+
+[Skill 2 Adjustments] Adjust
+Revamped :
+Healing Range : Minotaur recovers himself and all surrounding allies >> Minotaur recovers himself and the ally with the lowest HP nearby#
+Additional Lost HP Recovery: 5% >> 8%
+Enraged state: Removed previous effect. Now Minotaur heals himself and all nearby allies.
+
+[Skill 3 Adjustments] Adjust
+Slow Effect : 40% >> 60%
+Airbone : 1s >> 0.8s"
+"Layla","24-10-2025","38","As a late-game Marksman, Layla's farming speed was greatly affected by the decrease in Gold from Minions. Therefore, we've slightly increased her damage in the mid to late game.
+
+[Attribute Adjustments] Buff
+Physical Attack Growth : 8.5 >> 10"
+"Bane","23-10-2025","38","We've noticed that Bane's fully charged Skill 2 venom deals excessive damage in Magic builds and is difficult to counter. To address this, we've reduced its Magic Power Bonus when full charged.
+
+[Skill 2 Adjustments] Nerf
+Magic Power Bonus When Fully Charged : 250% >> 200%"
+"Thamuz","23-10-2025","38","Thamuz currently takes too long to scale, making him unable to fulfill the Fighter / Tank role until he has three or more equipment items. To address this, we've increased his early game survivability
+
+[Skill 2 Adjustments] Buff
+Base Extra Max HP : 600 >> 800-1200
+Extra Max HP Bonus : 30%-50% >> 50%"
+"Bane","17-09-2025","38","Bane has been too reliant on Gold to scale in the current patch. We want him to have more impact in early team fights.so we've adjusted his damage curve,boosting his early and mid-game power. At the same time.we've increased the strength of the fully charged Skill 2.It's time to surprise enemies with a spit of venom!
+The summoned sharks by Bane's Ultimate could easily be dodged by enemies through agile positioning or mobility skills. So we've reduced the Ultimate's foreswing while increasing the sharks' movement speed And optimized the Ultimate's airbone and slow effects. This should allow the enraged sharks to pose a greater threat to enemies.
+To balance, we've reduced his late-game strength while removing the knockback effect from the Ultimate, preventing Bane from having extra time chasing knocked-back enemies.
+
+[Skill 2 Adjustments] Buff
+Base Venom Damage : 130-330 (+130 Total Magic Power) >> 140-340(+ 130% Total Magic Power)
+Charged Damage Multiplier : 150% >> 250%
+Charge Time : 2.5s >> 2s
+Charge Protection Time : 2.5s >> 3s
+Fixed an issue where the charging progress bar didn't match the actual charging time. Now, 250% damage will only be dealt when the progress bar is full. Adjusted the decay rate of the Movement Speed increase.
+
+[Skill 3 Adjustments] Buff
+Reduced the foreswing time by 20%
+Sharks' Movement Speed : 4 >> 4.3
+Airbone Duration : 0.4s >> 0.6s (Also fixed a bug where the Ultimate's described airbone duration didn't match its actual effect)
+Removed the knockback effect from the Ultimate's hit and improved the slow effect on hit.
+Damage : 600-1000 (+100% Total Physical Attack)(+170% Total Magic Power) >> 700-1100 (+80% Total Physical Attack)(+150% Total Magic Power)"
+"Floryn","17-09-2025","38","We've simplified the experience to share Floryn's Flower of Hope with allied heroes. Now you can directly drag to select a target ally for sharing. We've also added a feature where her Ultimate now display real-time HP info of low-health allies, allowing you tu use the Ultimate more promptly to support allied heroes in difficult situations.
+To Balance this, we've slightly reduced her crowd control ability and the shield value provided to allies.
+
+[Passive Adjustments] Nerf
+Share Method of Dew - Flower of hope : Tap Flower of Hope, then select the target ally's avatar, and tap Flower of Hoper again to confirm sharing >> Drag Flower of Hope to target ally's avatar to share.
+Shield : 100 (+90% Total Magic Power) >> 100 (+70% Total Magic Power)
+
+[Skill 2 Adjustments] Nerf
+Stun Duration : 0.7s >> 0.5s
+
+[Skill 3 Adjustments] Buff
+Added a feature where HP info for allies below 60% health is displayed in real-time near the Ultimate button, Making it easier for players to support allied heroes in need more promptly"
+"Thamuz","17-09-2025","S38","King of the fire Demons - Thamuz returns with greater power! With his ambitions revealed, Thamuz leads his legion of demons in their quest to dominate the Abyss
+
+[Passive Adjustments] Adjust
+Mechanic Adjustment : Each Basic Attack that doesn't spout Lava Energy accumulates Thamuz's Rage, which increases the chance of triggering Lava Energy. This should significantly improve the overall chance of triggering Lava Energy.
+True Damage of Lava Energy : 45 + 100% Total Physical Attack + 5 * Hero Level >> 60 + 70% Total Physical Attack + 8 * Hero Level
+
+[Skill 1 Adjustments] Buff
+Optimized the collision detection of the Scythes. It now moves more quickly behind the target and drags them back.
+
+[Skill 2 Adjustments] Buff
+Optimized both the casting experience and the visual effects of this skill
+
+[Skill 3 Adjustments] Buff
+Greatly reduced skill's foreswing time. Thamuz can now transform quickly. Upon transformation, he gains full Rage.
+Max HP : 500-1500 >> 600
+Max HP Bonus  : 0 >> 30-50% Extra Max HP
+Attack Speed Boost : 1.3-1.6 time >> 60-100%"
+"Angela","16-09-2025","38","We expected Angela to fight side-by-side with allies, but in actual matches, Angela spent most of her time away from allies. So we aim to enhance Angela's distinct characteristics. So we've significantly reduced her Ultimate's cooldown and optimized her Ultimate's auto-targeting logic to increase players' Ultimate usage frequency and support efficiency. We've made experience improvements to Angela's Passive and Skill 2, allowing players to better perceive battlefield conditions. For balance, we've reduced the shield value value provided by her Ultimate and removed the effect where completing channeling would reset her other skills.
+
+[Passive 1 Adjustments] Buff
+New Effect : Added stack indicator for gained Movement Speed. Fixed an issue where Ultimate could not trigger the passive's Movement Speed bonus.
+
+[Skill 1 Adjustments] Nerf
+Cooldown : 6s >> 7s
+
+[Skill 2 Adjustments] Buff
+Unable to target minion units (can only target creeps and hero units)
+We've added an effective range indicator circle after Skill 2 hits enemies to help players make judgments and ensure the connection won't accidentally disconnect. A countdown bar has been added to indicate when the immobilization will take effect, allowing players to know when enemies will be immobilized. 
+
+[Skill 3 Adjustments] Buff
+Base shield : 800-1300 (+250% Total Magic Power) >> 600-1000 (150% Total Magic Power)
+Cooldown Fixed at 60s >> Fixed at 20s
+Cooldown now starts when detaching an ally (previously started when attaching to an ally).
+Added protection to prevent accidentally canceling channeling or attaching due to fast tapping. and removed the effect that resets other skill cooldowns after channeling.
+Optimized the auto-targeting logic for direct Ultimate casts. The Ultimate will now auto-target the allied hero with lowesr HP percentage if that allied hero has tak"
+"Cici","16-09-2025","S38","We noticed that after Cici's Basic Attack range was increased in previous  patches, the splash area didn't match the visual effects. Therefore, we've optimized the shape of Cici's Basic Attack splash so that the new range better matches the visuals.
+We will monitor this adjustment to prevent significant impacts on Cici's actual strength.
+
+[Passive Adjustments] Adjust
+Optimized the splash range of Basic Attack."
+"Vexana","26-08-2025","37","Optimized Mana Cost, increased that hit rate of Eternal Guard's first strike after Ultimate hits. Meanwhile, significantly enchanced the skill's damage capability and supplement its attribute descriptions. Removed the sight-gaining ability by Skill 2, as we found it was not that reasonable
+
+[Skill 2 Adjustments] Adjust
+Mana Cost : 80-120 >> 60-90
+Removed the sight-gaining ability of the surrounding area
+
+[Skill 3 Adjustments] Buff
+Damage : 500-700 >> 480-720
+Mana Cost : 200-400 >> 120-200
+Reduced Eternal Guard's summoning backswing by 50%
+Airborne Duration : 0.6s >> 0.8s
+Eternal Guard Basic Attack Damage : 225-275 >> 200-300
+Eternal Guard's Extra Magic Power : 0 >> 80-120
+Eternal Guard's Extra Physical Defense : 60-80 >> 40-60
+Eternal Guard's Extra Magic Defense : 40-50 >> 40-60
+Eternal Guard Movement Speed : 180 >> 240"
+"Grock","25-08-2025","S37","Slightly enhanced Grock's durability and Physical Defense scaling.
+[Other]
+Fixed an issue where Grock's Skill 1 and Ultimate would deal multiple instances of damage in certain situations.
+
+[Passive Adjustments] Buff
+Shield : 10% Max HP >> 14% Max HP
+Extra Physical Defense : (30+4*Hero Level)% >> (30+6*Hero Level)%"
+"Baxia","02-07-2025","S37","Reduced survivability in early to mind-game; slightly increased survivability in late game.
+
+[Attribute Adjustments] Nerf
+Final Damage Reduction : 25 at all levels >> 15 + (Hero Level * 1)"
+"Kalea","02-07-2025","S37","Kalea is still a bit too dominant in the new patch.We've slightly tuned down her healing capability in the early to mide game
+
+[Attribute Adjustments] Nerf
+HP Recovery : 120 + 10% Total HP + 60% Total Magic Power >> 40 + 10% Total HP + 60% Total Magic Power."
+"Roger","18-06-2025","S37","Roger has been underperforming in the current patch. We will improve the control experience of his Basic Attacks and skills in human form. while adjusting his Ultimate cooldown.
+
+[Attribute Adjustments] Buff
+Removed the Basic Attack backswing in human form.
+
+[Skill 1 Adjustments] Buff
+Reduced the foreswing time of Skill 1 in human form by 20%.
+Reduced the backswing time of Skill 1 in human form by 25%.
+
+[Skill 3 Adjustments] Buff
+Cooldown 9-4.5s >> 7.5-4.5s"
+"Zhuxin","18-06-2025","S37","Adjusted the vision-revealing rule for Skill 2.
+
+[Skill 2 Adjustments] Nerf
+Skill 2 no longer reveals the vision of the entire bush, Now only reveals the vision of heroes hit."
+"Arlott","17-06-2025","S37","As a Fighter who needs to move in and out of them fights frequently, Arlott needs more flexibility with defensive equipment. We've also optimizing the control exprience of his Skill 2 to give hime better opportunities to position himself at a proper distance for using other skills.
+
+[Skill 2 Adjustments] Buff
+HP recovery : 90%-160% Total Physical Attack >> 70-270 + 60% Total physical Attack
+New Effect : Gain a brief significant Movement Speed boost when hitting marked targets
+
+[Skill 3 Adjustments] Buff
+New Effect : Each level-up reduces the Passive cooldown by 1s
+The Ultimate can only be interrrupted by Suppression during casting."
+"Esmeralda","17-06-2025","S37","Esmeralda's sustained combat capability in the mid and late game is lacking, so we've made adjustments accordingly
+
+[Skill 3 Adjustments] Buff
+Mana Cost : 150 >> 100
+Cooldown : 32-24s >> 30-20s"
+"Estes","17-06-2025","S37","Following adjustments to the equipment with Healing Reduction, the HP Regen of his skill is reduced accordingly. We want to expand Estes's utility beyond healing, so we've added an effect that increases an ally's Hybrid Defense.
+
+[Skill 1 Adjustments] Buff
+Basic Healing : 250-325 + 110% Total Magic Power >> 200-325 + 110% Total Magic Power.
+Sustained Healing : 325-400 + 60% Total Magic Power >> 250-400 + 60% Total Magic Power.
+New Effect : Increases the linked ally's Hybrid Defense by 15-30.
+
+[Skill 3 Adjustments] Nerf
+Enhanced Skill 1 Basic Healing : 500-700 + 220% Total Magic Power >> 400-650 + 220% Magic Power.
+Enhanced Skill 1 Sustained Healing : 1170-1470 + 210% Total Magic Power >> 900-1500 + 225% Total Magic Power.
+Self Healing : 1230-1470 + 210% Total Magic Power >> 1020-1500 + 225% Total Magic Power
+"
+"Hayabusa","17-06-2025","S37","Hayabusa's combo reward is disproportionately high compared to its difficulty, making him an almost insurmountable threat to back-row heroes in high-rank matches. His marks should test the player's skill more while offering greater rewards.
+
+[Passive Adjustments] Nerf
+Hayabusa can now only apply one stack of Shadow Mark each time.
+
+[Skill 3 Adjustments] Adjust
+Base Damage : 140 + 50% Extra Physical Attack >> 140 + 32% Extra Physical Attack
+Extra Damage : 70-140 >> 90-150
+Extra Damage Bonus : 40% Extra Physical Attack >> 40%-60% Extra Physical Attack"
+"Kalea","17-06-2025","S37","Following the Resilience adjustments, this attribute now reduces the duration of most Airbone control effects (except for Kalea). For balance,we'll be implementing other nerfs to Kalea.
+
+[Passive Adjustments] Nerf
+Removed the knockback effect from the first enhanced Basic Attack. Second Enhanced Basic Attack Base Damage : 300 >> 200
+
+[Skill 1 Adjustments] Nerf
+Base Damage : 250-400 >> 200-350
+
+[Skill 2 Adjustments] Nerf
+Leaping Distance after Colliding with an Obstacle during Charge : 5 >> 4.5
+
+[Skill 3 Adjustments] Nerf
+Slamming Distance : 5.5 >> 5"
+"Khufra","17-06-2025","S37","The new Resilience's effect on Airborne has impacted Khufra's combo (Skill 1 into Ultimate). To compensate, we've reduced the backswing of his Skill 1.
+
+[Skill 1 Adjustments] Buff
+Reduced the backswing time by 60% when hitting heroes.
+
+[Skill 3 Adjustments] Buff
+The Ultimate can only be interrupted by Suppression during casting."
+"Lunox","17-06-2025","S37","Currently, Lunox cannot quickly switch to Order state and cast her Ultimate while Power of Chaos is enhanced. We want to enrich her combo options by allowing her to end the Chaos state early and switch to Order state to cast her Ultimate when needed.
+
+[Skill 3 Adjustments] Adjust
+Now, while Power of Chaos is enchanced, Skill 1(Starlight Pulse)Shares a shorter cooldown with Skill 1 (Chaos Assault) However, using starlight Pulse will interrupt the power of Chaos enhancement state."
+"Fredrinn","21-04-2025","S36","Slightly increased early-game Jungling speed and reduced late-game skill downtime
+
+[Skill 1 Adjustments] Buff
+Extra Damage against Creeps : 50% >> 100%
+
+[Skill 3 Adjustments] Buff
+Cooldown : 8-6s >> 8-5s"
+"Akai","17-03-2025","S36","Improved Akai's damage output and control capabilities in the mid-to-late game
+
+[Skill 3 Adjustments] Buff
+Cooldown : 55s at all levels >> 55s-45s
+Damage : 200-450 + 100% of Extra Physical Attack (Subsequent impacts only deal 50% damage) >> 100-300 +50% of Total Physical Attack (subsequent impacts deal full damage)"
+"Hayabusa","17-03-2025","S36","Hayabusa could eliminate enemy backliners in the late game with a full-hit Ultimate, even without any Passive stacks. This straightforward burst damage reduces the skill expression expected of the ninja. To address this, we've adjusted the damage structure of this Ultimate
+
+[Skill 3 Adjustments] Nerf
+Slash Damage Bonus : 60% Extra Physical Attack >> 50% Extra Physical Attack
+Extra Damage : 45 - 85 + 20% of Total Physical Attack >> 70-140 + 40% of Extra Physical Attack"
+"Esmeralda","12-02-2025","S35","Esmeralda has been dormant fot too long. We aim enhance her late-game survivability, allowing her to shine on the battlefield once again.
+
+[Attribute Adjustments] Buff
+Physical Defense Growth : 5.8 >> 6.3
+
+[Skill 1 Adjustments] Buff
+Base Shield : 400-700 >> 400-900"

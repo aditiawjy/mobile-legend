@@ -221,6 +221,31 @@ export default function Home() {
     }
   }
 
+  const handleUpdateAdjustmentsCSV = async () => {
+    setCsvUpdating(true)
+    setCsvMessage('')
+    try {
+      const response = await fetch('/api/export/hero-adjustments-csv', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      })
+      
+      if (response.ok) {
+        const data = await response.json()
+        setCsvMessage(`✓ Hero Adjustments CSV updated! (${data.adjustmentCount} adjustments)`)
+        setTimeout(() => setCsvMessage(''), 3000)
+      } else {
+        const error = await response.json()
+        setCsvMessage(`✗ Error: ${error.error}`)
+      }
+    } catch (error) {
+      console.error('Error updating Adjustments CSV:', error)
+      setCsvMessage('✗ Error updating Adjustments CSV')
+    } finally {
+      setCsvUpdating(false)
+    }
+  }
+
   return (
     <AppLayout>
       <div className="bg-gradient-to-br from-sky-50 via-white to-blue-50 min-h-screen">
@@ -299,7 +324,7 @@ export default function Home() {
                 </h2>
                 <p className="text-sm text-gray-600 mb-6">Update CSV files with latest database data</p>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                     <h3 className="font-semibold text-blue-900 mb-2">Heroes CSV</h3>
                     <p className="text-xs text-blue-700 mb-3">Export all heroes data to CSV file</p>
@@ -329,6 +354,22 @@ export default function Home() {
                       Go to Items Page
                     </a>
                     <p className="text-xs text-gray-500 mt-2">File: /csv/items.csv</p>
+                  </div>
+                  
+                  <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                    <h3 className="font-semibold text-purple-900 mb-2">Hero Adjustments CSV</h3>
+                    <p className="text-xs text-purple-700 mb-3">Export hero adjustments history to CSV</p>
+                    <button
+                      onClick={handleUpdateAdjustmentsCSV}
+                      disabled={csvUpdating}
+                      className="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                      </svg>
+                      {csvUpdating ? 'Updating...' : 'Update Adjustments CSV'}
+                    </button>
+                    <p className="text-xs text-gray-500 mt-2">File: /csv/hero-adjustments.csv</p>
                   </div>
                 </div>
                 
