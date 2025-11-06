@@ -205,6 +205,18 @@ export default function ItemsHome() {
           </div>
           <div className="flex items-center gap-2">
             <a
+              href="/"
+              className="text-sm inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-gray-200 text-gray-700 bg-white hover:bg-gray-100"
+            >
+              Heroes
+            </a>
+            <a
+              href="/damage-composition"
+              className="text-sm inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-purple-200 text-purple-700 bg-purple-50 hover:bg-purple-100"
+            >
+              Analysis
+            </a>
+            <a
               href="/compare-items"
               className="text-sm inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-purple-200 text-purple-700 bg-purple-50 hover:bg-purple-100"
             >
