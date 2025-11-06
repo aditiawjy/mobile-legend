@@ -14,7 +14,7 @@ const fields = [
   { key: 'magic_power', label: 'Magic Power', type: 'number' },
   { key: 'hp', label: 'HP', type: 'number' },
   { key: 'armor', label: 'Armor', type: 'number' },
-  { key: 'magic_resist', label: 'Magic Resist', type: 'number' },
+  { key: 'magic_resist', label: 'Magic Defense', type: 'number' },
   { key: 'movement_speed', label: 'Movement Speed', type: 'number' },
   { key: 'cooldown_reduction', label: 'Cooldown Reduction', type: 'number', step: '0.01' },
   { key: 'mana_regen', label: 'Mana Regen', type: 'number' },
