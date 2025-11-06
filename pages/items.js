@@ -181,6 +181,7 @@ export default function ItemsHome() {
   }, [showAll, hasMore, loadingMore, loadMore])
 
   const handleUpdateItemsCSV = async () => {
+    console.log('CSV button clicked!')
     setCsvUpdating(true)
     setCsvMessage('')
     try {
@@ -247,14 +248,15 @@ export default function ItemsHome() {
               Analysis
             </a>
             
-            {/* Items CSV Update Button */}
+            {/* Items CSV Update Button - Debug: Always visible */}
             <button
               onClick={handleUpdateItemsCSV}
               disabled={csvUpdating}
               title="Update Items CSV"
-              className="text-xs inline-flex items-center gap-1 px-2 py-1 rounded border border-green-600 text-green-700 bg-green-50 hover:bg-green-100 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="text-sm inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-green-600 text-white bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+              style={{display: 'inline-flex'}}
             >
-              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
               </svg>
               <span>{csvUpdating ? 'Updating...' : 'CSV Items'}</span>
