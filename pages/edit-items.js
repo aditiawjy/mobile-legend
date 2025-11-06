@@ -146,9 +146,13 @@ export default function EditItemsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(fieldsToUpdate),
       })
-      if (!res.ok) throw new Error('Gagal menyimpan perubahan')
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}))
+        throw new Error(errData.error || `Gagal menyimpan perubahan (${res.status})`)
+      }
+      const updatedData = await res.json()
       setOk('Perubahan berhasil disimpan')
-      setData(prev => ({ ...prev, ...fieldsToUpdate, item_name: name }))
+      setData(prev => ({ ...prev, ...updatedData, item_name: name }))
     } catch (e) {
       setErr(e.message || 'Error')
     } finally {
