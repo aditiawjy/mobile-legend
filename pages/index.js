@@ -248,18 +248,18 @@ export default function Home() {
                   <button
                     onClick={handleUpdateCSV}
                     disabled={csvUpdating}
-                    title="Update Heroes CSV file with latest database data"
-                    className="text-sm inline-flex items-center gap-1.5 px-4 py-2 rounded-lg border-2 border-green-500 text-white bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-sm"
+                    title="Update Heroes CSV"
+                    className="text-xs inline-flex items-center gap-1 px-2 py-1 rounded border border-green-600 text-green-700 bg-green-50 hover:bg-green-100 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                     </svg>
-                    <span>{csvUpdating ? 'Updating CSV...' : 'Update Heroes CSV'}</span>
+                    <span>{csvUpdating ? 'Updating...' : 'CSV Heroes'}</span>
                   </button>
                   {csvMessage && (
-                    <div className="fixed top-20 right-4 z-50 px-4 py-3 rounded-lg shadow-lg bg-green-600 text-white font-medium animate-pulse">
+                    <span className="text-xs text-green-700 bg-green-100 px-2 py-1 rounded">
                       {csvMessage}
-                    </div>
+                    </span>
                   )}
                   
                   <a href="/edit-matches" className="text-sm inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-gray-200 text-gray-700 bg-white hover:bg-gray-100">Matches</a>
