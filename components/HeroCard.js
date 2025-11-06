@@ -6,6 +6,15 @@ export default function HeroCard({ hero, heroAttrs, heroAdjs, onEdit }) {
   
   const formatDate = (dateString) => {
     if (!dateString) return '-'
+    // If it's already in YYYY-MM-DD format, parse it carefully
+    if (/^\d{4}-\d{2}-\d{2}/.test(dateString)) {
+      const parts = dateString.slice(0, 10).split('-')
+      const year = parseInt(parts[0], 10)
+      const month = parseInt(parts[1], 10)
+      const day = parseInt(parts[2], 10)
+      return `${String(day).padStart(2, '0')}-${String(month).padStart(2, '0')}-${year}`
+    }
+    // Otherwise parse as ISO/other format using local timezone
     const date = new Date(dateString)
     if (isNaN(date)) return '-'
     const day = String(date.getDate()).padStart(2, '0')
