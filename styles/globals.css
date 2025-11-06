@@ -1,0 +1,9 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Apply Poppins as the default sans font via Tailwind */
+@layer base {
+  html, body, #__next { height: 100%; }
+  body { @apply font-sans; }
+}
