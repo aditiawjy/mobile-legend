@@ -248,23 +248,22 @@ export default function ItemsHome() {
             </a>
             
             {/* Items CSV Update Button */}
-            <div className="flex items-center gap-2">
-              <button
-                onClick={handleUpdateItemsCSV}
-                disabled={csvUpdating}
-                className="text-sm inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-green-200 text-green-700 bg-green-50 hover:bg-green-100 disabled:opacity-50"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                </svg>
-                {csvUpdating ? 'Updating...' : 'Items CSV'}
-              </button>
-              {csvMessage && (
-                <span className="text-xs font-medium text-green-700 bg-green-50 px-2 py-1 rounded whitespace-nowrap">
-                  {csvMessage}
-                </span>
-              )}
-            </div>
+            <button
+              onClick={handleUpdateItemsCSV}
+              disabled={csvUpdating}
+              title="Update Items CSV file with latest database data"
+              className="text-sm inline-flex items-center gap-1.5 px-4 py-2 rounded-lg border-2 border-green-500 text-white bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-sm"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              <span>{csvUpdating ? 'Updating CSV...' : 'Update Items CSV'}</span>
+            </button>
+            {csvMessage && (
+              <div className="fixed top-20 right-4 z-50 px-4 py-3 rounded-lg shadow-lg bg-green-600 text-white font-medium animate-pulse">
+                {csvMessage}
+              </div>
+            )}
             
             <a
               href="/compare-items"
