@@ -19,7 +19,7 @@ export default async function handler(req, res) {
 
     if (req.method === 'PUT') {
       const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body
-      const fields = ['category', 'price', 'description', 'image_url']
+      const fields = ['category', 'price', 'description', 'image_url', 'attack', 'attack_speed', 'crit_chance', 'armor_pen', 'spell_vamp', 'magic_power', 'hp', 'armor', 'magic_resist', 'movement_speed', 'cooldown_reduction', 'mana_regen', 'hp_regen']
       const updates = []
       const params = []
       for (const f of fields) {

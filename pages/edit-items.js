@@ -3,9 +3,22 @@ import { useRouter } from 'next/router'
 
 const fields = [
   { key: 'category', label: 'Category' },
-  { key: 'price', label: 'Price' },
+  { key: 'price', label: 'Price', type: 'number' },
   { key: 'description', label: 'Description', textarea: true },
   { key: 'image_url', label: 'Image URL', placeholder: 'https://example.com/image.png' },
+  { key: 'attack', label: 'Attack', type: 'number' },
+  { key: 'attack_speed', label: 'Attack Speed', type: 'number', step: '0.01' },
+  { key: 'crit_chance', label: 'Crit Chance', type: 'number', step: '0.01' },
+  { key: 'armor_pen', label: 'Armor Pen', type: 'number', step: '0.01' },
+  { key: 'spell_vamp', label: 'Spell Vamp', type: 'number', step: '0.01' },
+  { key: 'magic_power', label: 'Magic Power', type: 'number' },
+  { key: 'hp', label: 'HP', type: 'number' },
+  { key: 'armor', label: 'Armor', type: 'number' },
+  { key: 'magic_resist', label: 'Magic Resist', type: 'number' },
+  { key: 'movement_speed', label: 'Movement Speed', type: 'number' },
+  { key: 'cooldown_reduction', label: 'Cooldown Reduction', type: 'number', step: '0.01' },
+  { key: 'mana_regen', label: 'Mana Regen', type: 'number' },
+  { key: 'hp_regen', label: 'HP Regen', type: 'number' },
 ]
 
 export default function EditItemsPage() {
@@ -249,9 +262,10 @@ export default function EditItemsPage() {
                     />
                   ) : (
                     <input
-                      type={f.key === 'price' ? 'number' : 'text'}
+                      type={f.type || 'text'}
                       value={fieldValue}
                       onChange={(e) => onChange(f.key, e.target.value)}
+                      step={f.step}
                       className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 focus:border-black focus:ring-black"
                       placeholder={f.placeholder || `Masukkan ${f.label.toLowerCase()}...`}
                     />
