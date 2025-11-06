@@ -11,6 +11,8 @@ export default function ItemsHome() {
   const { addToast } = useToast()
   const [q, setQ] = useState('')
   const [activeIndex, setActiveIndex] = useState(-1)
+  const [csvUpdating, setCsvUpdating] = useState(false)
+  const [csvMessage, setCsvMessage] = useState('')
   const dropdownRef = useRef(null)
   const inputRef = useRef(null)
   const loaderRef = useRef(null)
@@ -178,6 +180,31 @@ export default function ItemsHome() {
     }
   }, [showAll, hasMore, loadingMore, loadMore])
 
+  const handleUpdateItemsCSV = async () => {
+    setCsvUpdating(true)
+    setCsvMessage('')
+    try {
+      const response = await fetch('/api/export/items-csv', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      })
+      
+      if (response.ok) {
+        const data = await response.json()
+        setCsvMessage(`✓ CSV updated! (${data.itemCount} items)`)
+        setTimeout(() => setCsvMessage(''), 3000)
+      } else {
+        const error = await response.json()
+        setCsvMessage(`✗ Error: ${error.error}`)
+      }
+    } catch (error) {
+      console.error('Error updating items CSV:', error)
+      setCsvMessage('✗ Error updating CSV')
+    } finally {
+      setCsvUpdating(false)
+    }
+  }
+
   return (
     <AppLayout>
       <div className="bg-gradient-to-br from-blue-50 via-white to-green-50 min-h-screen">
@@ -216,6 +243,26 @@ export default function ItemsHome() {
             >
               Analysis
             </a>
+            
+            {/* Items CSV Update Button */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleUpdateItemsCSV}
+                disabled={csvUpdating}
+                className="text-sm inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-green-200 text-green-700 bg-green-50 hover:bg-green-100 disabled:opacity-50"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                {csvUpdating ? 'Updating...' : 'Update CSV'}
+              </button>
+              {csvMessage && (
+                <span className="text-xs font-medium text-green-700 bg-green-50 px-2 py-1 rounded whitespace-nowrap">
+                  {csvMessage}
+                </span>
+              )}
+            </div>
+            
             <a
               href="/compare-items"
               className="text-sm inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-purple-200 text-purple-700 bg-purple-50 hover:bg-purple-100"
