@@ -70,7 +70,11 @@ export default function Home() {
         const response = await fetch('/api/heroes/adjustments?limit=10&sort=date_desc')
         if (response.ok) {
           const data = await response.json()
+          console.log('Adjustments data:', data)
           setHeroAdjustments(Array.isArray(data) ? data : [])
+        } else {
+          console.error('Failed to fetch adjustments:', response.status)
+          setHeroAdjustments([])
         }
       } catch (error) {
         console.error('Error fetching adjustments:', error)
@@ -276,7 +280,14 @@ export default function Home() {
                           </div>
                           <p className="text-gray-700 text-sm">{adj.description}</p>
                           <p className="text-xs text-gray-500 mt-2">
-                            {adj.adjustment_date ? new Date(adj.adjustment_date).toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' }) : 'N/A'}
+                            {adj.adjustment_date ? (() => {
+                              try {
+                                const date = new Date(adj.adjustment_date)
+                                return !isNaN(date) ? date.toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' }) : adj.adjustment_date
+                              } catch (e) {
+                                return adj.adjustment_date
+                              }
+                            })() : 'No date'}
                           </p>
                         </div>
                         <a
