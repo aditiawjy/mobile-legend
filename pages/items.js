@@ -220,10 +220,16 @@ export default function ItemsHome() {
               placeholder="Ketik nama item..."
               className="w-full rounded-none border border-black bg-white focus:border-black focus:ring-black pr-10 px-3 py-2 rounded-xs"
               autoComplete="off"
+              role="combobox"
+              aria-controls="itemSuggestions"
+              aria-expanded={suggestions.length > 0}
+              aria-activedescendant={activeIndex >= 0 ? `item-option-${activeIndex}` : undefined}
             />
             {(suggestions.length > 0 || suggestionsLoading) && (
               <div
+                id="itemSuggestions"
                 ref={dropdownRef}
+                role="listbox"
                 className="absolute z-10 mt-2 w-full bg-white border border-gray-200 rounded-xl shadow-lg max-h-72 overflow-auto"
               >
                 {suggestionsLoading ? (
@@ -235,8 +241,14 @@ export default function ItemsHome() {
                   suggestions.map((name, i) => (
                     <div
                       key={name + i}
+                      id={`item-option-${i}`}
+                      role="option"
+                      aria-selected={i === activeIndex}
                       className={`cursor-pointer px-4 py-2 text-sm text-gray-700 ${i === 0 ? 'rounded-t-xl' : ''} ${i === suggestions.length - 1 ? 'rounded-b-xl' : ''} ${i === activeIndex ? 'bg-gray-100' : ''}`}
                       onMouseDown={(e) => { e.preventDefault(); onSelect(name) }}
+                      onMouseEnter={() => {
+                        router.prefetch(`/item/${encodeURIComponent(name)}`)
+                      }}
                     >
                       {name}
                     </div>

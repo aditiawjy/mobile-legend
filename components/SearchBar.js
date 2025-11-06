@@ -1,7 +1,9 @@
 import { useState, useRef, useEffect } from 'react'
+import { useRouter } from 'next/router'
 import { colors, shadows, borderRadius } from '../lib/design-system'
 
 export default function SearchBar({ onSearch, placeholder = "Cari hero..." }) {
+  const router = useRouter()
   const [query, setQuery] = useState('')
   const [suggestions, setSuggestions] = useState([])
   const [isOpen, setIsOpen] = useState(false)
@@ -121,6 +123,10 @@ export default function SearchBar({ onSearch, placeholder = "Cari hero..." }) {
           placeholder={placeholder}
           className="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 bg-white shadow-sm transition-all duration-150"
           autoComplete="off"
+          role="combobox"
+          aria-controls="heroSuggestions"
+          aria-expanded={isOpen}
+          aria-activedescendant={activeIndex >= 0 ? `hero-option-${activeIndex}` : undefined}
         />
 
         <div className="absolute inset-y-0 right-0 flex items-center">
@@ -150,12 +156,17 @@ export default function SearchBar({ onSearch, placeholder = "Cari hero..." }) {
       {/* Dropdown */}
       {isOpen && suggestions.length > 0 && (
         <div
+          id="heroSuggestions"
           ref={dropdownRef}
+          role="listbox"
           className="absolute z-50 mt-1 w-full bg-white shadow-lg border border-gray-200 rounded-lg max-h-72 overflow-auto"
         >
           {suggestions.map((hero, index) => (
             <div
               key={hero}
+              id={`hero-option-${index}`}
+              role="option"
+              aria-selected={index === activeIndex}
               className={`px-4 py-3 text-sm cursor-pointer transition-colors duration-150 ${
                 index === activeIndex
                   ? 'bg-sky-50 text-sky-700 border-l-4 border-sky-500'
@@ -164,7 +175,10 @@ export default function SearchBar({ onSearch, placeholder = "Cari hero..." }) {
                 index === suggestions.length - 1 ? 'rounded-b-lg' : ''
               }`}
               onClick={() => handleSelect(hero)}
-              onMouseEnter={() => setActiveIndex(index)}
+              onMouseEnter={() => {
+                setActiveIndex(index)
+                router.prefetch(`/hero/${encodeURIComponent(hero)}`)
+              }}
             >
               <div className="flex items-center">
                 <svg className="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
