@@ -144,10 +144,26 @@ export default function DamageCompositionPage() {
     <AppLayout>
       <div className="bg-gradient-to-br from-purple-50 via-white to-pink-50 min-h-screen py-8">
         <div className="max-w-6xl mx-auto px-4">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">Team Damage Analysis</h1>
-            <p className="text-gray-600">Analisis komposisi damage team musuh dan dapatkan rekomendasi item efisien</p>
-          </div>
+          <header className="mb-8 flex items-start justify-between gap-4">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-800 mb-2">Team Damage Analysis</h1>
+              <p className="text-gray-600">Analisis komposisi damage team musuh dan dapatkan rekomendasi item efisien</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <a href="/" className="text-sm inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-gray-200 text-gray-700 bg-white hover:bg-gray-100">
+                Heroes
+              </a>
+              <a href="/items" className="text-sm inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-gray-200 text-gray-700 bg-white hover:bg-gray-100">
+                Items
+              </a>
+              <a href="/compare-items" className="text-sm inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-purple-200 text-purple-700 bg-purple-50 hover:bg-purple-100">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+                Compare
+              </a>
+            </div>
+          </header>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Hero Selection */}
