@@ -34,16 +34,28 @@ export default async function handler(req, res) {
 
     const csvContent = csvHeader + csvRows
 
+    console.log(`[ITEMS-CSV] CSV content prepared: ${csvContent.length} bytes, ${items.length} items`)
+    console.log(`[ITEMS-CSV] First 200 chars: ${csvContent.substring(0, 200)}`)
+
     // Save to public/csv folder with single filename
     const csvDir = path.join(process.cwd(), 'public', 'csv')
+    console.log(`[ITEMS-CSV] CSV directory: ${csvDir}`)
+    
     if (!fs.existsSync(csvDir)) {
+      console.log('[ITEMS-CSV] Creating CSV directory...')
       fs.mkdirSync(csvDir, { recursive: true })
     }
 
     const filepath = path.join(csvDir, 'items.csv')
-    fs.writeFileSync(filepath, csvContent, 'utf-8')
+    console.log(`[ITEMS-CSV] Writing to: ${filepath}`)
+    
+    // Force write with explicit encoding
+    fs.writeFileSync(filepath, csvContent, { encoding: 'utf-8', flag: 'w' })
+    
+    console.log('[ITEMS-CSV] File written successfully')
 
     const stats = fs.statSync(filepath)
+    console.log(`[ITEMS-CSV] File stats - Size: ${stats.size} bytes, Modified: ${stats.mtime}`)
     
     console.log(`[ITEMS-CSV] Success! Items CSV updated: items.csv (${items.length} items, ${stats.size} bytes)`)
 
