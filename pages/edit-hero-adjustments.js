@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
 
-
 export default function EditHeroAdjustmentsPage() {
   const router = useRouter()
   const name = typeof router.query.name === 'string' ? router.query.name : ''
@@ -105,6 +104,13 @@ export default function EditHeroAdjustmentsPage() {
 
   const onEditFormChange = (key, value) => {
     setEditForm(prev => ({ ...prev, [key]: value }))
+  }
+
+  const formatDateForInput = (dateString) => {
+    if (!dateString) return ''
+    const date = new Date(dateString)
+    if (isNaN(date)) return ''
+    return date.toISOString().slice(0, 10)
   }
 
   const onSubmit = async (e) => {
@@ -289,7 +295,7 @@ export default function EditHeroAdjustmentsPage() {
                               <button
                                 type="button"
                                 className="text-xs px-2 py-1 rounded-md border border-gray-200 bg-white text-gray-700 hover:bg-gray-100"
-                                onClick={() => { setEditingId(row.id); setEditForm({ adj_date: row.adj_date || '', season: row.season || '', description: row.description || '' }) }}
+                                onClick={() => { setEditingId(row.id); setEditForm({ adj_date: formatDateForInput(row.adj_date), season: row.season || '', description: row.description || '' }) }}
                               >
                                 Edit
                               </button>
@@ -299,7 +305,7 @@ export default function EditHeroAdjustmentsPage() {
                                 onClick={async () => {
                                   if (!confirm('Hapus adjustment ini?')) return
                                   try {
-                                    const resp = await fetch(`/api/heroes/${encodeURIComponent(hero)}/adjustments/${row.id}`, { method: 'DELETE' })
+                                    const resp = await fetch(`/api/heroes/${encodeURIComponent(name)}/adjustments/${row.id}`, { method: 'DELETE' })
                                     if (!resp.ok) throw new Error('Gagal menghapus')
                                     setList(prev => prev.filter(x => x.id !== row.id))
                                   } catch (e) {
