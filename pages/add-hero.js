@@ -25,21 +25,43 @@ export default function AddHeroPage() {
     const fetchOptions = async () => {
       try {
         setLoadingOptions(true)
+        console.log('Fetching all heroes from database...')
         const res = await fetch('/api/heroes')
-        if (res.ok) {
-          const heroes = await res.json()
-          
-          // Extract unique values
-          const uniqueRoles = [...new Set(heroes.map(h => h.role).filter(Boolean))].sort()
-          const uniqueDamageTypes = [...new Set(heroes.map(h => h.damage_type).filter(Boolean))].sort()
-          const uniqueAttackReliances = [...new Set(heroes.map(h => h.attack_reliance).filter(Boolean))].sort()
-          
-          setRoles(uniqueRoles)
-          setDamageTypes(uniqueDamageTypes)
-          setAttackReliances(uniqueAttackReliances)
+        
+        if (!res.ok) {
+          console.error(`API error: ${res.status} ${res.statusText}`)
+          const errorText = await res.text()
+          console.error('Error response:', errorText)
+          setLoadingOptions(false)
+          return
         }
+        
+        const heroes = await res.json()
+        console.log(`Received ${heroes.length} heroes from database`)
+        
+        if (!Array.isArray(heroes)) {
+          console.error('Expected array of heroes, got:', typeof heroes)
+          setLoadingOptions(false)
+          return
+        }
+        
+        // Extract unique values
+        const uniqueRoles = [...new Set(heroes.map(h => h.role).filter(Boolean))].sort()
+        const uniqueDamageTypes = [...new Set(heroes.map(h => h.damage_type).filter(Boolean))].sort()
+        const uniqueAttackReliances = [...new Set(heroes.map(h => h.attack_reliance).filter(Boolean))].sort()
+        
+        console.log('Options loaded:', {
+          roles: uniqueRoles.length,
+          damageTypes: uniqueDamageTypes.length,
+          attackReliances: uniqueAttackReliances.length
+        })
+        
+        setRoles(uniqueRoles)
+        setDamageTypes(uniqueDamageTypes)
+        setAttackReliances(uniqueAttackReliances)
       } catch (error) {
-        console.error('Error fetching options:', error)
+        console.error('Error fetching options:', error.message)
+        console.error('Full error:', error)
       } finally {
         setLoadingOptions(false)
       }
@@ -143,23 +165,40 @@ export default function AddHeroPage() {
                 <label htmlFor="role" className="block text-sm font-medium text-gray-700">
                   Role (Opsional)
                 </label>
-                <select
-                  id="role"
-                  name="role"
-                  value={formData.role}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
-                  disabled={loading || loadingOptions}
-                >
-                  <option value="">Pilih role...</option>
-                  {roles.map(role => (
-                    <option key={role} value={role}>
-                      {role}
-                    </option>
-                  ))}
-                </select>
+                {loadingOptions ? (
+                  <div className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 flex items-center text-sm text-gray-500">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-sky-600 mr-2"></div>
+                    Loading...
+                  </div>
+                ) : roles.length > 0 ? (
+                  <select
+                    id="role"
+                    name="role"
+                    value={formData.role}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
+                    disabled={loading}
+                  >
+                    <option value="">Pilih role...</option>
+                    {roles.map(role => (
+                      <option key={role} value={role}>
+                        {role}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    type="text"
+                    name="role"
+                    value={formData.role}
+                    onChange={handleChange}
+                    placeholder="Masukkan role (e.g., Warrior, Mage)"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
+                    disabled={loading}
+                  />
+                )}
                 <p className="text-xs text-gray-500">
-                  Pilih role hero atau biarkan kosong untuk update nanti
+                  {roles.length > 0 ? 'Pilih dari daftar atau biarkan kosong' : 'Tidak ada data dari database, ketik manual'}
                 </p>
               </div>
 
@@ -168,23 +207,40 @@ export default function AddHeroPage() {
                 <label htmlFor="damage_type" className="block text-sm font-medium text-gray-700">
                   Damage Type (Opsional)
                 </label>
-                <select
-                  id="damage_type"
-                  name="damage_type"
-                  value={formData.damage_type}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
-                  disabled={loading || loadingOptions}
-                >
-                  <option value="">Pilih damage type...</option>
-                  {damageTypes.map(type => (
-                    <option key={type} value={type}>
-                      {type}
-                    </option>
-                  ))}
-                </select>
+                {loadingOptions ? (
+                  <div className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 flex items-center text-sm text-gray-500">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-sky-600 mr-2"></div>
+                    Loading...
+                  </div>
+                ) : damageTypes.length > 0 ? (
+                  <select
+                    id="damage_type"
+                    name="damage_type"
+                    value={formData.damage_type}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
+                    disabled={loading}
+                  >
+                    <option value="">Pilih damage type...</option>
+                    {damageTypes.map(type => (
+                      <option key={type} value={type}>
+                        {type}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    type="text"
+                    name="damage_type"
+                    value={formData.damage_type}
+                    onChange={handleChange}
+                    placeholder="Masukkan damage type (e.g., Physical, Magical)"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
+                    disabled={loading}
+                  />
+                )}
                 <p className="text-xs text-gray-500">
-                  Jenis damage yang dihasilkan hero
+                  {damageTypes.length > 0 ? 'Jenis damage yang dihasilkan hero' : 'Tidak ada data dari database, ketik manual'}
                 </p>
               </div>
 
@@ -193,23 +249,40 @@ export default function AddHeroPage() {
                 <label htmlFor="attack_reliance" className="block text-sm font-medium text-gray-700">
                   Attack Reliance (Opsional)
                 </label>
-                <select
-                  id="attack_reliance"
-                  name="attack_reliance"
-                  value={formData.attack_reliance}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
-                  disabled={loading || loadingOptions}
-                >
-                  <option value="">Pilih attack reliance...</option>
-                  {attackReliances.map(reliance => (
-                    <option key={reliance} value={reliance}>
-                      {reliance}
-                    </option>
-                  ))}
-                </select>
+                {loadingOptions ? (
+                  <div className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 flex items-center text-sm text-gray-500">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-sky-600 mr-2"></div>
+                    Loading...
+                  </div>
+                ) : attackReliances.length > 0 ? (
+                  <select
+                    id="attack_reliance"
+                    name="attack_reliance"
+                    value={formData.attack_reliance}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
+                    disabled={loading}
+                  >
+                    <option value="">Pilih attack reliance...</option>
+                    {attackReliances.map(reliance => (
+                      <option key={reliance} value={reliance}>
+                        {reliance}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    type="text"
+                    name="attack_reliance"
+                    value={formData.attack_reliance}
+                    onChange={handleChange}
+                    placeholder="Masukkan attack reliance (e.g., Skill, Basic Attack)"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
+                    disabled={loading}
+                  />
+                )}
                 <p className="text-xs text-gray-500">
-                  Ketergantungan pada basic attack atau skill
+                  {attackReliances.length > 0 ? 'Ketergantungan pada basic attack atau skill' : 'Tidak ada data dari database, ketik manual'}
                 </p>
               </div>
 
