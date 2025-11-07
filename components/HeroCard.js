@@ -178,33 +178,15 @@ export default function HeroCard({ hero, heroAttrs, heroAdjs, onEdit }) {
           </div>
         )}
 
-        {/* Additional Note */}
-        {hero.additional_note && (
+        {/* Note from Database */}
+        {hero.note && hero.note.trim() && (
           <div className="border-t border-gray-100 pt-4 mt-4">
-            <div className="bg-blue-50 rounded-lg p-3">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <h5 className="text-sm font-medium text-blue-900 mb-1">Additional Note</h5>
-                  <p className="text-sm text-blue-800 whitespace-pre-wrap">{hero.additional_note}</p>
-                </div>
-                <button
-                  onClick={() => window.location.href = `/obsidia-note`}
-                  className="ml-2 text-xs text-blue-600 hover:text-blue-800 underline"
-                >
-                  Edit
-                </button>
-              </div>
+            <div className="bg-blue-50 rounded-lg p-4">
+              <h5 className="text-sm font-medium text-blue-900 mb-2">Note</h5>
+              <p className="text-sm text-blue-800 whitespace-pre-wrap leading-relaxed">{hero.note}</p>
             </div>
           </div>
         )}
-
-        {/* Footer */}
-        <div className="border-t border-gray-100 pt-4 mt-4">
-          <div className="flex items-center justify-between text-xs text-gray-500">
-            <span>{hero.note || 'No additional notes'}</span>
-            <span>{hero.attack_reliance || 'Standard reliance'}</span>
-          </div>
-        </div>
       </div>
     </div>
   )
