@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import AppLayout from '../components/AppLayout'
 import { useToast } from '../components/Toast'
@@ -7,37 +7,46 @@ export default function AddHeroPage() {
   const router = useRouter()
   const { addToast } = useToast()
   const [loading, setLoading] = useState(false)
+  const [loadingOptions, setLoadingOptions] = useState(true)
   const [formData, setFormData] = useState({
     hero_name: '',
     role: '',
     damage_type: '',
     attack_reliance: '',
+    mana: '',
   })
 
-  const roles = [
-    'Warrior',
-    'Mage',
-    'Support',
-    'Marksman',
-    'Assassin',
-    'Fighter',
-    'Tank',
-    'Jungler'
-  ]
+  const [roles, setRoles] = useState([])
+  const [damageTypes, setDamageTypes] = useState([])
+  const [attackReliances, setAttackReliances] = useState([])
 
-  const damageTypes = [
-    'Physical',
-    'Magical',
-    'True',
-    'Mixed'
-  ]
+  // Fetch dropdown options from database
+  useEffect(() => {
+    const fetchOptions = async () => {
+      try {
+        setLoadingOptions(true)
+        const res = await fetch('/api/heroes')
+        if (res.ok) {
+          const heroes = await res.json()
+          
+          // Extract unique values
+          const uniqueRoles = [...new Set(heroes.map(h => h.role).filter(Boolean))].sort()
+          const uniqueDamageTypes = [...new Set(heroes.map(h => h.damage_type).filter(Boolean))].sort()
+          const uniqueAttackReliances = [...new Set(heroes.map(h => h.attack_reliance).filter(Boolean))].sort()
+          
+          setRoles(uniqueRoles)
+          setDamageTypes(uniqueDamageTypes)
+          setAttackReliances(uniqueAttackReliances)
+        }
+      } catch (error) {
+        console.error('Error fetching options:', error)
+      } finally {
+        setLoadingOptions(false)
+      }
+    }
 
-  const attackReliances = [
-    'Basic Attack',
-    'Skill',
-    'Auto Attack',
-    'Balanced'
-  ]
+    fetchOptions()
+  }, [])
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -107,9 +116,10 @@ export default function AddHeroPage() {
           </div>
 
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Hero Name */}
-              <div className="space-y-2">
+            <form onSubmit={handleSubmit} className="">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                {/* Hero Name */}
+                <div className="space-y-2 md:col-span-2">
                 <label htmlFor="hero_name" className="block text-sm font-medium text-gray-700">
                   Nama Hero <span className="text-red-500">*</span>
                 </label>
@@ -139,7 +149,7 @@ export default function AddHeroPage() {
                   value={formData.role}
                   onChange={handleChange}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
-                  disabled={loading}
+                  disabled={loading || loadingOptions}
                 >
                   <option value="">Pilih role...</option>
                   {roles.map(role => (
@@ -164,7 +174,7 @@ export default function AddHeroPage() {
                   value={formData.damage_type}
                   onChange={handleChange}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
-                  disabled={loading}
+                  disabled={loading || loadingOptions}
                 >
                   <option value="">Pilih damage type...</option>
                   {damageTypes.map(type => (
@@ -189,7 +199,7 @@ export default function AddHeroPage() {
                   value={formData.attack_reliance}
                   onChange={handleChange}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
-                  disabled={loading}
+                  disabled={loading || loadingOptions}
                 >
                   <option value="">Pilih attack reliance...</option>
                   {attackReliances.map(reliance => (
@@ -203,8 +213,29 @@ export default function AddHeroPage() {
                 </p>
               </div>
 
+              {/* Mana */}
+              <div className="space-y-2 md:col-span-2">
+                <label htmlFor="mana" className="block text-sm font-medium text-gray-700">
+                  Mana (Opsional)
+                </label>
+                <textarea
+                  id="mana"
+                  name="mana"
+                  value={formData.mana}
+                  onChange={handleChange}
+                  placeholder="Catatan tentang mana hero ini..."
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
+                  rows={4}
+                  disabled={loading}
+                />
+                <p className="text-xs text-gray-500">
+                  Catatan atau deskripsi tentang mana hero
+                </p>
+              </div>
+              </div>
+
               {/* Info Box */}
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
                 <div className="flex">
                   <div className="flex-shrink-0">
                     <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
@@ -221,7 +252,7 @@ export default function AddHeroPage() {
               </div>
 
               {/* Buttons */}
-              <div className="flex justify-between pt-4 border-t border-gray-200">
+              <div className="flex justify-between pt-6 border-t border-gray-200">
                 <button
                   type="button"
                   onClick={() => router.back()}
