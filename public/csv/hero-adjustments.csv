@@ -23,12 +23,46 @@ Hilda activates the runic power of her giant axe, increasing her Movement Speed 
 Reduced the foreswing of Skill 2's third attack by 33%.
 [Skill 3 Adjustments] Buff
 Optimited the Ultimate's pursuit range and increased its hit rate after locking on."
+"Obsidia","04-11-2025","38","We aim to improve Obsidia's fighting capability when her Ultimate hits in the aerly game, while reducing her damage output in the late game.
+
+[Attribute Adjustments] Nerf
+Physical Attack Growth : 7.5 >> 5
+
+[Skill 3 Adjustments] Buff
+New Effect : Increases Attack Speed by 30% after the Ultimate hits."
+"Atlas","03-11-2025","38","Atlas's Skill 2 and Ultimate lack clear range indicators in actual combat to determine whether they can hit enemies.
+So we've adjusted the ranges of his passive Frigid Breath, Skill 2's stun,and the Ultimate's first-stage slow effect to be completely consistent. Players can now use the visual effect circle of Frigid Breath as a range indicator for other skills, improving overall skill hit rate.
+Additionally, the Physical & Magic Defense boost from Atlas's Passive cannot scale with his economic growth, so we've adjusted its numerical structure to scale based on his Extra HP.
+To balance this change, we've slightly reduced the stun duration after Atlas returns to Mecha in Skill 2.
+
+[Passive Adjustments] Buff
+Frigid Breath Range : 2 >> 3
+Physical & Magic Defense Boot : 12-30 >> 20+0.5% Extra HP
+
+[Skill 2 Adjustments] Adjust
+Damage and Stun Range after Atlas Returns to Mecha : 2.5 >> 3
+Stun Duration after Atlas Returns to Mecha : 1s >> 0.8s
+
+[Skill 3 Adjustments] Buff
+Slow Range of the First Stage : 3.5 >> 3"
 "Balmond","03-11-2025","38","We aim slightly raise Balmond's control ceiling in high-level matches.
 
 [Passive Adjustments] Buff
 New Effect : Hitting an enemy hero reduces their Physical Defense by 40% for 3s.
 Slow Effect : 60% for 2s >> 40% for 3s
 Cooldown : 8-5s >> 8-6s"
+"Benedetta","03-11-2025","38","When Benedetta's skills hit consecutively, her Sword intent accumulates quickly to full. However, holding the Basic Attack button to enter the Swordout state may affect the control experience of skill-combo transitions into Swordout Slash.
+Therefore, we've shortened then detection time fot entering the Swordout state when holding the Basic Attack button, allowing Benedetta to enter the state more quickly and improving control fluidity and responsiveness.
+Additionally, after dealing damage 3 times with Basic Attacks or skills, Benedetta's Sword Intent gauge falls slightly short of being full, affecting the controls of her Swordout Slash combos.
+Therefore, we've increased the amount of Sword Intent gained from dealing damage.It now only takes 3 hits from Basic Attacks or skills to fully charge her Sword Intent.
+We've also fixed an issue where Benedetta would continue charging Swordout Slash after being interrupted by control effects, which could cause her to cast it unintentionally once the control effect ended.
+
+[Passive Adjustments] Buff
+Sword Intent Gained from Dealing Damage 30 >> 34
+The detection time for entering the Swordout state when holding the Basic Attack button has been reduced by 40%.
+When Benedetta is interrupted by control effects while charging Swordout Slash,
+the charge state will be interrupted, and her current Sword Intent will be retained.After the control effect ends, she needs to hold down Basic Attack again to enter the charge state.
+When Benedetta is in Swordout state and gets controlled while Sword Intent decays. her Swordout state will be interrupted and restored to full Sword intent. After the control effect ends, she needs to hold down Basic Attack again to enter th"
 "Change","03-11-2025","38","Chang'e's tower pushing efficiency in the early-mid game is too high compared to other Mages, so we reduced her enhanced Basic Attack Damage. Damage and balanced it by reducing Skill 1's mid-late game cooldown.
 
 [Skill 1 Adjustments] Buff
