@@ -1,0 +1,62 @@
+Rule Type,Primary Role,Compatible Role,Priority,Hero Name,Notes
+role_compatibility,Marksman,Tank,1,,Tank protects backline ADC
+role_compatibility,Marksman,Support,2,,Support heals and buffs ADC
+role_compatibility,Marksman,Mage,3,,Mage provides burst damage and CC
+role_compatibility,Marksman,Fighter,4,,Fighter provides frontline pressure
+role_compatibility,Mage,Tank,1,,Tank initiates for mage follow-up
+role_compatibility,Mage,Support,2,,Support sustains mage resources
+role_compatibility,Mage,Marksman,3,,Marksman provides physical damage
+role_compatibility,Mage,Assassin,4,,Assassin provides burst damage combo
+role_compatibility,Mage,Fighter,5,,Fighter provides mixed damage
+role_compatibility,Tank,Marksman,1,,Marksman provides high damage output
+role_compatibility,Tank,Mage,2,,Mage provides magic damage burst
+role_compatibility,Tank,Support,3,,Support provides utility and sustain
+role_compatibility,Tank,Fighter,4,,Fighter provides damage and CC combo
+role_compatibility,Tank,Assassin,5,,Assassin provides burst elimination
+role_compatibility,Support,Marksman,1,,Marksman is primary carry to protect
+role_compatibility,Support,Tank,2,,Tank absorbs damage while support heals
+role_compatibility,Support,Mage,3,,Mage provides burst damage output
+role_compatibility,Support,Fighter,4,,Fighter benefits from sustain
+role_compatibility,Support,Assassin,5,,Assassin benefits from shields and buffs
+role_compatibility,Fighter,Tank,1,,Tank provides CC for fighter to follow
+role_compatibility,Fighter,Support,2,,Support sustains fighter durability
+role_compatibility,Fighter,Mage,3,,Mage provides complementary damage type
+role_compatibility,Fighter,Assassin,4,,Assassin provides burst combo
+role_compatibility,Fighter,Marksman,5,,Marksman provides ranged damage
+role_compatibility,Assassin,Support,1,,Support protects assassin engages
+role_compatibility,Assassin,Mage,2,,Mage provides burst damage combo
+role_compatibility,Assassin,Tank,3,,Tank provides CC for assassination
+role_compatibility,Assassin,Fighter,4,,Fighter provides frontline distraction
+role_compatibility,Jungler,Tank,1,,Tank provides strong ganking setup
+role_compatibility,Jungler,Marksman,2,,Marksman provides late game damage
+role_compatibility,Jungler,Mage,3,,Mage provides burst damage support
+role_compatibility,Jungler,Support,4,,Support provides vision and utility
+hero_priority,Tank,,9,Akai,Strong initiator with CC
+hero_priority,Tank,,8,Franco,Long range hook for picks
+hero_priority,Tank,,8,Khufra,Anti-dash specialist
+hero_priority,Tank,,9,Tigreal,Area CC ultimate
+hero_priority,Tank,,8,Grock,High damage tank
+hero_priority,Tank,,8,Atlas,Multi-target CC
+hero_priority,Support,,9,Angela,Global presence and shields
+hero_priority,Support,,8,Lolita,Projectile blocker
+hero_priority,Support,,7,Diggie,Anti-CC specialist
+hero_priority,Support,,8,Estes,Team healing sustain
+hero_priority,Support,,8,Minotaur,Area heal and CC
+hero_priority,Mage,,8,Cecilion,Scaling damage dealer
+hero_priority,Mage,,8,Eudora,High burst combo
+hero_priority,Mage,,8,Novaria,Long range poke
+hero_priority,Mage,,9,Lunox,Versatile invincibility
+hero_priority,Mage,,8,Luo Yi,Global mobility support
+hero_priority,Fighter,,8,Hilda,Sustain and mobility
+hero_priority,Fighter,,7,Ruby,Lifesteal and CC chain
+hero_priority,Fighter,,8,X.Borg,True damage and durability
+hero_priority,Fighter,,8,Arlott,Burst damage fighter
+hero_priority,Fighter,,7,Balmond,True damage execution
+hero_priority,Assassin,,8,Hayabusa,Split push and burst
+hero_priority,Assassin,,7,Saber,Single target lock
+hero_priority,Assassin,,8,Selena,Long range stun combo
+hero_priority,Assassin,,8,Benedetta,High mobility burst
+hero_priority,Marksman,,7,Miya,Consistent damage output
+hero_priority,Marksman,,8,Claude,Burst and mobility
+hero_priority,Marksman,,8,Karrie,Tank shredder
+hero_priority,Marksman,,6,Layla,Long range damage
