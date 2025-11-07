@@ -156,28 +156,83 @@ export default function DraftPickSimulator() {
             </div>
           </div>
 
-          {/* Team Validation */}
-          <div className="bg-gray-800 border border-gray-700 rounded p-4">
-            <h3 className="font-bold text-lg mb-3">Komposisi Tim</h3>
-            <div className="flex gap-4">
-              <div className={`flex-1 p-3 rounded text-center ${
+          {/* Team Composition Analysis */}
+          <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+            <h3 className="text-xl font-bold mb-4">Team Composition Analysis</h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Balance Status */}
+              <div className={`p-4 rounded-lg text-center ${
                 draftResult.teamValidation.isBalanced
-                  ? 'bg-green-900 border border-green-700'
-                  : 'bg-yellow-900 border border-yellow-700'
+                  ? 'bg-green-900 border-2 border-green-500'
+                  : 'bg-yellow-900 border-2 border-yellow-500'
               }`}>
-                <p className="text-sm text-gray-300">Status</p>
-                <p className="font-bold text-lg">
-                  {draftResult.teamValidation.isBalanced ? '✓ Balanced' : '⚠ Needs Balance'}
+                <p className="text-sm text-gray-300 mb-2">Team Balance</p>
+                <p className="text-2xl font-bold">
+                  {draftResult.teamValidation.isBalanced ? '✓ Balanced' : '⚠ Unbalanced'}
+                </p>
+                <p className="text-xs text-gray-400 mt-2">
+                  {draftResult.teamValidation.isBalanced 
+                    ? '3+ different roles' 
+                    : 'Need more role diversity'}
                 </p>
               </div>
-              <div className="flex-1 p-3 rounded bg-gray-700 border border-gray-600">
-                <p className="text-sm text-gray-300 mb-2">Distribusi Role</p>
-                <div className="space-y-1">
+
+              {/* Role Distribution */}
+              <div className="p-4 bg-gray-700 border border-gray-600 rounded-lg">
+                <p className="text-sm text-gray-300 mb-3 font-semibold">Role Distribution</p>
+                <div className="space-y-2">
                   {Object.entries(draftResult.teamValidation.roleDistribution).map(([role, count]) => (
-                    <p key={role} className="text-sm">
-                      <span className="text-gray-400">{role}:</span> <span className="font-semibold">{count}</span>
-                    </p>
+                    <div key={role} className="flex justify-between items-center">
+                      <span className="text-sm text-gray-400">{role}</span>
+                      <div className="flex items-center gap-2">
+                        <div className="w-16 bg-gray-800 rounded-full h-2">
+                          <div 
+                            className="bg-blue-500 h-2 rounded-full" 
+                            style={{ width: `${(count / draftResult.draft.options.length) * 100}%` }}
+                          />
+                        </div>
+                        <span className="font-semibold text-sm w-6 text-right">{count}</span>
+                      </div>
+                    </div>
                   ))}
+                </div>
+              </div>
+
+              {/* Damage Type Distribution */}
+              <div className="p-4 bg-gray-700 border border-gray-600 rounded-lg">
+                <p className="text-sm text-gray-300 mb-3 font-semibold">Damage Types</p>
+                <div className="space-y-3">
+                  {(() => {
+                    const damageTypes = { physical: 0, magic: 0, mixed: 0 };
+                    draftResult.draft.options.forEach(hero => {
+                      const damageType = hero.damageType?.toLowerCase() || '';
+                      if (damageType.includes('physical') && damageType.includes('magic')) {
+                        damageTypes.mixed++;
+                      } else if (damageType.includes('physical')) {
+                        damageTypes.physical++;
+                      } else if (damageType.includes('magic')) {
+                        damageTypes.magic++;
+                      }
+                    });
+                    
+                    return (
+                      <>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-red-400">Physical</span>
+                          <span className="font-bold text-lg">{damageTypes.physical}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-purple-400">Magic</span>
+                          <span className="font-bold text-lg">{damageTypes.magic}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-yellow-400">Mixed</span>
+                          <span className="font-bold text-lg">{damageTypes.mixed}</span>
+                        </div>
+                      </>
+                    );
+                  })()}
                 </div>
               </div>
             </div>
