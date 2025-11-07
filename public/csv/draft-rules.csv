@@ -60,3 +60,23 @@ hero_priority,Marksman,,7,Miya,Consistent damage output
 hero_priority,Marksman,,8,Claude,Burst and mobility
 hero_priority,Marksman,,8,Karrie,Tank shredder
 hero_priority,Marksman,,6,Layla,Long range damage
+synergy,Miya,Angela,3,Support,Angela ult on Miya provides strong protection for immobile MM
+synergy,Miya,Tigreal,2,Tank,Tigreal ult groups enemies for Miya AoE arrows
+synergy,Miya,Lolita,2,Tank,Lolita shield blocks projectiles protecting Miya
+synergy,Angela,Marksman,3,,Angela works well with any marksman carry
+synergy,Angela,Claude,2,Marksman,Angela ult on Claude enhances his burst potential
+synergy,Angela,Karrie,2,Marksman,Angela shields help Karrie position for true damage
+synergy,Tigreal,Eudora,3,Mage,Tigreal ult + Eudora burst combo devastating
+synergy,Tigreal,Cecilion,2,Mage,Tigreal groups enemies for Cecilion AoE
+synergy,Franco,Hayabusa,2,Assassin,Franco hook sets up easy Hayabusa ult target
+synergy,Franco,Selena,2,Assassin,Franco hook confirms Selena arrow combo
+synergy,Estes,Marksman,2,,Estes sustain keeps marksman alive in teamfights
+synergy,Estes,Fighter,2,,Estes heal sustains fighter frontline presence
+synergy,Luo Yi,Marksman,2,,Luo Yi provides global mobility for marksman rotation
+synergy,Atlas,Eudora,3,Mage,Atlas freeze + Eudora burst extremely lethal combo
+synergy,Atlas,Cecilion,2,Mage,Atlas groups enemies perfectly for Cecilion scaling damage
+synergy,Lunox,Tank,2,,Lunox invincibility allows aggressive tank engages
+synergy,Diggie,Marksman,2,,Diggie anti-CC protection crucial for immobile marksman
+synergy,Ruby,Marksman,2,,Ruby lifesteal and CC peel protect backline carries
+synergy,X.Borg,Support,2,,X.Borg benefits from support sustain for armor regeneration
+synergy,Akai,Mage,2,,Akai initiation sets up perfect mage follow-up damage
