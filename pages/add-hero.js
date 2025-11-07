@@ -1,0 +1,188 @@
+import { useState } from 'react'
+import { useRouter } from 'next/router'
+import AppLayout from '../components/AppLayout'
+import { useToast } from '../components/Toast'
+
+export default function AddHeroPage() {
+  const router = useRouter()
+  const { addToast } = useToast()
+  const [loading, setLoading] = useState(false)
+  const [formData, setFormData] = useState({
+    hero_name: '',
+    role: '',
+  })
+
+  const roles = [
+    'Warrior',
+    'Mage',
+    'Support',
+    'Marksman',
+    'Assassin',
+    'Fighter',
+    'Tank',
+    'Jungler'
+  ]
+
+  const handleChange = (e) => {
+    const { name, value } = e.target
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }))
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    
+    if (!formData.hero_name.trim()) {
+      addToast({
+        type: 'error',
+        title: 'Error!',
+        message: 'Nama hero tidak boleh kosong',
+        duration: 3000
+      })
+      return
+    }
+
+    setLoading(true)
+    try {
+      const res = await fetch('/api/heroes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Gagal membuat hero')
+      }
+
+      addToast({
+        type: 'success',
+        title: 'Success!',
+        message: `Hero ${formData.hero_name} berhasil dibuat`,
+        duration: 3000
+      })
+
+      // Redirect to edit skills for the new hero
+      setTimeout(() => {
+        router.push(`/edit-skills?name=${encodeURIComponent(formData.hero_name)}`)
+      }, 500)
+    } catch (error) {
+      addToast({
+        type: 'error',
+        title: 'Error!',
+        message: error.message || 'Gagal membuat hero',
+        duration: 5000
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <AppLayout>
+      <div className="bg-gradient-to-br from-sky-50 via-white to-blue-50 min-h-screen">
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-gray-900">Tambah Hero Baru</h1>
+            <p className="mt-2 text-gray-600">Buat hero baru di database Mobile Legends</p>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Hero Name */}
+              <div className="space-y-2">
+                <label htmlFor="hero_name" className="block text-sm font-medium text-gray-700">
+                  Nama Hero <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="hero_name"
+                  name="hero_name"
+                  value={formData.hero_name}
+                  onChange={handleChange}
+                  placeholder="Contoh: Miya, Gusion, Lancelot"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
+                  disabled={loading}
+                />
+                <p className="text-xs text-gray-500">
+                  Masukkan nama hero dengan benar (tidak boleh duplikat)
+                </p>
+              </div>
+
+              {/* Role */}
+              <div className="space-y-2">
+                <label htmlFor="role" className="block text-sm font-medium text-gray-700">
+                  Role (Opsional)
+                </label>
+                <select
+                  id="role"
+                  name="role"
+                  value={formData.role}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
+                  disabled={loading}
+                >
+                  <option value="">Pilih role...</option>
+                  {roles.map(role => (
+                    <option key={role} value={role}>
+                      {role}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-gray-500">
+                  Pilih role hero atau biarkan kosong untuk update nanti
+                </p>
+              </div>
+
+              {/* Info Box */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex">
+                  <div className="flex-shrink-0">
+                    <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div className="ml-3">
+                    <h3 className="text-sm font-medium text-blue-800">Informasi</h3>
+                    <p className="mt-2 text-sm text-blue-700">
+                      Setelah membuat hero, Anda akan diarahkan ke halaman edit skills untuk menambahkan deskripsi skill hero ini.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Buttons */}
+              <div className="flex justify-between pt-4 border-t border-gray-200">
+                <button
+                  type="button"
+                  onClick={() => router.back()}
+                  disabled={loading}
+                  className="inline-flex items-center px-6 py-2 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  Kembali
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="inline-flex items-center px-6 py-2 bg-sky-600 text-white font-medium rounded-lg hover:bg-sky-700 focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {loading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Membuat...
+                    </>
+                  ) : (
+                    'Buat Hero'
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </AppLayout>
+  )
+}

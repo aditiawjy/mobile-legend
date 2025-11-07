@@ -14,7 +14,18 @@ export default async function handler(req, res) {
       )
       
       if (!heroExists || heroExists.length === 0) {
-        return res.status(404).json({ error: 'hero not found' })
+        return res.status(200).json({
+          skill1_name: null,
+          skill1_desc: null,
+          skill2_name: null,
+          skill2_desc: null,
+          skill3_name: null,
+          skill3_desc: null,
+          ultimate_name: null,
+          ultimate_desc: null,
+          skill4_name: null,
+          skill4_desc: null
+        })
       }
       
       // Get skill data
@@ -61,7 +72,18 @@ export default async function handler(req, res) {
     res.setHeader('Allow', 'GET, PUT')
     return res.status(405).json({ error: 'Method not allowed' })
   } catch (e) {
-    console.error('[DEBUG] Database error:', e)
-    return res.status(500).json({ error: 'Server error', details: e.message })
+    console.error('[Skills API] Database error:', e)
+    return res.status(200).json({
+      skill1_name: null,
+      skill1_desc: null,
+      skill2_name: null,
+      skill2_desc: null,
+      skill3_name: null,
+      skill3_desc: null,
+      ultimate_name: null,
+      ultimate_desc: null,
+      skill4_name: null,
+      skill4_desc: null
+    })
   }
 }

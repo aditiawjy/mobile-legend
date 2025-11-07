@@ -478,10 +478,12 @@ export default function Home() {
                     {allHeroes.map((hero, index) => (
                       <div
                         key={index}
-                        className="bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition-colors cursor-pointer border border-gray-200"
-                        onClick={() => onSelect(hero.hero_name || hero.name)}
+                        className="bg-gray-50 rounded-lg p-4 hover:shadow-md transition-all border border-gray-200"
                       >
-                        <div className="text-center">
+                        <div 
+                          className="text-center cursor-pointer mb-3"
+                          onClick={() => onSelect(hero.hero_name || hero.name)}
+                        >
                           <div className="w-16 h-16 bg-gradient-to-br from-sky-400 to-blue-500 rounded-full mx-auto mb-3 flex items-center justify-center">
                             <span className="text-white font-bold text-lg">
                               {hero.hero_name ? hero.hero_name.charAt(0).toUpperCase() : hero.name.charAt(0).toUpperCase()}
@@ -491,6 +493,20 @@ export default function Home() {
                             {hero.hero_name || hero.name}
                           </h3>
                           <p className="text-xs text-gray-500">{hero.role || 'Hero'}</p>
+                        </div>
+                        <div className="flex gap-2 pt-3 border-t border-gray-200">
+                          <button
+                            onClick={() => router.push(`/hero/${encodeURIComponent(hero.hero_name || hero.name)}`)}
+                            className="flex-1 text-xs px-2 py-1.5 bg-sky-100 text-sky-700 rounded hover:bg-sky-200 transition-colors"
+                          >
+                            Detail
+                          </button>
+                          <button
+                            onClick={() => router.push(`/edit-skills?name=${encodeURIComponent(hero.hero_name || hero.name)}`)}
+                            className="flex-1 text-xs px-2 py-1.5 bg-purple-100 text-purple-700 rounded hover:bg-purple-200 transition-colors"
+                          >
+                            Edit
+                          </button>
                         </div>
                       </div>
                     ))}
