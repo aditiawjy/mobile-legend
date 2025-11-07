@@ -27,6 +27,7 @@ export default function EditSkillsPage() {
   const { addToast } = useToast()
   const name = typeof router.query.name === 'string' ? router.query.name : ''
   const [loading, setLoading] = useState(false)
+  const [loadingOptions, setLoadingOptions] = useState(true)
   const [saving, setSaving] = useState(false)
   const [err, setErr] = useState('')
   const [ok, setOk] = useState('')
@@ -34,6 +35,11 @@ export default function EditSkillsPage() {
     const initialData = Object.fromEntries(fields.map(f => [f.key, '']))
     return initialData
   })
+
+  // Dropdown options
+  const [roles, setRoles] = useState([])
+  const [damageTypes, setDamageTypes] = useState([])
+  const [attackReliances, setAttackReliances] = useState([])
 
   const hasAnyData = useMemo(() => {
     if (!data) return false
@@ -49,6 +55,37 @@ export default function EditSkillsPage() {
   const [userTyping, setUserTyping] = useState(false)
   const dropdownRef = useRef(null)
   const inputRef = useRef(null)
+
+  // Fetch dropdown options from database
+  useEffect(() => {
+    const fetchOptions = async () => {
+      try {
+        setLoadingOptions(true)
+        const res = await fetch('/api/heroes')
+        
+        if (res.ok) {
+          const heroes = await res.json()
+          
+          if (Array.isArray(heroes)) {
+            // Extract unique values
+            const uniqueRoles = [...new Set(heroes.map(h => h.role).filter(Boolean))].sort()
+            const uniqueDamageTypes = [...new Set(heroes.map(h => h.damage_type).filter(Boolean))].sort()
+            const uniqueAttackReliances = [...new Set(heroes.map(h => h.attack_reliance).filter(Boolean))].sort()
+            
+            setRoles(uniqueRoles)
+            setDamageTypes(uniqueDamageTypes)
+            setAttackReliances(uniqueAttackReliances)
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching dropdown options:', error)
+      } finally {
+        setLoadingOptions(false)
+      }
+    }
+
+    fetchOptions()
+  }, [])
 
   useEffect(() => {
     if (!name) {
@@ -268,6 +305,105 @@ export default function EditSkillsPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {fields.filter(f => f.section === 'hero').map(f => {
                     const fieldValue = data && data[f.key] !== undefined && data[f.key] !== null ? data[f.key] : ''
+                    
+                    // Render dropdown for role, damage_type, attack_reliance
+                    if (f.key === 'role') {
+                      return (
+                        <div key={f.key} className="space-y-2">
+                          <label className="block text-sm font-medium text-gray-700">{f.label}</label>
+                          {loadingOptions ? (
+                            <div className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-sm text-gray-500">
+                              Loading...
+                            </div>
+                          ) : roles.length > 0 ? (
+                            <select
+                              value={fieldValue}
+                              onChange={(e) => onChange(f.key, e.target.value)}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
+                            >
+                              <option value="">Pilih role...</option>
+                              {roles.map(role => (
+                                <option key={role} value={role}>{role}</option>
+                              ))}
+                            </select>
+                          ) : (
+                            <input
+                              type="text"
+                              value={fieldValue}
+                              onChange={(e) => onChange(f.key, e.target.value)}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
+                              placeholder="Masukkan role..."
+                            />
+                          )}
+                        </div>
+                      )
+                    }
+                    
+                    if (f.key === 'damage_type') {
+                      return (
+                        <div key={f.key} className="space-y-2">
+                          <label className="block text-sm font-medium text-gray-700">{f.label}</label>
+                          {loadingOptions ? (
+                            <div className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-sm text-gray-500">
+                              Loading...
+                            </div>
+                          ) : damageTypes.length > 0 ? (
+                            <select
+                              value={fieldValue}
+                              onChange={(e) => onChange(f.key, e.target.value)}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
+                            >
+                              <option value="">Pilih damage type...</option>
+                              {damageTypes.map(type => (
+                                <option key={type} value={type}>{type}</option>
+                              ))}
+                            </select>
+                          ) : (
+                            <input
+                              type="text"
+                              value={fieldValue}
+                              onChange={(e) => onChange(f.key, e.target.value)}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
+                              placeholder="Masukkan damage type..."
+                            />
+                          )}
+                        </div>
+                      )
+                    }
+                    
+                    if (f.key === 'attack_reliance') {
+                      return (
+                        <div key={f.key} className="space-y-2">
+                          <label className="block text-sm font-medium text-gray-700">{f.label}</label>
+                          {loadingOptions ? (
+                            <div className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-sm text-gray-500">
+                              Loading...
+                            </div>
+                          ) : attackReliances.length > 0 ? (
+                            <select
+                              value={fieldValue}
+                              onChange={(e) => onChange(f.key, e.target.value)}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
+                            >
+                              <option value="">Pilih attack reliance...</option>
+                              {attackReliances.map(reliance => (
+                                <option key={reliance} value={reliance}>{reliance}</option>
+                              ))}
+                            </select>
+                          ) : (
+                            <input
+                              type="text"
+                              value={fieldValue}
+                              onChange={(e) => onChange(f.key, e.target.value)}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
+                              placeholder="Masukkan attack reliance..."
+                            />
+                          )}
+                        </div>
+                      )
+                    }
+                    
+                    // Default rendering for note (textarea)
                     return (
                       <div key={f.key} className={f.textarea ? "md:col-span-2 space-y-2" : "space-y-2"}>
                         <label className="block text-sm font-medium text-gray-700">{f.label}</label>
