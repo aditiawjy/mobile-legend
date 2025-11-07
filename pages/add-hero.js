@@ -13,7 +13,7 @@ export default function AddHeroPage() {
     role: '',
     damage_type: '',
     attack_reliance: '',
-    mana: '',
+    note: '',
   })
 
   const [roles, setRoles] = useState([])
@@ -93,16 +93,22 @@ export default function AddHeroPage() {
 
     setLoading(true)
     try {
+      console.log('Submitting form data:', formData)
+      
       const res = await fetch('/api/heroes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
       })
 
+      console.log('Response status:', res.status)
       const data = await res.json()
+      console.log('Response data:', data)
 
       if (!res.ok) {
-        throw new Error(data.error || 'Gagal membuat hero')
+        const errorMsg = data.error || `Server error: ${res.status}`
+        console.error('API error:', errorMsg)
+        throw new Error(errorMsg)
       }
 
       addToast({
@@ -117,6 +123,7 @@ export default function AddHeroPage() {
         router.push(`/edit-skills?name=${encodeURIComponent(formData.hero_name)}`)
       }, 500)
     } catch (error) {
+      console.error('Error creating hero:', error)
       addToast({
         type: 'error',
         title: 'Error!',
@@ -286,23 +293,23 @@ export default function AddHeroPage() {
                 </p>
               </div>
 
-              {/* Mana */}
+              {/* Note */}
               <div className="space-y-2 md:col-span-2">
-                <label htmlFor="mana" className="block text-sm font-medium text-gray-700">
-                  Mana (Opsional)
+                <label htmlFor="note" className="block text-sm font-medium text-gray-700">
+                  Note (Opsional)
                 </label>
                 <textarea
-                  id="mana"
-                  name="mana"
-                  value={formData.mana}
+                  id="note"
+                  name="note"
+                  value={formData.note}
                   onChange={handleChange}
-                  placeholder="Catatan tentang mana hero ini..."
+                  placeholder="Catatan atau deskripsi tambahan tentang hero ini..."
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
                   rows={4}
                   disabled={loading}
                 />
                 <p className="text-xs text-gray-500">
-                  Catatan atau deskripsi tentang mana hero
+                  Catatan atau deskripsi tambahan tentang hero
                 </p>
               </div>
               </div>

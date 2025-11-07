@@ -24,7 +24,9 @@ export default async function handler(req, res) {
   } else if (req.method === 'POST') {
     try {
       const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body
-      const { hero_name, role, damage_type, attack_reliance, mana } = body
+      const { hero_name, role, damage_type, attack_reliance, note } = body
+
+      console.log('POST /api/heroes - Creating hero:', { hero_name, role, damage_type, attack_reliance, note })
 
       if (!hero_name || !hero_name.trim()) {
         return res.status(400).json({ error: 'hero_name is required' })
@@ -41,15 +43,18 @@ export default async function handler(req, res) {
       }
 
       // Create new hero with all fields
-      await query(
-        'INSERT INTO heroes (hero_name, role, damage_type, attack_reliance, mana) VALUES (?, ?, ?, ?, ?)',
-        [hero_name.trim(), role || '', damage_type || '', attack_reliance || '', mana || '']
+      console.log('Inserting hero into database...')
+      const result = await query(
+        'INSERT INTO heroes (hero_name, role, damage_type, attack_reliance, note) VALUES (?, ?, ?, ?, ?)',
+        [hero_name.trim(), role || '', damage_type || '', attack_reliance || '', note || '']
       )
+      console.log('Hero created successfully:', result)
 
       res.status(201).json({ ok: true, hero_name: hero_name.trim() })
     } catch (error) {
-      console.error('Error creating hero:', error)
-      res.status(500).json({ error: 'Failed to create hero' })
+      console.error('Error creating hero:', error.message)
+      console.error('Full error:', error)
+      res.status(500).json({ error: error.message || 'Failed to create hero' })
     }
   } else {
     res.setHeader('Allow', 'GET, POST')
