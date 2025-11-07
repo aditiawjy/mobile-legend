@@ -42,11 +42,31 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'Hero already exists' })
       }
 
-      // Create new hero with all fields
+      // Check which columns exist in the heroes table
+      const columns = await query(
+        `SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS 
+         WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'heroes'`
+      )
+      const columnNames = columns.map(col => col.COLUMN_NAME)
+      console.log('Available columns:', columnNames)
+
+      // Build dynamic INSERT based on available columns
+      const fieldsToInsert = { hero_name: hero_name.trim() }
+      if (columnNames.includes('role') && role) fieldsToInsert.role = role
+      if (columnNames.includes('damage_type') && damage_type) fieldsToInsert.damage_type = damage_type
+      if (columnNames.includes('attack_reliance') && attack_reliance) fieldsToInsert.attack_reliance = attack_reliance
+      if (columnNames.includes('note') && note) fieldsToInsert.note = note
+
+      const fieldNames = Object.keys(fieldsToInsert)
+      const placeholders = fieldNames.map(() => '?').join(', ')
+      const values = fieldNames.map(key => fieldsToInsert[key])
+
+      console.log('Inserting fields:', fieldNames)
       console.log('Inserting hero into database...')
+      
       const result = await query(
-        'INSERT INTO heroes (hero_name, role, damage_type, attack_reliance, note) VALUES (?, ?, ?, ?, ?)',
-        [hero_name.trim(), role || '', damage_type || '', attack_reliance || '', note || '']
+        `INSERT INTO heroes (${fieldNames.join(', ')}) VALUES (${placeholders})`,
+        values
       )
       console.log('Hero created successfully:', result)
 
@@ -54,7 +74,19 @@ export default async function handler(req, res) {
     } catch (error) {
       console.error('Error creating hero:', error.message)
       console.error('Full error:', error)
-      res.status(500).json({ error: error.message || 'Failed to create hero' })
+      console.error('Error code:', error.code)
+      console.error('Error errno:', error.errno)
+      console.error('SQL State:', error.sqlState)
+      
+      // Return detailed error to help with debugging
+      const errorMsg = error.message || error.sqlMessage || 'Failed to create hero'
+      console.error('Returning error:', errorMsg)
+      
+      res.status(500).json({ 
+        error: errorMsg,
+        code: error.code,
+        sqlState: error.sqlState
+      })
     }
   } else {
     res.setHeader('Allow', 'GET, POST')

@@ -6,16 +6,20 @@ import { useToast } from '../components/Toast'
 import { colors, shadows, borderRadius, spacing, typography } from '../lib/design-system'
 
 const fields = [
-  { key: 'skill1_name', label: 'Basic Attack Name' },
-  { key: 'skill1_desc', label: 'Basic Attack Description', textarea: true },
-  { key: 'skill2_name', label: 'Skill 1 Name' },
-  { key: 'skill2_desc', label: 'Skill 1 Description', textarea: true },
-  { key: 'skill3_name', label: 'Skill 2 Name' },
-  { key: 'skill3_desc', label: 'Skill 2 Description', textarea: true },
-  { key: 'skill4_name', label: 'Skill 3 Name' },
-  { key: 'skill4_desc', label: 'Skill 3 Description', textarea: true },
-  { key: 'ultimate_name', label: 'Ultimate Name' },
-  { key: 'ultimate_desc', label: 'Ultimate Description', textarea: true },
+  { key: 'role', label: 'Role', section: 'hero' },
+  { key: 'damage_type', label: 'Damage Type', section: 'hero' },
+  { key: 'attack_reliance', label: 'Attack Reliance', section: 'hero' },
+  { key: 'note', label: 'Note', textarea: true, section: 'hero' },
+  { key: 'skill1_name', label: 'Basic Attack Name', section: 'skills' },
+  { key: 'skill1_desc', label: 'Basic Attack Description', textarea: true, section: 'skills' },
+  { key: 'skill2_name', label: 'Skill 1 Name', section: 'skills' },
+  { key: 'skill2_desc', label: 'Skill 1 Description', textarea: true, section: 'skills' },
+  { key: 'skill3_name', label: 'Skill 2 Name', section: 'skills' },
+  { key: 'skill3_desc', label: 'Skill 2 Description', textarea: true, section: 'skills' },
+  { key: 'skill4_name', label: 'Skill 3 Name', section: 'skills' },
+  { key: 'skill4_desc', label: 'Skill 3 Description', textarea: true, section: 'skills' },
+  { key: 'ultimate_name', label: 'Ultimate Name', section: 'skills' },
+  { key: 'ultimate_desc', label: 'Ultimate Description', textarea: true, section: 'skills' },
 ]
 
 export default function EditSkillsPage() {
@@ -63,26 +67,25 @@ export default function EditSkillsPage() {
       setErr('')
       setOk('')
       
-      fetch(`/api/heroes/${encodeURIComponent(name)}/skills`)
-        .then(async (r) => {
-          if (r.status === 404) {
-            // Hero tidak ditemukan, reset form untuk input baru
-            const emptyData = Object.fromEntries(fields.map(f => [f.key, '']))
-            return { ...emptyData, hero_name: name }
+      // Load both hero info and skills
+      Promise.all([
+        fetch(`/api/get_hero_detail?name=${encodeURIComponent(name)}`).then(r => r.ok ? r.json() : {}),
+        fetch(`/api/heroes/${encodeURIComponent(name)}/skills`).then(r => r.ok ? r.json() : {})
+      ])
+        .then(([heroInfo, skillsInfo]) => {
+          const emptyData = Object.fromEntries(fields.map(f => [f.key, '']))
+          const combinedData = {
+            ...emptyData,
+            ...heroInfo,
+            ...skillsInfo,
+            hero_name: name
           }
-          if (!r.ok) {
-            const txt = await r.text().catch(() => '')
-            throw new Error(`Gagal memuat (${r.status}) ${txt}`)
-          }
-          const result = await r.json()
-          return { ...result, hero_name: name }
+          setData(combinedData)
         })
-        .then(d => {
-          // Ensure all fields exist in the data object
-          const completeData = { ...Object.fromEntries(fields.map(f => [f.key, ''])), ...d }
-          setData(completeData)
+        .catch(e => {
+          console.error('Error loading data:', e)
+          setErr(e.message || 'Error')
         })
-        .catch(e => setErr(e.message || 'Error'))
         .finally(() => setLoading(false))
     }
   }, [name, data.hero_name])
@@ -150,21 +153,40 @@ export default function EditSkillsPage() {
     if (!name) return
     setSaving(true)
     try {
-      // Filter out empty fields to avoid unnecessary updates
-      const fieldsToUpdate = {}
+      // Separate hero info and skills
+      const heroFields = {}
+      const skillFields = {}
+      
       fields.forEach(f => {
         const value = data[f.key]
         if (value !== undefined) {
-          fieldsToUpdate[f.key] = value
+          if (f.section === 'hero') {
+            heroFields[f.key] = value
+          } else if (f.section === 'skills') {
+            skillFields[f.key] = value
+          }
         }
       })
 
-      const res = await fetch(`/api/heroes/${encodeURIComponent(name)}/skills`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(fieldsToUpdate),
-      })
-      if (!res.ok) throw new Error('Gagal menyimpan perubahan')
+      // Save hero info if any
+      if (Object.keys(heroFields).length > 0) {
+        const heroRes = await fetch(`/api/heroes/${encodeURIComponent(name)}/info`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(heroFields),
+        })
+        if (!heroRes.ok) throw new Error('Gagal menyimpan hero info')
+      }
+
+      // Save skills if any
+      if (Object.keys(skillFields).length > 0) {
+        const skillsRes = await fetch(`/api/heroes/${encodeURIComponent(name)}/skills`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(skillFields),
+        })
+        if (!skillsRes.ok) throw new Error('Gagal menyimpan skills')
+      }
 
       addToast({
         type: 'success',
@@ -174,7 +196,7 @@ export default function EditSkillsPage() {
       })
 
       // Update local data to reflect saved state
-      setData(prev => ({ ...prev, ...fieldsToUpdate, hero_name: name }))
+      setData(prev => ({ ...prev, ...heroFields, ...skillFields, hero_name: name }))
     } catch (e) {
       addToast({
         type: 'error',
@@ -240,32 +262,68 @@ export default function EditSkillsPage() {
             )}
 
             <form onSubmit={onSubmit} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {fields.map(f => {
-                  const fieldValue = data && data[f.key] !== undefined && data[f.key] !== null ? data[f.key] : ''
-                  return (
-                    <div key={f.key} className="space-y-2">
-                      <label className="block text-sm font-medium text-gray-700">{f.label}</label>
-                      {f.textarea ? (
-                        <textarea
-                          value={fieldValue}
-                          onChange={(e) => onChange(f.key, e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
-                          rows={4}
-                          placeholder={`Masukkan ${f.label.toLowerCase()}...`}
-                        />
-                      ) : (
-                        <input
-                          type="text"
-                          value={fieldValue}
-                          onChange={(e) => onChange(f.key, e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
-                          placeholder={`Masukkan ${f.label.toLowerCase()}...`}
-                        />
-                      )}
-                    </div>
-                  )
-                })}
+              {/* Hero Info Section */}
+              <div className="border-b border-gray-200 pb-4">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Hero Info</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {fields.filter(f => f.section === 'hero').map(f => {
+                    const fieldValue = data && data[f.key] !== undefined && data[f.key] !== null ? data[f.key] : ''
+                    return (
+                      <div key={f.key} className={f.textarea ? "md:col-span-2 space-y-2" : "space-y-2"}>
+                        <label className="block text-sm font-medium text-gray-700">{f.label}</label>
+                        {f.textarea ? (
+                          <textarea
+                            value={fieldValue}
+                            onChange={(e) => onChange(f.key, e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
+                            rows={4}
+                            placeholder={`Masukkan ${f.label.toLowerCase()}...`}
+                          />
+                        ) : (
+                          <input
+                            type="text"
+                            value={fieldValue}
+                            onChange={(e) => onChange(f.key, e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
+                            placeholder={`Masukkan ${f.label.toLowerCase()}...`}
+                          />
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* Skills Section */}
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Skills</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {fields.filter(f => f.section === 'skills').map(f => {
+                    const fieldValue = data && data[f.key] !== undefined && data[f.key] !== null ? data[f.key] : ''
+                    return (
+                      <div key={f.key} className="space-y-2">
+                        <label className="block text-sm font-medium text-gray-700">{f.label}</label>
+                        {f.textarea ? (
+                          <textarea
+                            value={fieldValue}
+                            onChange={(e) => onChange(f.key, e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
+                            rows={4}
+                            placeholder={`Masukkan ${f.label.toLowerCase()}...`}
+                          />
+                        ) : (
+                          <input
+                            type="text"
+                            value={fieldValue}
+                            onChange={(e) => onChange(f.key, e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
+                            placeholder={`Masukkan ${f.label.toLowerCase()}...`}
+                          />
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
               </div>
 
               <div className="flex justify-end pt-4 border-t border-gray-200">
