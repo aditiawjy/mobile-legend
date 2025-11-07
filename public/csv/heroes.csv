@@ -2,6 +2,7 @@ Hero Name,Role,Damage Type,Attack Reliance,Note
 "Akai","Tank","physical","Guard/Crowd Control",""
 "Angela","Support","magic","Guard/Support","Angela adalah support yang dapat masuk ke tubuh hero teman, memberikan shield kuat, heal, poke damage, dan crowd control berupa immobilize."
 "Arlott","Fighter/Assassin","Physical","Charge/Burst",""
+"Atlas","Tank","Magic","Crowd Control/Initiator",""
 "Balmond","Fighter","physical","Damage/Regen","Fighter dengan sustain tinggi dari pasif pemulihan HP, damage area berkelanjutan melalui Cyclone Sweep, dan kemampuan eksekusi target menggunakan True Damage pada ultimatenya."
 "Bane","Fighter/Mage","magic/physical","Push/Burst","Fighter/Mage hybrid serbaguna, mampu menghasilkan physical damage dari skill 1 dan pasifnya, atau magic damage signifikan dari skill 2 dan ultimate, menawarkan fleksibilitas build item."
 "Baxia","Tank","magic","Support/Damage","Baxia adalah tank dengan kemampuan crowd control dan pengurangan damage yang tinggi, serta dapat mengurangi efek shield dan HP regen musuh."
