@@ -10,6 +10,8 @@ export default function AddHeroPage() {
   const [formData, setFormData] = useState({
     hero_name: '',
     role: '',
+    damage_type: '',
+    attack_reliance: '',
   })
 
   const roles = [
@@ -21,6 +23,20 @@ export default function AddHeroPage() {
     'Fighter',
     'Tank',
     'Jungler'
+  ]
+
+  const damageTypes = [
+    'Physical',
+    'Magical',
+    'True',
+    'Mixed'
+  ]
+
+  const attackReliances = [
+    'Basic Attack',
+    'Skill',
+    'Auto Attack',
+    'Balanced'
   ]
 
   const handleChange = (e) => {
@@ -134,6 +150,56 @@ export default function AddHeroPage() {
                 </select>
                 <p className="text-xs text-gray-500">
                   Pilih role hero atau biarkan kosong untuk update nanti
+                </p>
+              </div>
+
+              {/* Damage Type */}
+              <div className="space-y-2">
+                <label htmlFor="damage_type" className="block text-sm font-medium text-gray-700">
+                  Damage Type (Opsional)
+                </label>
+                <select
+                  id="damage_type"
+                  name="damage_type"
+                  value={formData.damage_type}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
+                  disabled={loading}
+                >
+                  <option value="">Pilih damage type...</option>
+                  {damageTypes.map(type => (
+                    <option key={type} value={type}>
+                      {type}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-gray-500">
+                  Jenis damage yang dihasilkan hero
+                </p>
+              </div>
+
+              {/* Attack Reliance */}
+              <div className="space-y-2">
+                <label htmlFor="attack_reliance" className="block text-sm font-medium text-gray-700">
+                  Attack Reliance (Opsional)
+                </label>
+                <select
+                  id="attack_reliance"
+                  name="attack_reliance"
+                  value={formData.attack_reliance}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
+                  disabled={loading}
+                >
+                  <option value="">Pilih attack reliance...</option>
+                  {attackReliances.map(reliance => (
+                    <option key={reliance} value={reliance}>
+                      {reliance}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-gray-500">
+                  Ketergantungan pada basic attack atau skill
                 </p>
               </div>
 

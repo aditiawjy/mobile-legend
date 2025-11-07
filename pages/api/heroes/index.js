@@ -24,7 +24,7 @@ export default async function handler(req, res) {
   } else if (req.method === 'POST') {
     try {
       const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body
-      const { hero_name, role } = body
+      const { hero_name, role, damage_type, attack_reliance } = body
 
       if (!hero_name || !hero_name.trim()) {
         return res.status(400).json({ error: 'hero_name is required' })
@@ -40,10 +40,10 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'Hero already exists' })
       }
 
-      // Create new hero
+      // Create new hero with all fields
       await query(
-        'INSERT INTO heroes (hero_name, role) VALUES (?, ?)',
-        [hero_name.trim(), role || '']
+        'INSERT INTO heroes (hero_name, role, damage_type, attack_reliance) VALUES (?, ?, ?, ?)',
+        [hero_name.trim(), role || '', damage_type || '', attack_reliance || '']
       )
 
       res.status(201).json({ ok: true, hero_name: hero_name.trim() })
