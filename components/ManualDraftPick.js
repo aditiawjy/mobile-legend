@@ -32,8 +32,8 @@ export default function ManualDraftPick() {
         return;
       }
 
-      // Fetch all heroes from database
-      const response = await fetch('/api/heroes');
+      // Fetch all heroes from CSV (consistent with Auto Recommendation)
+      const response = await fetch('/api/draft/heroes-list');
       const allHeroes = await response.json();
 
       // Filter heroes yang dipilih

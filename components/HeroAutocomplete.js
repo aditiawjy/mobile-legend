@@ -1,6 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
 
-export default function HeroAutocomplete({ value, onChange, placeholder, position, disabled }) {
+export default function HeroAutocomplete({ 
+  value, 
+  onChange, 
+  placeholder, 
+  position, 
+  disabled,
+  searchEndpoint = '/api/draft/heroes-search' // Default to CSV-based endpoint
+}) {
   const [inputValue, setInputValue] = useState(value || '');
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -32,7 +39,7 @@ export default function HeroAutocomplete({ value, onChange, placeholder, positio
 
     setLoading(true);
     try {
-      const response = await fetch(`/api/heroes_search?q=${encodeURIComponent(query)}`);
+      const response = await fetch(`${searchEndpoint}?q=${encodeURIComponent(query)}`);
       const data = await response.json();
       setSuggestions(Array.isArray(data) ? data : []);
     } catch (error) {
