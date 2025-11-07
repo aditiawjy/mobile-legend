@@ -1,7 +1,11 @@
 # Draft Pick Simulator Guide
 
 ## Overview
-Draft Pick Simulator adalah fitur yang membantu pemain memilih hero dan mendapatkan rekomendasi partner hero yang cocok. Sistem ini memberikan 5 pilihan draft: 1 hero yang dipilih + 4 rekomendasi partner terbaik.
+Draft Pick Simulator adalah fitur yang membantu pemain memilih hero dan mendapatkan rekomendasi partner hero yang cocok. 
+
+**2 Modes Available:**
+1. **Auto Recommendation** - Pilih 1 hero dan sistem memberikan 4 rekomendasi partner terbaik
+2. **Manual Selection** - Pilih 5 heroes secara manual dengan autocomplete input
 
 ## Files Created
 
@@ -109,12 +113,39 @@ React component untuk UI Draft Pick Simulator.
 - Show recommended partners dengan reasoning
 - Team composition validation
 
-### 4. Pages
+### 4. Components
+
+#### `/components/HeroAutocomplete.js`
+Reusable autocomplete input component untuk search dan select heroes.
+
+**Features:**
+- Real-time search dengan debounce (300ms)
+- API integration dengan `/api/heroes_search`
+- Click outside detection
+- Clear button
+- Loading indicator
+
+#### `/components/ManualDraftPick.js`
+Component untuk manual draft pick dengan 5 autocomplete inputs.
+
+**Features:**
+- 5 hero selection slots dengan autocomplete
+- Real-time team composition analysis
+- Role distribution calculation
+- Damage type analysis
+- Smart recommendations
+
+### 5. Pages
 
 #### `/pages/draft-pick.js`
-Page untuk menampilkan Draft Pick Simulator.
+Main page dengan toggle antara Auto Recommendation dan Manual Selection modes.
 
 **Access:** http://localhost:3001/draft-pick
+
+#### `/pages/draft-pick-manual.js`
+Standalone page untuk Manual Draft Pick (optional).
+
+**Access:** http://localhost:3001/draft-pick-manual
 
 ## How to Use
 
@@ -126,14 +157,36 @@ npm run dev
 ### 2. Access Draft Pick UI
 Navigate ke `http://localhost:3001/draft-pick`
 
-### 3. Select a Hero
-Pilih hero dari dropdown, atau tunggu default (Miya) di-load.
+### 3. Choose Mode
 
-### 4. View Draft Simulation
+#### Auto Recommendation Mode:
+1. Pilih hero dari dropdown
+2. Sistem otomatis memberikan 4 rekomendasi partner
+3. View draft simulation dengan reasoning
+
+#### Manual Selection Mode:
+1. Toggle ke "Manual Selection"
+2. Ketik nama hero di setiap Pick 1-5 input
+3. Autocomplete akan muncul dengan suggestions
+4. Pilih hero dari suggestions
+5. View team composition analysis
+
+### 4. View Results
+
+#### Auto Mode Results:
 - **Hero Utama Dipilih**: Detail hero yang dipilih
 - **5 Pilihan Draft**: 1 hero dipilih + 4 rekomendasi
 - **Tim Rekomendasi**: 4 partner dengan reasoning
 - **Komposisi Tim**: Validasi apakah team balanced
+
+#### Manual Mode Results:
+- **Draft Summary**: Shows all selected heroes (1-5)
+- **Hero Details**: Name, role, damage type, attack reliance
+- **Team Composition Analysis**:
+  - Balance status (✓ Balanced or ⚠ Unbalanced)
+  - Role distribution dengan progress bars
+  - Damage types breakdown
+  - Smart recommendations
 
 ### API Usage Example (cURL)
 
