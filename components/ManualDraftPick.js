@@ -98,9 +98,9 @@ export default function ManualDraftPick() {
 
   const hasAnyPick = draftPicks.some(pick => pick && pick.trim());
 
-  // Validate lanes
+  // Validate lanes - relaxed validation
   const laneValidation = () => {
-    if (heroDetails.length === 0) return { isValid: false, errors: [] };
+    if (heroDetails.length === 0) return { isValid: true, errors: [], warnings: [] };
 
     const errors = [];
     const warnings = [];
@@ -111,24 +111,22 @@ export default function ManualDraftPick() {
       const position = DRAFT_POSITIONS[idx];
       const heroLanes = hero.lanes || [];
 
-      // Check if hero has lanes data
-      if (heroLanes.length === 0) {
-        warnings.push(`${hero.hero_name}: Tidak ada data lanes`);
-      }
-
-      // Check if hero matches the assigned lane
-      const isLaneMatch = heroLanes.some(lane => lane.lane_name === position.lane);
-      if (!isLaneMatch && heroLanes.length > 0) {
-        warnings.push(`${hero.hero_name}: Tidak cocok untuk ${position.lane}`);
-      }
-
-      // Check for duplicate lanes (based on hero's primary lane)
-      const primaryLane = heroLanes.find(l => l.priority === 1)?.lane_name;
-      if (primaryLane) {
-        if (usedLanes.has(primaryLane)) {
-          errors.push(`Duplicate lane detected: ${primaryLane} (${hero.hero_name})`);
+      // Only validate heroes that HAVE lanes data
+      if (heroLanes.length > 0) {
+        // Check if hero matches the assigned lane
+        const isLaneMatch = heroLanes.some(lane => lane.lane_name === position.lane);
+        if (!isLaneMatch) {
+          warnings.push(`${hero.hero_name}: Tidak cocok untuk ${position.lane}`);
         }
-        usedLanes.add(primaryLane);
+
+        // Check for duplicate lanes (based on hero's primary lane)
+        const primaryLane = heroLanes.find(l => l.priority === 1)?.lane_name;
+        if (primaryLane) {
+          if (usedLanes.has(primaryLane)) {
+            errors.push(`Duplicate lane: ${primaryLane} (${hero.hero_name})`);
+          }
+          usedLanes.add(primaryLane);
+        }
       }
     });
 
@@ -279,7 +277,7 @@ export default function ManualDraftPick() {
                     key={hero.hero_name}
                     className={`rounded-lg p-4 border-2 transition-all ${
                       hasNoLanes
-                        ? 'bg-red-900/30 border-red-500'
+                        ? 'bg-gray-800 border-gray-700 hover:shadow-lg hover:shadow-gray-500/50'
                         : isLaneMatch
                         ? 'bg-gray-800 border-blue-500 hover:shadow-lg hover:shadow-blue-500/50'
                         : 'bg-yellow-900/30 border-yellow-500'
@@ -293,9 +291,9 @@ export default function ManualDraftPick() {
                         {hero.role || 'Unknown Role'}
                       </p>
                       
-                      {/* Lane Info */}
-                      <div className="mt-2 mb-2">
-                        {heroLanes.length > 0 ? (
+                      {/* Lane Info - Only show if lanes exist */}
+                      {heroLanes.length > 0 && (
+                        <div className="mt-2 mb-2">
                           <div className="text-xs">
                             <p className="text-gray-500 mb-1">Hero Lanes:</p>
                             <div className="space-y-1">
@@ -314,27 +312,13 @@ export default function ManualDraftPick() {
                               ))}
                             </div>
                           </div>
-                        ) : (
-                          <div className="text-xs">
-                            <div className="px-2 py-1 bg-red-700 rounded text-white font-semibold">
-                              ❌ Tidak ada data lanes
+
+                          {/* Status Badge - Only for lane mismatch */}
+                          {!isLaneMatch && (
+                            <div className="mt-2 px-2 py-1 bg-yellow-600 rounded text-xs text-white">
+                              ⚠ Not typical for {position.lane}
                             </div>
-                            <p className="text-red-300 mt-1 text-center">
-                              Hero ini belum dikonfigurasi
-                            </p>
-                          </div>
-                        )}
-                      </div>
-
-                      {hasNoLanes && (
-                        <div className="mt-2 px-2 py-1 bg-red-600 rounded text-xs text-white font-semibold">
-                          ⚠ DATA LANES BELUM ADA!
-                        </div>
-                      )}
-
-                      {!isLaneMatch && heroLanes.length > 0 && (
-                        <div className="mt-2 px-2 py-1 bg-yellow-600 rounded text-xs text-white">
-                          ⚠ Not typical for {position.lane}
+                          )}
                         </div>
                       )}
 
