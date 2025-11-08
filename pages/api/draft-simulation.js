@@ -68,12 +68,12 @@ export default async function handler(req, res) {
         };
       });
 
-      // REORDER heroes based on their lanes to match LANE_ASSIGNMENTS
+      // STRICT LANE-BASED ASSIGNMENT: Only assign heroes to lanes they actually have
       const LANE_ORDER = ['Gold Lane', 'Exp Lane', 'Mid Lane', 'Jungling', 'Roaming'];
       const assignedHeroes = new Array(5).fill(null);
       const usedHeroes = new Set();
 
-      // First pass: Assign heroes to their PRIMARY lanes
+      // First pass: Assign heroes to their PRIMARY lanes ONLY
       heroesData.forEach(hero => {
         if (usedHeroes.has(hero.name)) return;
         const primaryLane = hero.lanes.find(l => l.priority === 1);
@@ -87,7 +87,7 @@ export default async function handler(req, res) {
         }
       });
 
-      // Second pass: Assign remaining heroes to their SECONDARY/ANY lanes
+      // Second pass: Assign remaining heroes to their SECONDARY/ANY lanes ONLY
       heroesData.forEach(hero => {
         if (usedHeroes.has(hero.name)) return;
         for (const lane of hero.lanes) {
@@ -101,18 +101,68 @@ export default async function handler(req, res) {
         }
       });
 
-      // Third pass: Fill remaining slots with unassigned heroes
-      let unassignedIndex = 0;
+      // Third pass: Try to REPLACE mismatched heroes from ALL available heroes with lanes
+      const allHeroesWithLanesData = await query(`
+        SELECT h.hero_name, l.lane_name, hl.priority
+        FROM heroes h
+        LEFT JOIN hero_lanes hl ON h.hero_name = hl.hero_name
+        LEFT JOIN lanes l ON hl.lane_id = l.id
+        ORDER BY h.hero_name, hl.priority
+      `);
+
+      // Group by lane
+      const heroesPerLane = {};
+      allHeroesWithLanesData.forEach(row => {
+        if (!row.lane_name) return;
+        if (!heroesPerLane[row.lane_name]) {
+          heroesPerLane[row.lane_name] = [];
+        }
+        if (!heroesPerLane[row.lane_name].includes(row.hero_name)) {
+          heroesPerLane[row.lane_name].push(row.hero_name);
+        }
+      });
+
+      // Fill empty slots with heroes that HAVE that lane
       for (let i = 0; i < assignedHeroes.length; i++) {
         if (assignedHeroes[i] === null) {
-          while (unassignedIndex < heroesData.length && usedHeroes.has(heroesData[unassignedIndex].name)) {
-            unassignedIndex++;
-          }
-          if (unassignedIndex < heroesData.length) {
-            assignedHeroes[i] = heroesData[unassignedIndex];
-            usedHeroes.add(heroesData[unassignedIndex].name);
-            console.log(`⚠ ${heroesData[unassignedIndex].name} assigned to ${LANE_ORDER[i]} (no lanes data)`);
-            unassignedIndex++;
+          const targetLane = LANE_ORDER[i];
+          const availableHeroes = heroesPerLane[targetLane] || [];
+          
+          // Find first available hero for this lane that hasn't been used
+          for (const heroName of availableHeroes) {
+            if (!usedHeroes.has(heroName)) {
+              // Fetch full hero data
+              const fullHeroData = await query(
+                'SELECT * FROM heroes WHERE hero_name = ?',
+                [heroName]
+              );
+              
+              if (fullHeroData && fullHeroData.length > 0) {
+                const heroLanesData = await query(`
+                  SELECT l.lane_name, l.description as lane_description, hl.priority
+                  FROM hero_lanes hl
+                  JOIN lanes l ON hl.lane_id = l.id
+                  WHERE hl.hero_name = ?
+                  ORDER BY hl.priority
+                `, [heroName]);
+
+                assignedHeroes[i] = {
+                  name: fullHeroData[0].hero_name,
+                  role: fullHeroData[0].role,
+                  damageType: fullHeroData[0].damage_type,
+                  attackReliance: fullHeroData[0].attack_reliance,
+                  note: fullHeroData[0].note,
+                  lanes: heroLanesData.map(l => ({
+                    lane_name: l.lane_name,
+                    description: l.lane_description,
+                    priority: l.priority
+                  }))
+                };
+                usedHeroes.add(heroName);
+                console.log(`✓ ${heroName} assigned to ${targetLane} (replacement - has this lane)`);
+                break;
+              }
+            }
           }
         }
       }
