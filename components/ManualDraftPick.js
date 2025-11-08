@@ -38,6 +38,48 @@ export default function ManualDraftPick() {
     setDraftPicks(newPicks);
   };
 
+  // Helper: Detect if hero has CC (Crowd Control)
+  const hasCC = (hero) => {
+    const ar = hero.attack_reliance?.toLowerCase() || '';
+    const note = hero.note?.toLowerCase() || '';
+    const ccKeywords = ['control', 'crowd', 'stun', 'immobilize', 'knock', 'slow', 'suppress', 'pull', 'freeze', 'terrify'];
+    return ccKeywords.some(keyword => ar.includes(keyword) || note.includes(keyword));
+  };
+
+  // Helper: Detect if hero has Burst damage
+  const hasBurst = (hero) => {
+    const ar = hero.attack_reliance?.toLowerCase() || '';
+    const note = hero.note?.toLowerCase() || '';
+    return ar.includes('burst') || note.includes('burst');
+  };
+
+  // Helper: Detect if hero has Area/AoE damage
+  const hasAreaDamage = (hero) => {
+    const note = hero.note?.toLowerCase() || '';
+    const ar = hero.attack_reliance?.toLowerCase() || '';
+    return note.includes('area') || note.includes('aoe') || ar.includes('damage') || note.includes('damage area');
+  };
+
+  // Helper: Classify Roaming playstyle
+  const getRoamingPlaystyle = (hero) => {
+    if (!hero) return 'none';
+    const role = hero.role?.toLowerCase() || '';
+    const ar = hero.attack_reliance?.toLowerCase() || '';
+    const note = hero.note?.toLowerCase() || '';
+    
+    // Pick-off style: Assassin or Chase/Burst
+    if (role.includes('assassin') || ar.includes('chase') || ar.includes('burst') || note.includes('pick') || note.includes('assassin')) {
+      return 'pick-off';
+    }
+    
+    // Team fight style: Tank/Support with Initiator or Guard
+    if ((role.includes('tank') || role.includes('support')) && (ar.includes('initiator') || ar.includes('guard') || note.includes('team'))) {
+      return 'team-fight';
+    }
+    
+    return 'general';
+  };
+
   // Get recommended heroes for a specific lane based on already picked heroes
   const getRecommendedHeroesForLane = (laneIndex) => {
     const targetLane = DRAFT_POSITIONS[laneIndex].lane;
@@ -131,6 +173,39 @@ export default function ManualDraftPick() {
         // Balanced attack reliance is always good
         if (heroAttackReliance === 'balanced') {
           score += 15;
+        }
+
+        // Score 5: Roaming-Mid Lane Synergy (ONLY for Mid Lane recommendations)
+        if (laneIndex === 2) { // Mid Lane index
+          const roamingHeroName = draftPicks[4]; // Roaming index
+          if (roamingHeroName && roamingHeroName.trim()) {
+            const roamingHero = pickedHeroes.find(h => 
+              h.hero_name.toLowerCase() === roamingHeroName.toLowerCase()
+            );
+            
+            if (roamingHero) {
+              const roamPlaystyle = getRoamingPlaystyle(roamingHero);
+              const roamHasCC = hasCC(roamingHero);
+              const midHasCC = hasCC(hero);
+              const midHasBurst = hasBurst(hero);
+              const midHasArea = hasAreaDamage(hero);
+
+              // Rule 1: Roaming non-CC → Mid Laner wajib CC (+50 bonus)
+              if (!roamHasCC && midHasCC) {
+                score += 50;
+              }
+
+              // Rule 2: Roaming pick-off → Mid harus burst damage (+45 bonus)
+              if (roamPlaystyle === 'pick-off' && midHasBurst) {
+                score += 45;
+              }
+
+              // Rule 3: Roaming team-fight → Mid harus area damage (+45 bonus)
+              if (roamPlaystyle === 'team-fight' && midHasArea) {
+                score += 45;
+              }
+            }
+          }
         }
 
         return { ...hero, score };
@@ -396,15 +471,36 @@ export default function ManualDraftPick() {
                                           hero.damage_type?.toLowerCase().includes('magic') ? '✨' : '⚡';
                         const attackRel = hero.attack_reliance?.toLowerCase().includes('basic') ? '👊' : 
                                          hero.attack_reliance?.toLowerCase().includes('skill') ? '🎯' : '⚖️';
+                        
+                        // Check for Roaming-Mid synergy bonus (only for Mid Lane)
+                        let synergyBonus = '';
+                        if (idx === 2 && draftPicks[4]) { // Mid Lane with Roaming picked
+                          const roamingHero = heroDetails.find(h => 
+                            h.hero_name.toLowerCase() === draftPicks[4].toLowerCase()
+                          );
+                          if (roamingHero) {
+                            const roamPlaystyle = getRoamingPlaystyle(roamingHero);
+                            const roamHasCC = hasCC(roamingHero);
+                            const midHasCC = hasCC(hero);
+                            const midHasBurst = hasBurst(hero);
+                            const midHasArea = hasAreaDamage(hero);
+                            
+                            if (!roamHasCC && midHasCC) synergyBonus = '🎯CC'; // Mid provides CC
+                            else if (roamPlaystyle === 'pick-off' && midHasBurst) synergyBonus = '💥Burst';
+                            else if (roamPlaystyle === 'team-fight' && midHasArea) synergyBonus = '🌊AoE';
+                          }
+                        }
+                        
                         return (
                           <button
                             key={hero.hero_name}
                             onClick={() => handlePickChange(idx, hero.hero_name)}
                             className="px-3 py-1.5 bg-gray-700 hover:bg-blue-600 rounded text-xs text-white transition-colors flex items-center gap-1.5"
-                            title={`${hero.hero_name} - ${heroRole}\nDamage: ${hero.damage_type}\nAttack: ${hero.attack_reliance}\nScore: ${hero.score || 0}`}
+                            title={`${hero.hero_name} - ${heroRole}\nDamage: ${hero.damage_type}\nAttack: ${hero.attack_reliance}\nScore: ${hero.score || 0}${synergyBonus ? `\n✨ Synergy: ${synergyBonus}` : ''}`}
                           >
                             <span>{hero.hero_name}</span>
                             {isPrimary && <span className="text-yellow-400">★</span>}
+                            {synergyBonus && <span className="text-green-400 text-[9px]">{synergyBonus}</span>}
                             <span className="text-gray-400 text-[10px] flex items-center gap-0.5">
                               {damageType}{attackRel}
                             </span>
