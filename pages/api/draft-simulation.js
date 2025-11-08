@@ -26,7 +26,7 @@ export default async function handler(req, res) {
     // Validate team composition
     const validation = validateDraftTeam(draftResult.draftOptions);
 
-    // Fetch lanes data DIRECTLY from database (NOT via fetch)
+    // Fetch lanes data DIRECTLY from database and REASSIGN based on lanes
     let heroesWithLanes = draftResult.draftOptions;
     try {
       console.log('Fetching lanes from database directly...');
@@ -59,7 +59,7 @@ export default async function handler(req, res) {
       });
 
       // Attach lanes to heroes
-      heroesWithLanes = draftResult.draftOptions.map(hero => {
+      let heroesData = draftResult.draftOptions.map(hero => {
         const lanes = lanesMap[hero.name] || [];
         console.log(`${hero.name}: ${lanes.length} lanes found`);
         return {
@@ -67,6 +67,57 @@ export default async function handler(req, res) {
           lanes
         };
       });
+
+      // REORDER heroes based on their lanes to match LANE_ASSIGNMENTS
+      const LANE_ORDER = ['Gold Lane', 'Exp Lane', 'Mid Lane', 'Jungling', 'Roaming'];
+      const assignedHeroes = new Array(5).fill(null);
+      const usedHeroes = new Set();
+
+      // First pass: Assign heroes to their PRIMARY lanes
+      heroesData.forEach(hero => {
+        if (usedHeroes.has(hero.name)) return;
+        const primaryLane = hero.lanes.find(l => l.priority === 1);
+        if (primaryLane) {
+          const laneIndex = LANE_ORDER.indexOf(primaryLane.lane_name);
+          if (laneIndex !== -1 && assignedHeroes[laneIndex] === null) {
+            assignedHeroes[laneIndex] = hero;
+            usedHeroes.add(hero.name);
+            console.log(`✓ ${hero.name} assigned to ${primaryLane.lane_name} (primary)`);
+          }
+        }
+      });
+
+      // Second pass: Assign remaining heroes to their SECONDARY/ANY lanes
+      heroesData.forEach(hero => {
+        if (usedHeroes.has(hero.name)) return;
+        for (const lane of hero.lanes) {
+          const laneIndex = LANE_ORDER.indexOf(lane.lane_name);
+          if (laneIndex !== -1 && assignedHeroes[laneIndex] === null) {
+            assignedHeroes[laneIndex] = hero;
+            usedHeroes.add(hero.name);
+            console.log(`✓ ${hero.name} assigned to ${lane.lane_name} (secondary, priority ${lane.priority})`);
+            break;
+          }
+        }
+      });
+
+      // Third pass: Fill remaining slots with unassigned heroes
+      let unassignedIndex = 0;
+      for (let i = 0; i < assignedHeroes.length; i++) {
+        if (assignedHeroes[i] === null) {
+          while (unassignedIndex < heroesData.length && usedHeroes.has(heroesData[unassignedIndex].name)) {
+            unassignedIndex++;
+          }
+          if (unassignedIndex < heroesData.length) {
+            assignedHeroes[i] = heroesData[unassignedIndex];
+            usedHeroes.add(heroesData[unassignedIndex].name);
+            console.log(`⚠ ${heroesData[unassignedIndex].name} assigned to ${LANE_ORDER[i]} (no lanes data)`);
+            unassignedIndex++;
+          }
+        }
+      }
+
+      heroesWithLanes = assignedHeroes.filter(h => h !== null);
     } catch (err) {
       console.error('Error fetching lanes from database:', err);
     }
