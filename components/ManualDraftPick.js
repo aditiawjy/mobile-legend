@@ -156,12 +156,15 @@ export default function ManualDraftPick() {
       const response = await fetch('/api/heroes');
       const allHeroes = await response.json();
 
-      // Filter heroes yang dipilih
-      const selectedHeroes = allHeroes.filter(hero =>
-        validHeroNames.some(name => 
-          hero.hero_name.toLowerCase() === name.toLowerCase()
-        )
-      );
+      // Map heroes dalam urutan yang sama dengan draftPicks (maintain order!)
+      const selectedHeroes = heroNames
+        .map(name => {
+          if (!name || !name.trim()) return null;
+          return allHeroes.find(hero => 
+            hero.hero_name.toLowerCase() === name.toLowerCase()
+          );
+        })
+        .filter(hero => hero !== null && hero !== undefined);
 
       setHeroDetails(selectedHeroes);
 
