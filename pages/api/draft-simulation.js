@@ -32,13 +32,20 @@ export default async function handler(req, res) {
       const response = await fetch(`${baseUrl}/api/heroes`);
       if (response.ok) {
         const allHeroes = await response.json();
+        console.log('All heroes count:', allHeroes.length);
         heroesWithLanes = draftResult.draftOptions.map(hero => {
-          const dbHero = allHeroes.find(h => h.hero_name === hero.name);
+          // Try to find hero by name (case-insensitive)
+          const dbHero = allHeroes.find(h => 
+            h.hero_name.toLowerCase() === hero.name.toLowerCase()
+          );
+          console.log(`Looking for ${hero.name}, found:`, dbHero ? `${dbHero.hero_name} with ${dbHero.lanes?.length || 0} lanes` : 'NOT FOUND');
           return {
             ...hero,
             lanes: dbHero?.lanes || []
           };
         });
+      } else {
+        console.error('Failed to fetch heroes:', response.status);
       }
     } catch (err) {
       console.error('Error fetching lanes:', err);
