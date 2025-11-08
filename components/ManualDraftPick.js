@@ -303,10 +303,18 @@ export default function ManualDraftPick() {
     const errors = [];
     const warnings = [];
     const usedLanes = new Set();
-    let allLanesFilled = heroDetails.length === 5;
+    let allLanesFilled = draftPicks.filter(p => p && p.trim()).length === 5;
 
-    heroDetails.forEach((hero, idx) => {
-      const position = DRAFT_POSITIONS[idx];
+    // Loop through DRAFT_POSITIONS to maintain correct index mapping
+    DRAFT_POSITIONS.forEach((position, idx) => {
+      const heroName = draftPicks[idx];
+      if (!heroName || !heroName.trim()) return; // Skip empty slots
+      
+      const hero = heroDetails.find(h => 
+        h.hero_name.toLowerCase() === heroName.toLowerCase()
+      );
+      if (!hero) return; // Skip if hero not loaded yet
+      
       const heroLanes = hero.lanes || [];
 
       // Only validate heroes that HAVE lanes data
