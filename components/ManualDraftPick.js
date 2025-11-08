@@ -318,6 +318,7 @@ export default function ManualDraftPick() {
           {DRAFT_POSITIONS.map((position, idx) => {
             const recommendedHeroes = getRecommendedHeroesForLane(idx);
             const hasRecommendations = recommendedHeroes.length > 0 && !draftPicks[idx];
+            const pickedHeroNames = draftPicks.filter((p, i) => i !== idx && p && p.trim());
 
             return (
               <div key={position.id} className="space-y-2">
