@@ -15,6 +15,7 @@ export default function ManualDraftPick() {
   const [loading, setLoading] = useState(false);
   const [composition, setComposition] = useState(null);
   const [allHeroesWithLanes, setAllHeroesWithLanes] = useState([]);
+  const [heroCombos, setHeroCombos] = useState([]);
 
   // Load all heroes with lanes data on mount
   useEffect(() => {
@@ -30,6 +31,37 @@ export default function ManualDraftPick() {
       }
     };
     loadAllHeroes();
+  }, []);
+
+  // Load hero combos data
+  useEffect(() => {
+    const loadCombos = async () => {
+      try {
+        const response = await fetch('/csv/hero-combos.csv');
+        if (response.ok) {
+          const text = await response.text();
+          const lines = text.split('\n').slice(1); // Skip header
+          const combos = lines
+            .filter(line => line.trim())
+            .map(line => {
+              const matches = line.match(/"([^"]*)"|([^,]+)/g);
+              if (!matches || matches.length < 5) return null;
+              return {
+                hero1: matches[0].replace(/"/g, '').trim(),
+                hero2: matches[1].replace(/"/g, '').trim(),
+                comboType: matches[2].replace(/"/g, '').trim(),
+                synergyScore: parseInt(matches[3].replace(/"/g, '').trim()) || 0,
+                description: matches[4].replace(/"/g, '').trim()
+              };
+            })
+            .filter(combo => combo !== null);
+          setHeroCombos(combos);
+        }
+      } catch (error) {
+        console.error('Error loading hero combos:', error);
+      }
+    };
+    loadCombos();
   }, []);
 
   const handlePickChange = (index, value) => {
@@ -97,6 +129,25 @@ export default function ManualDraftPick() {
     }
     
     return false;
+  };
+
+  // Helper: Check if hero has combo with picked heroes
+  const getComboWith = (hero, pickedHeroNames) => {
+    if (!hero || !pickedHeroNames || pickedHeroNames.length === 0) return null;
+    
+    for (const pickedName of pickedHeroNames) {
+      const combo = heroCombos.find(c => 
+        (c.hero1.toLowerCase() === hero.hero_name.toLowerCase() && c.hero2.toLowerCase() === pickedName.toLowerCase()) ||
+        (c.hero2.toLowerCase() === hero.hero_name.toLowerCase() && c.hero1.toLowerCase() === pickedName.toLowerCase())
+      );
+      if (combo) {
+        return {
+          ...combo,
+          partnerHero: combo.hero1.toLowerCase() === hero.hero_name.toLowerCase() ? combo.hero2 : combo.hero1
+        };
+      }
+    }
+    return null;
   };
 
   // Get recommended heroes for a specific lane based on already picked heroes
@@ -236,7 +287,16 @@ export default function ManualDraftPick() {
           score += 60;
         }
 
-        return { ...hero, score };
+        // Score 7: Hero Combo Synergy - POWERFUL combinations
+        // Check if hero has combo with any picked hero
+        const combo = getComboWith(hero, pickedHeroNames);
+        if (combo) {
+          // Add synergy score from combo (normalized: 75-95 score → 40-70 bonus)
+          const comboBonus = Math.floor((combo.synergyScore - 50) / 1.5);
+          score += comboBonus;
+        }
+
+        return { ...hero, score, combo };
       })
       .sort((a, b) => b.score - a.score) // Sort by score descending
       .slice(0, 5); // Top 5 recommendations
@@ -552,21 +612,27 @@ export default function ManualDraftPick() {
                           pickedHeroNames.includes(h.hero_name) && isTankOrTanky(h)
                         );
                         
+                        // Check if hero has combo with picked heroes
+                        const heroCombo = hero.combo;
+                        
                         return (
                           <button
                             key={hero.hero_name}
                             onClick={() => handlePickChange(idx, hero.hero_name)}
                             className={`px-3 py-1.5 rounded text-xs text-white transition-colors flex items-center gap-1.5 ${
-                              heroIsTank && !teamHasTank 
-                                ? 'bg-red-700 hover:bg-red-600 border border-red-500' 
-                                : 'bg-gray-700 hover:bg-blue-600'
+                              heroCombo 
+                                ? 'bg-purple-700 hover:bg-purple-600 border border-purple-500'
+                                : heroIsTank && !teamHasTank 
+                                  ? 'bg-red-700 hover:bg-red-600 border border-red-500' 
+                                  : 'bg-gray-700 hover:bg-blue-600'
                             }`}
-                            title={`${hero.hero_name} - ${heroRole}\nDamage: ${hero.damage_type}\nAttack: ${hero.attack_reliance}\nScore: ${hero.score || 0}${synergyBonus ? `\n✨ Synergy: ${synergyBonus}` : ''}${heroIsTank && !teamHasTank ? '\n🛡️ TANK NEEDED!' : ''}`}
+                            title={`${hero.hero_name} - ${heroRole}\nDamage: ${hero.damage_type}\nAttack: ${hero.attack_reliance}\nScore: ${hero.score || 0}${synergyBonus ? `\n✨ Synergy: ${synergyBonus}` : ''}${heroIsTank && !teamHasTank ? '\n🛡️ TANK NEEDED!' : ''}${heroCombo ? `\n🔥 COMBO: ${heroCombo.comboType} with ${heroCombo.partnerHero}\n📝 ${heroCombo.description}` : ''}`}
                           >
                             <span>{hero.hero_name}</span>
                             {isPrimary && <span className="text-yellow-400">★</span>}
-                            {heroIsTank && !teamHasTank && <span className="text-red-200 text-[9px]">🛡️TANK</span>}
-                            {synergyBonus && <span className="text-green-400 text-[9px]">{synergyBonus}</span>}
+                            {heroCombo && <span className="text-orange-300 text-[9px]">🔥{heroCombo.comboType}</span>}
+                            {heroIsTank && !teamHasTank && !heroCombo && <span className="text-red-200 text-[9px]">🛡️TANK</span>}
+                            {synergyBonus && !heroCombo && <span className="text-green-400 text-[9px]">{synergyBonus}</span>}
                             <span className="text-gray-400 text-[10px] flex items-center gap-0.5">
                               {damageType}{attackRel}
                             </span>
