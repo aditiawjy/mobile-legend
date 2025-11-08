@@ -53,9 +53,18 @@ export default function ManualDraftPick() {
       if (dt.includes('magic')) return 'magic';
       return 'unknown';
     });
+    const currentAttackReliance = pickedHeroes.map(h => {
+      const ar = h.attack_reliance?.toLowerCase() || '';
+      if (ar.includes('basic attack') && ar.includes('skill')) return 'balanced';
+      if (ar.includes('basic attack')) return 'basic_attack';
+      if (ar.includes('skill')) return 'skill';
+      return 'unknown';
+    });
 
     const physicalCount = currentDamageTypes.filter(d => d === 'physical' || d === 'mixed').length;
     const magicCount = currentDamageTypes.filter(d => d === 'magic' || d === 'mixed').length;
+    const basicAttackCount = currentAttackReliance.filter(a => a === 'basic_attack' || a === 'balanced').length;
+    const skillCount = currentAttackReliance.filter(a => a === 'skill' || a === 'balanced').length;
 
     // Filter and score heroes
     const recommended = allHeroesWithLanes
@@ -100,6 +109,28 @@ export default function ManualDraftPick() {
         // Mixed damage is always good
         if (heroDamageType === 'mixed') {
           score += 20;
+        }
+
+        // Score 4: Attack reliance balance (+35 for balancing attack reliance)
+        const heroAttackReliance = (() => {
+          const ar = hero.attack_reliance?.toLowerCase() || '';
+          if (ar.includes('basic attack') && ar.includes('skill')) return 'balanced';
+          if (ar.includes('basic attack')) return 'basic_attack';
+          if (ar.includes('skill')) return 'skill';
+          return 'unknown';
+        })();
+
+        // Prefer skill-based if team has too much basic attack
+        if (basicAttackCount > skillCount && (heroAttackReliance === 'skill' || heroAttackReliance === 'balanced')) {
+          score += 35;
+        }
+        // Prefer basic attack if team has too much skill-based
+        if (skillCount > basicAttackCount && (heroAttackReliance === 'basic_attack' || heroAttackReliance === 'balanced')) {
+          score += 35;
+        }
+        // Balanced attack reliance is always good
+        if (heroAttackReliance === 'balanced') {
+          score += 15;
         }
 
         return { ...hero, score };
@@ -358,17 +389,21 @@ export default function ManualDraftPick() {
                       {recommendedHeroes.map(hero => {
                         const isPrimary = hero.lanes.find(l => l.lane_name === position.lane)?.priority === 1;
                         const heroRole = hero.role?.split('/')[0];
+                        const damageType = hero.damage_type?.toLowerCase().includes('physical') ? '⚔️' : 
+                                          hero.damage_type?.toLowerCase().includes('magic') ? '✨' : '⚡';
+                        const attackRel = hero.attack_reliance?.toLowerCase().includes('basic') ? '👊' : 
+                                         hero.attack_reliance?.toLowerCase().includes('skill') ? '🎯' : '⚖️';
                         return (
                           <button
                             key={hero.hero_name}
                             onClick={() => handlePickChange(idx, hero.hero_name)}
                             className="px-3 py-1.5 bg-gray-700 hover:bg-blue-600 rounded text-xs text-white transition-colors flex items-center gap-1.5"
-                            title={`${hero.hero_name} - ${heroRole} - Score: ${hero.score || 0}`}
+                            title={`${hero.hero_name} - ${heroRole}\nDamage: ${hero.damage_type}\nAttack: ${hero.attack_reliance}\nScore: ${hero.score || 0}`}
                           >
                             <span>{hero.hero_name}</span>
                             {isPrimary && <span className="text-yellow-400">★</span>}
-                            <span className="text-gray-400 text-[10px]">
-                              ({heroRole})
+                            <span className="text-gray-400 text-[10px] flex items-center gap-0.5">
+                              {damageType}{attackRel}
                             </span>
                           </button>
                         );
