@@ -16,6 +16,7 @@ export default function EditNav({ active }) {
 
   return (
     <nav className="flex items-center gap-2">
+      {btn('Edit Hero Info', '/edit-hero-info', active === 'hero-info')}
       {btn('Edit Skills', '/edit-skills', active === 'skills')}
       {btn('Edit Items', '/edit-items', active === 'items')}
     </nav>

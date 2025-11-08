@@ -113,25 +113,55 @@ export default function DraftPickSimulator() {
 
           {/* Draft Options (5 Heroes Total) */}
           <div className="mb-8">
-            <h2 className="text-2xl font-bold mb-4">5 Pilihan Draft</h2>
+            <h2 className="text-2xl font-bold mb-4">5 Pilihan Draft (Dengan Lane Info)</h2>
             <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-              {draftResult.draft.options.map((hero, idx) => (
-                <div
-                  key={hero.name}
-                  className={`rounded p-4 border-2 transition-all ${
-                    idx === 0
-                      ? 'bg-blue-950 border-blue-500 shadow-lg shadow-blue-500'
-                      : 'bg-gray-800 border-gray-700 hover:border-yellow-500'
-                  }`}
-                >
-                  <div className="text-center">
-                    <p className="font-bold text-lg mb-2">{idx === 0 ? '🎯' : '✓'}</p>
-                    <p className="font-bold">{hero.name}</p>
-                    <p className="text-sm text-gray-400 mt-1">{getPrimaryRole(hero.role)}</p>
-                    <p className="text-xs text-gray-500 mt-2">{hero.damageType}</p>
+              {draftResult.draft.options.map((hero, idx) => {
+                const heroLanes = hero.lanes || [];
+                const LANE_ICONS = {
+                  'Gold Lane': '💰',
+                  'Exp Lane': '⚔️',
+                  'Mid Lane': '🎯',
+                  'Jungling': '🌳',
+                  'Roaming': '🛡️'
+                };
+                
+                return (
+                  <div
+                    key={hero.name}
+                    className={`rounded p-4 border-2 transition-all ${
+                      idx === 0
+                        ? 'bg-blue-950 border-blue-500 shadow-lg shadow-blue-500'
+                        : 'bg-gray-800 border-gray-700 hover:border-yellow-500'
+                    }`}
+                  >
+                    <div className="text-center">
+                      <p className="font-bold text-lg mb-2">{idx === 0 ? '🎯' : '✓'}</p>
+                      <p className="font-bold">{hero.name}</p>
+                      <p className="text-sm text-gray-400 mt-1">{getPrimaryRole(hero.role)}</p>
+                      <p className="text-xs text-gray-500 mt-2">{hero.damageType}</p>
+                      
+                      {/* Lane Info */}
+                      {heroLanes.length > 0 && (
+                        <div className="mt-3 pt-2 border-t border-gray-600">
+                          <p className="text-xs text-gray-500 mb-2">Lanes:</p>
+                          <div className="space-y-1">
+                            {heroLanes.slice(0, 3).map((lane, lIdx) => (
+                              <div
+                                key={lIdx}
+                                className="text-xs px-2 py-1 bg-gray-700 rounded flex items-center justify-center gap-1"
+                              >
+                                <span>{LANE_ICONS[lane.lane_name] || '•'}</span>
+                                <span>{lane.lane_name}</span>
+                                {lane.priority === 1 && <span className="text-yellow-400">★</span>}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 

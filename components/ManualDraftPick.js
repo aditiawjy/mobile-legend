@@ -2,11 +2,11 @@ import { useState, useEffect } from 'react';
 import HeroAutocomplete from './HeroAutocomplete';
 
 const DRAFT_POSITIONS = [
-  { id: 1, label: 'Pick 1', role: 'Any Role' },
-  { id: 2, label: 'Pick 2', role: 'Any Role' },
-  { id: 3, label: 'Pick 3', role: 'Any Role' },
-  { id: 4, label: 'Pick 4', role: 'Any Role' },
-  { id: 5, label: 'Pick 5', role: 'Any Role' },
+  { id: 1, label: 'Gold Lane', lane: 'Gold Lane', icon: '💰' },
+  { id: 2, label: 'Exp Lane', lane: 'Exp Lane', icon: '⚔️' },
+  { id: 3, label: 'Mid Lane', lane: 'Mid Lane', icon: '🎯' },
+  { id: 4, label: 'Jungling', lane: 'Jungling', icon: '🌳' },
+  { id: 5, label: 'Roaming', lane: 'Roaming', icon: '🛡️' },
 ];
 
 export default function ManualDraftPick() {
@@ -32,8 +32,8 @@ export default function ManualDraftPick() {
         return;
       }
 
-      // Fetch all heroes from CSV (consistent with Auto Recommendation)
-      const response = await fetch('/api/draft/heroes-list');
+      // Fetch all heroes with lanes from database
+      const response = await fetch('/api/heroes');
       const allHeroes = await response.json();
 
       // Filter heroes yang dipilih
@@ -118,15 +118,20 @@ export default function ManualDraftPick() {
         <div className="grid grid-cols-1 gap-4">
           {DRAFT_POSITIONS.map((position, idx) => (
             <div key={position.id} className="flex items-center gap-4">
-              <div className="flex-shrink-0 w-24">
-                <span className="text-lg font-bold text-blue-400">{position.label}</span>
-                <p className="text-xs text-gray-500">{position.role}</p>
+              <div className="flex-shrink-0 w-32">
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl">{position.icon}</span>
+                  <div>
+                    <span className="text-lg font-bold text-blue-400 block">{position.label}</span>
+                    <p className="text-xs text-gray-500">{position.lane}</p>
+                  </div>
+                </div>
               </div>
               <div className="flex-1">
                 <HeroAutocomplete
                   value={draftPicks[idx]}
                   onChange={(value) => handlePickChange(idx, value)}
-                  placeholder={`Type hero name for ${position.label}...`}
+                  placeholder={`Select hero for ${position.label}...`}
                   position={position.label}
                 />
               </div>
@@ -148,32 +153,74 @@ export default function ManualDraftPick() {
           <div className="mb-8">
             <h2 className="text-2xl font-bold mb-4">Draft Summary ({heroDetails.length}/5)</h2>
             <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-              {heroDetails.map((hero, idx) => (
-                <div
-                  key={hero.hero_name}
-                  className="bg-gray-800 border-2 border-blue-500 rounded-lg p-4 hover:shadow-lg hover:shadow-blue-500/50 transition-all"
-                >
-                  <div className="text-center">
-                    <div className="text-2xl mb-2">
-                      {idx === 0 ? '🎯' : idx === 1 ? '⚔️' : idx === 2 ? '🛡️' : idx === 3 ? '✨' : '🔥'}
-                    </div>
-                    <p className="font-bold text-lg mb-1">{hero.hero_name}</p>
-                    <p className="text-sm text-blue-400 mb-2">
-                      {hero.role || 'Unknown Role'}
-                    </p>
-                    <div className="space-y-1 text-xs text-gray-400">
-                      <p>
-                        <span className="text-gray-500">Damage:</span>{' '}
-                        {hero.damage_type || 'Unknown'}
+              {heroDetails.map((hero, idx) => {
+                const position = DRAFT_POSITIONS[idx];
+                const heroLanes = hero.lanes || [];
+                const isLaneMatch = heroLanes.some(lane => lane.lane_name === position.lane);
+                
+                return (
+                  <div
+                    key={hero.hero_name}
+                    className={`rounded-lg p-4 border-2 transition-all ${
+                      isLaneMatch
+                        ? 'bg-gray-800 border-blue-500 hover:shadow-lg hover:shadow-blue-500/50'
+                        : 'bg-yellow-900/30 border-yellow-500'
+                    }`}
+                  >
+                    <div className="text-center">
+                      <div className="text-2xl mb-2">{position.icon}</div>
+                      <p className="font-bold text-lg mb-1">{hero.hero_name}</p>
+                      <p className="text-xs text-blue-400 mb-2">{position.lane}</p>
+                      <p className="text-sm text-gray-400 mb-2">
+                        {hero.role || 'Unknown Role'}
                       </p>
-                      <p>
-                        <span className="text-gray-500">Type:</span>{' '}
-                        {hero.attack_reliance || 'Unknown'}
-                      </p>
+                      
+                      {/* Lane Info */}
+                      <div className="mt-2 mb-2">
+                        {heroLanes.length > 0 ? (
+                          <div className="text-xs">
+                            <p className="text-gray-500 mb-1">Hero Lanes:</p>
+                            <div className="space-y-1">
+                              {heroLanes.map((lane, lIdx) => (
+                                <div
+                                  key={lIdx}
+                                  className={`px-2 py-1 rounded ${
+                                    lane.lane_name === position.lane
+                                      ? 'bg-green-700 text-white'
+                                      : 'bg-gray-700 text-gray-300'
+                                  }`}
+                                >
+                                  {lane.lane_name}
+                                  {lane.priority === 1 && ' ★'}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ) : (
+                          <p className="text-xs text-gray-500">No lanes data</p>
+                        )}
+                      </div>
+
+                      {!isLaneMatch && heroLanes.length > 0 && (
+                        <div className="mt-2 px-2 py-1 bg-yellow-600 rounded text-xs text-white">
+                          ⚠ Not typical for {position.lane}
+                        </div>
+                      )}
+
+                      <div className="space-y-1 text-xs text-gray-400 mt-2">
+                        <p>
+                          <span className="text-gray-500">Damage:</span>{' '}
+                          {hero.damage_type || 'Unknown'}
+                        </p>
+                        <p>
+                          <span className="text-gray-500">Type:</span>{' '}
+                          {hero.attack_reliance || 'Unknown'}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 

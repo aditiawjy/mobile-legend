@@ -11,10 +11,37 @@ export default async function handler(req, res) {
       const [heroes] = await connection.execute('SELECT * FROM heroes ORDER BY hero_name')
       console.log(`Found ${heroes.length} heroes`)
 
+      // Get lanes for each hero
+      const [lanesData] = await connection.execute(`
+        SELECT hl.hero_name, l.lane_name, l.description as lane_description, hl.priority
+        FROM hero_lanes hl
+        JOIN lanes l ON hl.lane_id = l.id
+        ORDER BY hl.hero_name, hl.priority
+      `)
+
+      // Group lanes by hero_name
+      const lanesMap = {}
+      lanesData.forEach(row => {
+        if (!lanesMap[row.hero_name]) {
+          lanesMap[row.hero_name] = []
+        }
+        lanesMap[row.hero_name].push({
+          lane_name: row.lane_name,
+          description: row.lane_description,
+          priority: row.priority
+        })
+      })
+
+      // Attach lanes to each hero
+      const heroesWithLanes = heroes.map(hero => ({
+        ...hero,
+        lanes: lanesMap[hero.hero_name] || []
+      }))
+
       // Do NOT end the pool per request; Next.js dev server reuses it.
       // Leaving the pool open avoids connection churn and errors.
 
-      res.status(200).json(heroes)
+      res.status(200).json(heroesWithLanes)
     } catch (error) {
       console.error('Error fetching all heroes:', error)
 

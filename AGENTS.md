@@ -17,6 +17,16 @@ Kontrak Kolom (baseline)
 - items.csv: Item Name, Category, Price, Attack, Attack Speed, Crit Chance, Armor Penetration, Spell Vamp, Magic Power, HP, Armor, Magic Resist, Movement Speed, Cooldown Reduction, Mana Regen, HP Regen, Description
 - Catatan: Nama kolom adalah kontrak data. Perubahan nama/tipe kolom mewajibkan audit dan penyesuaian komponen UI, API, adapter, query, dan util parsing yang bergantung.
 
+Database Tables (MySQL)
+- lanes: id (PK), lane_name (UNIQUE), description, created_at, updated_at
+  - Master data untuk lanes: Gold Lane, Exp Lane, Mid Lane, Jungling, Roaming
+- hero_lanes: id (PK), hero_name (FK → heroes), lane_id (FK → lanes), priority (1=primary, 2=secondary, 3=situational)
+  - Many-to-many relationship antara heroes dan lanes
+  - UNIQUE constraint pada (hero_name, lane_id)
+- heroes: hero_name (PK), role, damage_type, attack_reliance, note
+  - API GET /api/heroes mengembalikan heroes dengan lanes array
+- Catatan: Lanes data dikelola melalui database, bukan CSV. API endpoints: /api/lanes, /api/admin/hero_lanes
+
 Checklist Analisis (WAJIB)
 1) Enumerasi file: ambil semua `public/csv/*.csv` (jangan hardcode 1 file saja).
 2) Validasi header: pastikan semua properti yang dipakai kode/komponen ada di header CSV terkait (case/underscore sensitif sesuai pemakaian).

@@ -313,9 +313,10 @@ export default function Home() {
                 }
               </p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               {!showAllHeroes && (
                 <>
+                  <a href="/edit-hero-info" className="text-sm inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-blue-300 text-blue-700 bg-blue-50 hover:bg-blue-100 font-medium">Edit Hero Info & Lanes</a>
                   <a href="/items" className="text-sm inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-gray-200 text-gray-700 bg-white hover:bg-gray-100">Items</a>
                   <a href="/damage-composition" className="text-sm inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-purple-200 text-purple-700 bg-purple-50 hover:bg-purple-100">Analysis</a>
                   
@@ -363,6 +364,78 @@ export default function Home() {
           )}
 
           {/* CSV Export Section */}
+          {!showAllHeroes && (
+            <div className="mb-8">
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                  Manage Heroes
+                </h2>
+                <p className="text-sm text-gray-600 mb-4">Edit hero information, lanes, skills, and attributes</p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                  <a
+                    href="/edit-hero-info"
+                    className="p-4 bg-blue-50 border border-blue-200 rounded-lg hover:shadow-md transition-shadow"
+                  >
+                    <h3 className="font-semibold text-blue-900 mb-1">Hero Info & Lanes</h3>
+                    <p className="text-xs text-blue-700 mb-2">Edit hero details and lane assignments</p>
+                    <span className="inline-flex items-center gap-1 text-xs text-blue-600 font-medium">
+                      Edit
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </span>
+                  </a>
+
+                  <a
+                    href="/edit-skills"
+                    className="p-4 bg-purple-50 border border-purple-200 rounded-lg hover:shadow-md transition-shadow"
+                  >
+                    <h3 className="font-semibold text-purple-900 mb-1">Hero Skills</h3>
+                    <p className="text-xs text-purple-700 mb-2">Edit hero skills and descriptions</p>
+                    <span className="inline-flex items-center gap-1 text-xs text-purple-600 font-medium">
+                      Edit
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </span>
+                  </a>
+
+                  <a
+                    href="/edit-hero-attributes"
+                    className="p-4 bg-green-50 border border-green-200 rounded-lg hover:shadow-md transition-shadow"
+                  >
+                    <h3 className="font-semibold text-green-900 mb-1">Hero Attributes</h3>
+                    <p className="text-xs text-green-700 mb-2">Edit hero stats and attributes</p>
+                    <span className="inline-flex items-center gap-1 text-xs text-green-600 font-medium">
+                      Edit
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </span>
+                  </a>
+
+                  <a
+                    href="/edit-hero-adjustments"
+                    className="p-4 bg-orange-50 border border-orange-200 rounded-lg hover:shadow-md transition-shadow"
+                  >
+                    <h3 className="font-semibold text-orange-900 mb-1">Hero Adjustments</h3>
+                    <p className="text-xs text-orange-700 mb-2">Edit balance changes and patches</p>
+                    <span className="inline-flex items-center gap-1 text-xs text-orange-600 font-medium">
+                      Edit
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </span>
+                  </a>
+                </div>
+              </div>
+            </div>
+          )}
+
           {!showAllHeroes && (
             <div className="mb-8">
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
