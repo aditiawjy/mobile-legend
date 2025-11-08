@@ -26,6 +26,33 @@ export default async function handler(req, res) {
     // Validate team composition
     const validation = validateDraftTeam(draftResult.draftOptions);
 
+    // Fetch hero combos from database for enhanced recommendations
+    let heroCombos = [];
+    try {
+      console.log('Fetching hero combos from database...');
+      const combosData = await query('SELECT * FROM hero_combos ORDER BY synergy_score DESC');
+      heroCombos = combosData || [];
+      console.log(`Loaded ${heroCombos.length} combos from database`);
+    } catch (err) {
+      console.error('Error fetching combos:', err);
+    }
+
+    // Check for combos in recommended partners
+    const partnersWithCombo = draftResult.partners.map(partner => {
+      const combo = heroCombos.find(c => 
+        (c.hero1.toLowerCase() === heroName.toLowerCase() && c.hero2.toLowerCase() === partner.name.toLowerCase()) ||
+        (c.hero2.toLowerCase() === heroName.toLowerCase() && c.hero1.toLowerCase() === partner.name.toLowerCase())
+      );
+      return {
+        ...partner,
+        combo: combo ? {
+          comboType: combo.combo_type,
+          synergyScore: combo.synergy_score,
+          description: combo.description
+        } : null
+      };
+    });
+
     // Fetch lanes data DIRECTLY from database and REASSIGN based on lanes
     let heroesWithLanes = draftResult.draftOptions;
     try {
@@ -176,7 +203,7 @@ export default async function handler(req, res) {
       success: true,
       data: {
         selectedHero: draftResult.selected,
-        recommendedPartners: draftResult.partners,
+        recommendedPartners: partnersWithCombo,
         draft: {
           options: heroesWithLanes,
           roles: heroesWithLanes.map(h => ({
@@ -186,6 +213,12 @@ export default async function handler(req, res) {
         },
         recommendations: draftResult.recommendations,
         teamValidation: validation,
+        combosDetected: partnersWithCombo.filter(p => p.combo !== null).map(p => ({
+          hero: p.name,
+          comboType: p.combo.comboType,
+          synergyScore: p.combo.synergyScore,
+          description: p.combo.description
+        })),
         timestamp: new Date().toISOString(),
       },
     });
