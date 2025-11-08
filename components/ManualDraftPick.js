@@ -80,6 +80,25 @@ export default function ManualDraftPick() {
     return 'general';
   };
 
+  // Helper: Detect if hero is Tank or Tanky (badan tahan)
+  const isTankOrTanky = (hero) => {
+    const role = hero.role?.toLowerCase() || '';
+    const ar = hero.attack_reliance?.toLowerCase() || '';
+    const note = hero.note?.toLowerCase() || '';
+    
+    // Primary: Role contains Tank
+    if (role.includes('tank')) return true;
+    
+    // Secondary: Fighter/Support with durability keywords
+    const tankyKeywords = ['guard', 'regen', 'shield', 'defense', 'tebal', 'tahan', 'durability', 'sustain'];
+    if ((role.includes('fighter') || role.includes('support')) && 
+        tankyKeywords.some(keyword => ar.includes(keyword) || note.includes(keyword))) {
+      return true;
+    }
+    
+    return false;
+  };
+
   // Get recommended heroes for a specific lane based on already picked heroes
   const getRecommendedHeroesForLane = (laneIndex) => {
     const targetLane = DRAFT_POSITIONS[laneIndex].lane;
@@ -107,6 +126,9 @@ export default function ManualDraftPick() {
     const magicCount = currentDamageTypes.filter(d => d === 'magic' || d === 'mixed').length;
     const basicAttackCount = currentAttackReliance.filter(a => a === 'basic_attack' || a === 'balanced').length;
     const skillCount = currentAttackReliance.filter(a => a === 'skill' || a === 'balanced').length;
+    
+    // Check if team has tank/tanky hero
+    const hasTank = pickedHeroes.some(h => isTankOrTanky(h));
 
     // Filter and score heroes
     const recommended = allHeroesWithLanes
@@ -206,6 +228,12 @@ export default function ManualDraftPick() {
               }
             }
           }
+        }
+
+        // Score 6: Tank/Tanky Hero Priority - CRITICAL for team survival
+        // If team doesn't have tank yet, prioritize tank heroes (+60 bonus)
+        if (!hasTank && isTankOrTanky(hero)) {
+          score += 60;
         }
 
         return { ...hero, score };
@@ -337,7 +365,21 @@ export default function ManualDraftPick() {
     });
 
     if (!allLanesFilled) {
-      errors.push(`Draft tidak lengkap: Pilih 5 heroes (${heroDetails.length}/5)`);
+      errors.push(`Draft tidak lengkap: Pilih 5 heroes (${draftPicks.filter(p => p && p.trim()).length}/5)`);
+    }
+
+    // CRITICAL: Check if team has tank/tanky hero
+    if (allLanesFilled) {
+      const allPickedHeroes = DRAFT_POSITIONS.map((position, idx) => {
+        const heroName = draftPicks[idx];
+        if (!heroName || !heroName.trim()) return null;
+        return heroDetails.find(h => h.hero_name.toLowerCase() === heroName.toLowerCase());
+      }).filter(h => h !== null && h !== undefined);
+      
+      const hasTank = allPickedHeroes.some(h => isTankOrTanky(h));
+      if (!hasTank) {
+        errors.push('⚠️ KRITIS: Tim tidak punya Tank/Hero tahan badan! Tim akan sulit bertahan.');
+      }
     }
 
     return {
@@ -504,15 +546,26 @@ export default function ManualDraftPick() {
                           }
                         }
                         
+                        // Check if hero is tank/tanky (CRITICAL for team)
+                        const heroIsTank = isTankOrTanky(hero);
+                        const teamHasTank = heroDetails.some(h => 
+                          pickedHeroNames.includes(h.hero_name) && isTankOrTanky(h)
+                        );
+                        
                         return (
                           <button
                             key={hero.hero_name}
                             onClick={() => handlePickChange(idx, hero.hero_name)}
-                            className="px-3 py-1.5 bg-gray-700 hover:bg-blue-600 rounded text-xs text-white transition-colors flex items-center gap-1.5"
-                            title={`${hero.hero_name} - ${heroRole}\nDamage: ${hero.damage_type}\nAttack: ${hero.attack_reliance}\nScore: ${hero.score || 0}${synergyBonus ? `\n✨ Synergy: ${synergyBonus}` : ''}`}
+                            className={`px-3 py-1.5 rounded text-xs text-white transition-colors flex items-center gap-1.5 ${
+                              heroIsTank && !teamHasTank 
+                                ? 'bg-red-700 hover:bg-red-600 border border-red-500' 
+                                : 'bg-gray-700 hover:bg-blue-600'
+                            }`}
+                            title={`${hero.hero_name} - ${heroRole}\nDamage: ${hero.damage_type}\nAttack: ${hero.attack_reliance}\nScore: ${hero.score || 0}${synergyBonus ? `\n✨ Synergy: ${synergyBonus}` : ''}${heroIsTank && !teamHasTank ? '\n🛡️ TANK NEEDED!' : ''}`}
                           >
                             <span>{hero.hero_name}</span>
                             {isPrimary && <span className="text-yellow-400">★</span>}
+                            {heroIsTank && !teamHasTank && <span className="text-red-200 text-[9px]">🛡️TANK</span>}
                             {synergyBonus && <span className="text-green-400 text-[9px]">{synergyBonus}</span>}
                             <span className="text-gray-400 text-[10px] flex items-center gap-0.5">
                               {damageType}{attackRel}
