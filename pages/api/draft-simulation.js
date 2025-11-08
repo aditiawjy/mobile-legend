@@ -1,4 +1,5 @@
 import { simulateDraftPick, validateDraftTeam, parseHeroesCSV } from '../../lib/draftPick';
+import { query } from '../../lib/db';
 
 export default async function handler(req, res) {
   if (req.method !== 'GET' && req.method !== 'POST') {
@@ -25,30 +26,49 @@ export default async function handler(req, res) {
     // Validate team composition
     const validation = validateDraftTeam(draftResult.draftOptions);
 
-    // Fetch lanes data from database for all heroes in draft
+    // Fetch lanes data DIRECTLY from database (NOT via fetch)
     let heroesWithLanes = draftResult.draftOptions;
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-      const response = await fetch(`${baseUrl}/api/heroes`);
-      if (response.ok) {
-        const allHeroes = await response.json();
-        console.log('All heroes count:', allHeroes.length);
-        heroesWithLanes = draftResult.draftOptions.map(hero => {
-          // Try to find hero by name (case-insensitive)
-          const dbHero = allHeroes.find(h => 
-            h.hero_name.toLowerCase() === hero.name.toLowerCase()
-          );
-          console.log(`Looking for ${hero.name}, found:`, dbHero ? `${dbHero.hero_name} with ${dbHero.lanes?.length || 0} lanes` : 'NOT FOUND');
-          return {
-            ...hero,
-            lanes: dbHero?.lanes || []
-          };
+      console.log('Fetching lanes from database directly...');
+      
+      // Get lanes for all draft heroes in one query
+      const heroNames = draftResult.draftOptions.map(h => h.name);
+      const placeholders = heroNames.map(() => '?').join(',');
+      
+      const lanesData = await query(`
+        SELECT hl.hero_name, l.lane_name, l.description as lane_description, hl.priority
+        FROM hero_lanes hl
+        JOIN lanes l ON hl.lane_id = l.id
+        WHERE hl.hero_name IN (${placeholders})
+        ORDER BY hl.hero_name, hl.priority
+      `, heroNames);
+
+      console.log('Lanes data fetched:', lanesData.length, 'rows');
+
+      // Group lanes by hero_name
+      const lanesMap = {};
+      lanesData.forEach(row => {
+        if (!lanesMap[row.hero_name]) {
+          lanesMap[row.hero_name] = [];
+        }
+        lanesMap[row.hero_name].push({
+          lane_name: row.lane_name,
+          description: row.lane_description,
+          priority: row.priority
         });
-      } else {
-        console.error('Failed to fetch heroes:', response.status);
-      }
+      });
+
+      // Attach lanes to heroes
+      heroesWithLanes = draftResult.draftOptions.map(hero => {
+        const lanes = lanesMap[hero.name] || [];
+        console.log(`${hero.name}: ${lanes.length} lanes found`);
+        return {
+          ...hero,
+          lanes
+        };
+      });
     } catch (err) {
-      console.error('Error fetching lanes:', err);
+      console.error('Error fetching lanes from database:', err);
     }
 
     res.status(200).json({
