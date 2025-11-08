@@ -467,7 +467,12 @@ export default function ManualDraftPick() {
                       <span>Smart Picks for {position.lane}</span>
                       {pickedHeroNames.length > 0 && (
                         <span className="text-gray-400">
-                          (synergizes with {pickedHeroNames.slice(-1)[0]})
+                          (synergizes with {pickedHeroNames.length === 1 
+                            ? pickedHeroNames[0] 
+                            : pickedHeroNames.length === 2 
+                              ? `${pickedHeroNames[0]} & ${pickedHeroNames[1]}`
+                              : `${pickedHeroNames[0]}, ${pickedHeroNames[1]} & ${pickedHeroNames.length - 2} more`
+                          })
                         </span>
                       )}
                     </p>
