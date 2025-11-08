@@ -14,11 +14,55 @@ export default function ManualDraftPick() {
   const [heroDetails, setHeroDetails] = useState([]);
   const [loading, setLoading] = useState(false);
   const [composition, setComposition] = useState(null);
+  const [allHeroesWithLanes, setAllHeroesWithLanes] = useState([]);
+
+  // Load all heroes with lanes data on mount
+  useEffect(() => {
+    const loadAllHeroes = async () => {
+      try {
+        const response = await fetch('/api/heroes');
+        if (response.ok) {
+          const heroes = await response.json();
+          setAllHeroesWithLanes(heroes);
+        }
+      } catch (error) {
+        console.error('Error loading heroes:', error);
+      }
+    };
+    loadAllHeroes();
+  }, []);
 
   const handlePickChange = (index, value) => {
     const newPicks = [...draftPicks];
     newPicks[index] = value;
     setDraftPicks(newPicks);
+  };
+
+  // Get recommended heroes for a specific lane based on already picked heroes
+  const getRecommendedHeroesForLane = (laneIndex) => {
+    const targetLane = DRAFT_POSITIONS[laneIndex].lane;
+    const pickedHeroNames = draftPicks.filter((p, idx) => idx !== laneIndex && p && p.trim());
+
+    // Filter heroes that:
+    // 1. Have the target lane in their lanes
+    // 2. Not already picked
+    const recommended = allHeroesWithLanes
+      .filter(hero => {
+        // Check if hero has target lane
+        const hasTargetLane = hero.lanes && hero.lanes.some(l => l.lane_name === targetLane);
+        // Check if not already picked
+        const notPicked = !pickedHeroNames.some(name => name.toLowerCase() === hero.hero_name.toLowerCase());
+        return hasTargetLane && notPicked;
+      })
+      .sort((a, b) => {
+        // Sort by priority: primary lane (priority 1) first
+        const aPriority = a.lanes.find(l => l.lane_name === targetLane)?.priority || 99;
+        const bPriority = b.lanes.find(l => l.lane_name === targetLane)?.priority || 99;
+        return aPriority - bPriority;
+      })
+      .slice(0, 5); // Top 5 recommendations
+
+    return recommended;
   };
 
   const fetchHeroDetails = async (heroNames) => {
@@ -226,27 +270,58 @@ export default function ManualDraftPick() {
       <div className="mb-8 space-y-4">
         <h2 className="text-xl font-semibold mb-4">Select 5 Heroes by Lane</h2>
         <div className="grid grid-cols-1 gap-4">
-          {DRAFT_POSITIONS.map((position, idx) => (
-            <div key={position.id} className="flex items-center gap-4">
-              <div className="flex-shrink-0 w-32">
-                <div className="flex items-center gap-2">
-                  <span className="text-2xl">{position.icon}</span>
-                  <div>
-                    <span className="text-lg font-bold text-blue-400 block">{position.label}</span>
-                    <p className="text-xs text-gray-500">{position.lane}</p>
+          {DRAFT_POSITIONS.map((position, idx) => {
+            const recommendedHeroes = getRecommendedHeroesForLane(idx);
+            const hasRecommendations = recommendedHeroes.length > 0 && !draftPicks[idx];
+
+            return (
+              <div key={position.id} className="space-y-2">
+                <div className="flex items-center gap-4">
+                  <div className="flex-shrink-0 w-32">
+                    <div className="flex items-center gap-2">
+                      <span className="text-2xl">{position.icon}</span>
+                      <div>
+                        <span className="text-lg font-bold text-blue-400 block">{position.label}</span>
+                        <p className="text-xs text-gray-500">{position.lane}</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <HeroAutocomplete
+                      value={draftPicks[idx]}
+                      onChange={(value) => handlePickChange(idx, value)}
+                      placeholder={`Select hero for ${position.label}...`}
+                      position={position.label}
+                    />
                   </div>
                 </div>
+
+                {/* Recommendations */}
+                {hasRecommendations && (
+                  <div className="ml-36 bg-gray-800 border border-blue-600/30 rounded-lg p-3">
+                    <p className="text-xs text-blue-300 mb-2 font-semibold">
+                      💡 Recommended for {position.lane}:
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {recommendedHeroes.map(hero => {
+                        const isPrimary = hero.lanes.find(l => l.lane_name === position.lane)?.priority === 1;
+                        return (
+                          <button
+                            key={hero.hero_name}
+                            onClick={() => handlePickChange(idx, hero.hero_name)}
+                            className="px-3 py-1 bg-gray-700 hover:bg-blue-600 rounded text-xs text-white transition-colors flex items-center gap-1"
+                          >
+                            {hero.hero_name}
+                            {isPrimary && <span className="text-yellow-400">★</span>}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
-              <div className="flex-1">
-                <HeroAutocomplete
-                  value={draftPicks[idx]}
-                  onChange={(value) => handlePickChange(idx, value)}
-                  placeholder={`Select hero for ${position.label}...`}
-                  position={position.label}
-                />
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
