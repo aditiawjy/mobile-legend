@@ -98,6 +98,54 @@ export default function ManualDraftPick() {
 
   const hasAnyPick = draftPicks.some(pick => pick && pick.trim());
 
+  // Validate lanes
+  const laneValidation = () => {
+    if (heroDetails.length === 0) return { isValid: false, errors: [] };
+
+    const errors = [];
+    const warnings = [];
+    const usedLanes = new Set();
+    let allLanesFilled = heroDetails.length === 5;
+
+    heroDetails.forEach((hero, idx) => {
+      const position = DRAFT_POSITIONS[idx];
+      const heroLanes = hero.lanes || [];
+
+      // Check if hero has lanes data
+      if (heroLanes.length === 0) {
+        warnings.push(`${hero.hero_name}: Tidak ada data lanes`);
+      }
+
+      // Check if hero matches the assigned lane
+      const isLaneMatch = heroLanes.some(lane => lane.lane_name === position.lane);
+      if (!isLaneMatch && heroLanes.length > 0) {
+        warnings.push(`${hero.hero_name}: Tidak cocok untuk ${position.lane}`);
+      }
+
+      // Check for duplicate lanes (based on hero's primary lane)
+      const primaryLane = heroLanes.find(l => l.priority === 1)?.lane_name;
+      if (primaryLane) {
+        if (usedLanes.has(primaryLane)) {
+          errors.push(`Duplicate lane detected: ${primaryLane} (${hero.hero_name})`);
+        }
+        usedLanes.add(primaryLane);
+      }
+    });
+
+    if (!allLanesFilled) {
+      errors.push(`Draft tidak lengkap: Pilih 5 heroes (${heroDetails.length}/5)`);
+    }
+
+    return {
+      isValid: errors.length === 0 && allLanesFilled,
+      errors,
+      warnings,
+      allLanesFilled
+    };
+  };
+
+  const validation = laneValidation();
+
   return (
     <div className="w-full max-w-6xl mx-auto p-6 bg-gray-900 text-white rounded-lg">
       <div className="flex justify-between items-center mb-6">
@@ -112,9 +160,73 @@ export default function ManualDraftPick() {
         )}
       </div>
 
+      {/* Validation Summary */}
+      {heroDetails.length > 0 && (
+        <div className="mb-6">
+          {/* Errors */}
+          {validation.errors.length > 0 && (
+            <div className="bg-red-900/50 border-2 border-red-500 rounded-lg p-4 mb-3">
+              <h3 className="text-lg font-bold text-red-300 mb-2 flex items-center gap-2">
+                <span>❌</span> Draft Tidak Valid
+              </h3>
+              <ul className="text-sm text-red-200 space-y-1">
+                {validation.errors.map((error, idx) => (
+                  <li key={idx}>• {error}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Warnings */}
+          {validation.warnings.length > 0 && (
+            <div className="bg-yellow-900/50 border-2 border-yellow-500 rounded-lg p-4 mb-3">
+              <h3 className="text-lg font-bold text-yellow-300 mb-2 flex items-center gap-2">
+                <span>⚠️</span> Peringatan
+              </h3>
+              <ul className="text-sm text-yellow-200 space-y-1">
+                {validation.warnings.map((warning, idx) => (
+                  <li key={idx}>• {warning}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Success */}
+          {validation.isValid && validation.warnings.length === 0 && (
+            <div className="bg-green-900/50 border-2 border-green-500 rounded-lg p-4">
+              <h3 className="text-lg font-bold text-green-300 mb-2 flex items-center gap-2">
+                <span>✅</span> Draft Valid!
+              </h3>
+              <p className="text-sm text-green-200">
+                Semua lanes terisi dengan benar dan tidak ada duplikat. Tim siap bertanding! 🎉
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Requirements Info */}
+      <div className="mb-6 bg-blue-900/30 border-2 border-blue-500 rounded-lg p-4">
+        <h3 className="text-lg font-bold text-blue-300 mb-2 flex items-center gap-2">
+          <span>ℹ️</span> Requirements Draft Pick
+        </h3>
+        <ul className="text-sm text-blue-200 space-y-1">
+          <li>✓ Pilih 5 heroes (satu untuk setiap lane: Gold, Exp, Mid, Jungling, Roaming)</li>
+          <li>✓ Setiap hero harus memiliki data lanes yang sudah dikonfigurasi</li>
+          <li>✓ Hero sebaiknya cocok dengan lane yang ditugaskan (akan ada warning jika tidak cocok)</li>
+          <li>✓ Tidak boleh ada duplicate primary lanes</li>
+          <li>⚠️ Hero tanpa data lanes akan menyebabkan draft invalid</li>
+        </ul>
+        <div className="mt-3 pt-3 border-t border-blue-700">
+          <p className="text-xs text-blue-300">
+            💡 Konfigurasi lanes hero di: <a href="/edit-hero-info" className="underline hover:text-blue-100">Edit Hero Info & Lanes</a>
+          </p>
+        </div>
+      </div>
+
       {/* Draft Pick Inputs */}
       <div className="mb-8 space-y-4">
-        <h2 className="text-xl font-semibold mb-4">Select 5 Heroes</h2>
+        <h2 className="text-xl font-semibold mb-4">Select 5 Heroes by Lane</h2>
         <div className="grid grid-cols-1 gap-4">
           {DRAFT_POSITIONS.map((position, idx) => (
             <div key={position.id} className="flex items-center gap-4">
@@ -151,18 +263,24 @@ export default function ManualDraftPick() {
       {heroDetails.length > 0 && !loading && (
         <>
           <div className="mb-8">
-            <h2 className="text-2xl font-bold mb-4">Draft Summary ({heroDetails.length}/5)</h2>
+            <h2 className="text-2xl font-bold mb-4">
+              Draft Summary ({heroDetails.length}/5)
+              {heroDetails.length === 5 ? ' ✅' : ` ⚠️ (Kurang ${5 - heroDetails.length} hero)`}
+            </h2>
             <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
               {heroDetails.map((hero, idx) => {
                 const position = DRAFT_POSITIONS[idx];
                 const heroLanes = hero.lanes || [];
                 const isLaneMatch = heroLanes.some(lane => lane.lane_name === position.lane);
+                const hasNoLanes = heroLanes.length === 0;
                 
                 return (
                   <div
                     key={hero.hero_name}
                     className={`rounded-lg p-4 border-2 transition-all ${
-                      isLaneMatch
+                      hasNoLanes
+                        ? 'bg-red-900/30 border-red-500'
+                        : isLaneMatch
                         ? 'bg-gray-800 border-blue-500 hover:shadow-lg hover:shadow-blue-500/50'
                         : 'bg-yellow-900/30 border-yellow-500'
                     }`}
@@ -197,9 +315,22 @@ export default function ManualDraftPick() {
                             </div>
                           </div>
                         ) : (
-                          <p className="text-xs text-gray-500">No lanes data</p>
+                          <div className="text-xs">
+                            <div className="px-2 py-1 bg-red-700 rounded text-white font-semibold">
+                              ❌ Tidak ada data lanes
+                            </div>
+                            <p className="text-red-300 mt-1 text-center">
+                              Hero ini belum dikonfigurasi
+                            </p>
+                          </div>
                         )}
                       </div>
+
+                      {hasNoLanes && (
+                        <div className="mt-2 px-2 py-1 bg-red-600 rounded text-xs text-white font-semibold">
+                          ⚠ DATA LANES BELUM ADA!
+                        </div>
+                      )}
 
                       {!isLaneMatch && heroLanes.length > 0 && (
                         <div className="mt-2 px-2 py-1 bg-yellow-600 rounded text-xs text-white">
@@ -228,6 +359,26 @@ export default function ManualDraftPick() {
           {composition && (
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
               <h3 className="text-xl font-bold mb-4">Team Composition Analysis</h3>
+              
+              {/* Lanes Status */}
+              <div className="mb-4 p-3 bg-gray-700 rounded-lg">
+                <h4 className="text-sm font-semibold text-gray-300 mb-2">Lanes Configuration Status</h4>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-400">Heroes with lanes data:</span>
+                  <span className={`text-lg font-bold ${
+                    heroDetails.filter(h => h.lanes && h.lanes.length > 0).length === 5
+                      ? 'text-green-400'
+                      : 'text-red-400'
+                  }`}>
+                    {heroDetails.filter(h => h.lanes && h.lanes.length > 0).length} / 5
+                  </span>
+                </div>
+                {heroDetails.filter(h => !h.lanes || h.lanes.length === 0).length > 0 && (
+                  <div className="mt-2 text-xs text-red-300">
+                    ⚠️ {heroDetails.filter(h => !h.lanes || h.lanes.length === 0).map(h => h.hero_name).join(', ')} belum punya data lanes
+                  </div>
+                )}
+              </div>
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {/* Balance Status */}
