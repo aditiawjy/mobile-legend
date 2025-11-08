@@ -436,8 +436,16 @@ export default function ManualDraftPick() {
               {heroDetails.length === 5 ? ' ✅' : ` ⚠️ (Kurang ${5 - heroDetails.length} hero)`}
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-              {heroDetails.map((hero, idx) => {
-                const position = DRAFT_POSITIONS[idx];
+              {DRAFT_POSITIONS.map((position, idx) => {
+                // Find hero for this position from draftPicks (maintain correct index!)
+                const heroName = draftPicks[idx];
+                if (!heroName || !heroName.trim()) return null; // Skip empty slots
+                
+                const hero = heroDetails.find(h => 
+                  h.hero_name.toLowerCase() === heroName.toLowerCase()
+                );
+                if (!hero) return null; // Skip if hero not loaded yet
+                
                 const heroLanes = hero.lanes || [];
                 const isLaneMatch = heroLanes.some(lane => lane.lane_name === position.lane);
                 const hasNoLanes = heroLanes.length === 0;
