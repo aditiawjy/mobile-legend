@@ -1,5 +1,6 @@
 import { db } from '../../../lib/db'
 import { query } from '../../../lib/db'
+import { loadHeroesFromCSVWithLanes } from '../../../lib/draftPick'
 
 export default async function handler(req, res) {
   if (req.method === 'GET') {
@@ -43,10 +44,19 @@ export default async function handler(req, res) {
 
       res.status(200).json(heroesWithLanes)
     } catch (error) {
-      console.error('Error fetching all heroes:', error)
+      console.error('Error fetching all heroes from database:', error)
+      console.log('Attempting fallback to CSV data...')
 
-      // Return empty array when database is not available
-      res.status(200).json([])
+      try {
+        // Fallback to CSV data when database is unavailable
+        const heroesFromCSV = loadHeroesFromCSVWithLanes()
+        console.log(`Successfully loaded ${heroesFromCSV.length} heroes from CSV fallback`)
+        res.status(200).json(heroesFromCSV)
+      } catch (csvError) {
+        console.error('Error loading heroes from CSV fallback:', csvError)
+        // Only return empty array if both database and CSV fail
+        res.status(200).json([])
+      }
     }
   } else if (req.method === 'POST') {
     try {
