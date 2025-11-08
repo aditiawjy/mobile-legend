@@ -50,7 +50,12 @@ GET/POST http://localhost:3000/api/admin/create_hero_lanes_table
 
 # 3. Seed lanes data (Gold Lane, Exp Lane, Mid Lane, Jungling, Roaming)
 GET/POST http://localhost:3000/api/admin/seed_lanes
+
+# 4. Seed hero_lanes data (populate sample heroes with their lanes)
+GET/POST http://localhost:3000/api/admin/seed_hero_lanes
 ```
+
+**PENTING**: Langkah ke-4 (`seed_hero_lanes`) wajib dijalankan agar heroes punya data lanes!
 
 ### 2. Verify Setup
 ```bash
