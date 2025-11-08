@@ -42,10 +42,22 @@ export default function ManualDraftPick() {
   const getRecommendedHeroesForLane = (laneIndex) => {
     const targetLane = DRAFT_POSITIONS[laneIndex].lane;
     const pickedHeroNames = draftPicks.filter((p, idx) => idx !== laneIndex && p && p.trim());
+    const pickedHeroes = heroDetails.filter(h => pickedHeroNames.includes(h.hero_name));
 
-    // Filter heroes that:
-    // 1. Have the target lane in their lanes
-    // 2. Not already picked
+    // Analyze current team composition
+    const currentRoles = pickedHeroes.map(h => h.role?.split('/')[0].trim()).filter(Boolean);
+    const currentDamageTypes = pickedHeroes.map(h => {
+      const dt = h.damage_type?.toLowerCase() || '';
+      if (dt.includes('physical') && dt.includes('magic')) return 'mixed';
+      if (dt.includes('physical')) return 'physical';
+      if (dt.includes('magic')) return 'magic';
+      return 'unknown';
+    });
+
+    const physicalCount = currentDamageTypes.filter(d => d === 'physical' || d === 'mixed').length;
+    const magicCount = currentDamageTypes.filter(d => d === 'magic' || d === 'mixed').length;
+
+    // Filter and score heroes
     const recommended = allHeroesWithLanes
       .filter(hero => {
         // Check if hero has target lane
@@ -54,12 +66,45 @@ export default function ManualDraftPick() {
         const notPicked = !pickedHeroNames.some(name => name.toLowerCase() === hero.hero_name.toLowerCase());
         return hasTargetLane && notPicked;
       })
-      .sort((a, b) => {
-        // Sort by priority: primary lane (priority 1) first
-        const aPriority = a.lanes.find(l => l.lane_name === targetLane)?.priority || 99;
-        const bPriority = b.lanes.find(l => l.lane_name === targetLane)?.priority || 99;
-        return aPriority - bPriority;
+      .map(hero => {
+        let score = 0;
+
+        // Score 1: Lane priority (primary = +100, secondary = +50)
+        const lanePriority = hero.lanes.find(l => l.lane_name === targetLane)?.priority || 99;
+        if (lanePriority === 1) score += 100;
+        else if (lanePriority === 2) score += 50;
+
+        // Score 2: Role diversity (+30 if unique role)
+        const heroRole = hero.role?.split('/')[0].trim();
+        if (heroRole && !currentRoles.includes(heroRole)) {
+          score += 30;
+        }
+
+        // Score 3: Damage type balance (+40 for balancing damage types)
+        const heroDamageType = (() => {
+          const dt = hero.damage_type?.toLowerCase() || '';
+          if (dt.includes('physical') && dt.includes('magic')) return 'mixed';
+          if (dt.includes('physical')) return 'physical';
+          if (dt.includes('magic')) return 'magic';
+          return 'unknown';
+        })();
+
+        // Prefer magic if team has too much physical
+        if (physicalCount > magicCount && (heroDamageType === 'magic' || heroDamageType === 'mixed')) {
+          score += 40;
+        }
+        // Prefer physical if team has too much magic
+        if (magicCount > physicalCount && (heroDamageType === 'physical' || heroDamageType === 'mixed')) {
+          score += 40;
+        }
+        // Mixed damage is always good
+        if (heroDamageType === 'mixed') {
+          score += 20;
+        }
+
+        return { ...hero, score };
       })
+      .sort((a, b) => b.score - a.score) // Sort by score descending
       .slice(0, 5); // Top 5 recommendations
 
     return recommended;
@@ -299,20 +344,31 @@ export default function ManualDraftPick() {
                 {/* Recommendations */}
                 {hasRecommendations && (
                   <div className="ml-36 bg-gray-800 border border-blue-600/30 rounded-lg p-3">
-                    <p className="text-xs text-blue-300 mb-2 font-semibold">
-                      💡 Recommended for {position.lane}:
+                    <p className="text-xs text-blue-300 mb-2 font-semibold flex items-center gap-1">
+                      <span>💡</span>
+                      <span>Smart Picks for {position.lane}</span>
+                      {pickedHeroNames.length > 0 && (
+                        <span className="text-gray-400">
+                          (synergizes with {pickedHeroNames.slice(-1)[0]})
+                        </span>
+                      )}
                     </p>
                     <div className="flex flex-wrap gap-2">
                       {recommendedHeroes.map(hero => {
                         const isPrimary = hero.lanes.find(l => l.lane_name === position.lane)?.priority === 1;
+                        const heroRole = hero.role?.split('/')[0];
                         return (
                           <button
                             key={hero.hero_name}
                             onClick={() => handlePickChange(idx, hero.hero_name)}
-                            className="px-3 py-1 bg-gray-700 hover:bg-blue-600 rounded text-xs text-white transition-colors flex items-center gap-1"
+                            className="px-3 py-1.5 bg-gray-700 hover:bg-blue-600 rounded text-xs text-white transition-colors flex items-center gap-1.5"
+                            title={`${hero.hero_name} - ${heroRole} - Score: ${hero.score || 0}`}
                           >
-                            {hero.hero_name}
+                            <span>{hero.hero_name}</span>
                             {isPrimary && <span className="text-yellow-400">★</span>}
+                            <span className="text-gray-400 text-[10px]">
+                              ({heroRole})
+                            </span>
                           </button>
                         );
                       })}
