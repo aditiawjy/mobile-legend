@@ -375,7 +375,7 @@ export default function Home() {
                 </h2>
                 <p className="text-sm text-gray-600 mb-4">Edit hero information, lanes, skills, and attributes</p>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
                   <a
                     href="/edit-hero-info"
                     className="p-4 bg-blue-50 border border-blue-200 rounded-lg hover:shadow-md transition-shadow"
@@ -431,67 +431,23 @@ export default function Home() {
                       </svg>
                     </span>
                   </a>
-                </div>
-                
-                {/* Hero Combos Setup Section */}
-                <div className="mt-6 p-4 bg-gradient-to-r from-pink-50 to-purple-50 border-2 border-pink-300 rounded-lg">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <h3 className="font-bold text-pink-900 mb-1 flex items-center gap-2">
-                        🔥 Hero Combos Database
-                        <span className="text-xs px-2 py-0.5 bg-pink-200 text-pink-800 rounded-full font-normal">NEW!</span>
-                      </h3>
-                      <p className="text-xs text-pink-700 mb-3">Setup and manage powerful hero combination data (Atlas+Odette, Franco+Eudora, etc.)</p>
-                      
-                      <div className="flex flex-wrap gap-2">
-                        <button
-                          onClick={async () => {
-                            try {
-                              const response = await fetch('/api/admin/create_hero_combos_table', { method: 'POST' });
-                              const data = await response.json();
-                              alert(data.success ? '✓ Table created successfully!' : `✗ Error: ${data.error}`);
-                            } catch (error) {
-                              alert('✗ Error creating table');
-                            }
-                          }}
-                          className="px-3 py-1.5 bg-pink-600 hover:bg-pink-700 text-white rounded text-xs font-medium"
-                        >
-                          1. Create Table
-                        </button>
-                        
-                        <button
-                          onClick={async () => {
-                            try {
-                              const response = await fetch('/api/admin/seed_hero_combos', { method: 'POST' });
-                              const data = await response.json();
-                              alert(data.success ? `✓ Seeded ${data.totalCombos} combos!` : `✗ Error: ${data.error}`);
-                            } catch (error) {
-                              alert('✗ Error seeding combos');
-                            }
-                          }}
-                          className="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded text-xs font-medium"
-                        >
-                          2. Populate Data (30+ combos)
-                        </button>
-                        
-                        <a
-                          href="/api/hero-combos"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-medium inline-flex items-center gap-1"
-                        >
-                          3. View API Data
-                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                          </svg>
-                        </a>
-                      </div>
-                      
-                      <p className="text-xs text-gray-600 mt-3 italic">
-                        💡 After setup, combos will automatically appear in Manual Draft Pick with purple highlight!
-                      </p>
-                    </div>
-                  </div>
+
+                  <a
+                    href="/edit-hero-combos"
+                    className="p-4 bg-pink-50 border border-pink-200 rounded-lg hover:shadow-md transition-shadow"
+                  >
+                    <h3 className="font-semibold text-pink-900 mb-1 flex items-center gap-1">
+                      🔥 Hero Combos
+                      <span className="text-[8px] px-1.5 py-0.5 bg-pink-200 text-pink-700 rounded-full font-normal">NEW</span>
+                    </h3>
+                    <p className="text-xs text-pink-700 mb-2">Manage powerful hero combinations</p>
+                    <span className="inline-flex items-center gap-1 text-xs text-pink-600 font-medium">
+                      Manage
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </span>
+                  </a>
                 </div>
               </div>
             </div>
