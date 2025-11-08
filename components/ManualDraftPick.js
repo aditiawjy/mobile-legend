@@ -33,32 +33,28 @@ export default function ManualDraftPick() {
     loadAllHeroes();
   }, []);
 
-  // Load hero combos data
+  // Load hero combos data from database
   useEffect(() => {
     const loadCombos = async () => {
       try {
-        const response = await fetch('/csv/hero-combos.csv');
+        const response = await fetch('/api/hero-combos');
         if (response.ok) {
-          const text = await response.text();
-          const lines = text.split('\n').slice(1); // Skip header
-          const combos = lines
-            .filter(line => line.trim())
-            .map(line => {
-              const matches = line.match(/"([^"]*)"|([^,]+)/g);
-              if (!matches || matches.length < 5) return null;
-              return {
-                hero1: matches[0].replace(/"/g, '').trim(),
-                hero2: matches[1].replace(/"/g, '').trim(),
-                comboType: matches[2].replace(/"/g, '').trim(),
-                synergyScore: parseInt(matches[3].replace(/"/g, '').trim()) || 0,
-                description: matches[4].replace(/"/g, '').trim()
-              };
-            })
-            .filter(combo => combo !== null);
-          setHeroCombos(combos);
+          const data = await response.json();
+          if (data.success && data.combos) {
+            // Map database fields to expected format
+            const combos = data.combos.map(combo => ({
+              hero1: combo.hero1,
+              hero2: combo.hero2,
+              comboType: combo.combo_type,
+              synergyScore: combo.synergy_score,
+              description: combo.description
+            }));
+            setHeroCombos(combos);
+            console.log(`Loaded ${combos.length} combos from database`);
+          }
         }
       } catch (error) {
-        console.error('Error loading hero combos:', error);
+        console.error('Error loading hero combos from database:', error);
       }
     };
     loadCombos();
