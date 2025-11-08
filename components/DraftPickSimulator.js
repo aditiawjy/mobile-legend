@@ -2,6 +2,14 @@ import { useState, useEffect } from 'react';
 
 const getPrimaryRole = (roleString) => roleString?.split('/')[0].trim() || roleString;
 
+const LANE_ASSIGNMENTS = [
+  { id: 1, label: 'Gold Lane', lane: 'Gold Lane', icon: '💰' },
+  { id: 2, label: 'Exp Lane', lane: 'Exp Lane', icon: '⚔️' },
+  { id: 3, label: 'Mid Lane', lane: 'Mid Lane', icon: '🎯' },
+  { id: 4, label: 'Jungling', lane: 'Jungling', icon: '🌳' },
+  { id: 5, label: 'Roaming', lane: 'Roaming', icon: '🛡️' },
+];
+
 export default function DraftPickSimulator() {
   const [heroes, setHeroes] = useState([]);
   const [selectedHero, setSelectedHero] = useState('Miya');
@@ -49,9 +57,47 @@ export default function DraftPickSimulator() {
     }
   }, []);
 
+  // Validate lanes
+  const laneValidation = () => {
+    if (!draftResult || !draftResult.draft.options) return { isValid: false, errors: [], warnings: [] };
+
+    const errors = [];
+    const warnings = [];
+    const heroesWithLanes = draftResult.draft.options.filter(h => h.lanes && h.lanes.length > 0);
+
+    // Check if all heroes have lanes data
+    draftResult.draft.options.forEach((hero, idx) => {
+      const heroLanes = hero.lanes || [];
+      const assignedLane = LANE_ASSIGNMENTS[idx];
+
+      if (heroLanes.length === 0) {
+        warnings.push(`${hero.name}: Tidak ada data lanes`);
+      } else {
+        // Check if hero matches assigned lane
+        const isLaneMatch = heroLanes.some(lane => lane.lane_name === assignedLane.lane);
+        if (!isLaneMatch) {
+          warnings.push(`${hero.name}: Tidak cocok untuk ${assignedLane.lane}`);
+        }
+      }
+    });
+
+    if (heroesWithLanes.length < 5) {
+      errors.push(`${5 - heroesWithLanes.length} hero belum memiliki data lanes`);
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors,
+      warnings,
+      heroesWithLanes: heroesWithLanes.length
+    };
+  };
+
+  const validation = draftResult ? laneValidation() : { isValid: false, errors: [], warnings: [], heroesWithLanes: 0 };
+
   return (
     <div className="w-full max-w-6xl mx-auto p-6 bg-gray-900 text-white rounded-lg">
-      <h1 className="text-3xl font-bold mb-6">Draft Pick Simulator</h1>
+      <h1 className="text-3xl font-bold mb-6">Draft Pick Simulator (Auto Recommendation)</h1>
 
       {/* Hero Selection */}
       <div className="mb-8">
@@ -87,6 +133,72 @@ export default function DraftPickSimulator() {
 
       {draftResult && (
         <>
+          {/* Validation Summary */}
+          <div className="mb-6">
+            {/* Errors */}
+            {validation.errors.length > 0 && (
+              <div className="bg-red-900/50 border-2 border-red-500 rounded-lg p-4 mb-3">
+                <h3 className="text-lg font-bold text-red-300 mb-2 flex items-center gap-2">
+                  <span>❌</span> Masalah Terdeteksi
+                </h3>
+                <ul className="text-sm text-red-200 space-y-1">
+                  {validation.errors.map((error, idx) => (
+                    <li key={idx}>• {error}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Warnings */}
+            {validation.warnings.length > 0 && (
+              <div className="bg-yellow-900/50 border-2 border-yellow-500 rounded-lg p-4 mb-3">
+                <h3 className="text-lg font-bold text-yellow-300 mb-2 flex items-center gap-2">
+                  <span>⚠️</span> Peringatan
+                </h3>
+                <ul className="text-sm text-yellow-200 space-y-1">
+                  {validation.warnings.map((warning, idx) => (
+                    <li key={idx}>• {warning}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Success */}
+            {validation.isValid && validation.warnings.length === 0 && (
+              <div className="bg-green-900/50 border-2 border-green-500 rounded-lg p-4">
+                <h3 className="text-lg font-bold text-green-300 mb-2 flex items-center gap-2">
+                  <span>✅</span> Rekomendasi Valid!
+                </h3>
+                <p className="text-sm text-green-200">
+                  Semua hero memiliki data lanes dan cocok dengan posisinya. Tim siap bertanding! 🎉
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Requirements Info */}
+          <div className="mb-6 bg-blue-900/30 border-2 border-blue-500 rounded-lg p-4">
+            <h3 className="text-lg font-bold text-blue-300 mb-2 flex items-center gap-2">
+              <span>ℹ️</span> Lane Assignments (Auto)
+            </h3>
+            <p className="text-sm text-blue-200 mb-2">
+              Sistem otomatis assign 5 heroes ke lanes berikut:
+            </p>
+            <div className="grid grid-cols-5 gap-2 text-xs">
+              {LANE_ASSIGNMENTS.map(lane => (
+                <div key={lane.id} className="bg-blue-800/50 rounded p-2 text-center">
+                  <div className="text-lg mb-1">{lane.icon}</div>
+                  <div className="text-blue-200">{lane.label}</div>
+                </div>
+              ))}
+            </div>
+            <div className="mt-3 pt-3 border-t border-blue-700">
+              <p className="text-xs text-blue-300">
+                💡 Konfigurasi lanes hero di: <a href="/edit-hero-info" className="underline hover:text-blue-100">Edit Hero Info & Lanes</a>
+              </p>
+            </div>
+          </div>
+
           {/* Selected Hero */}
           <div className="mb-8 bg-blue-900 border border-blue-700 rounded p-6">
             <h2 className="text-2xl font-bold mb-4">Hero Utama Dipilih</h2>
@@ -113,49 +225,90 @@ export default function DraftPickSimulator() {
 
           {/* Draft Options (5 Heroes Total) */}
           <div className="mb-8">
-            <h2 className="text-2xl font-bold mb-4">5 Pilihan Draft (Dengan Lane Info)</h2>
+            <h2 className="text-2xl font-bold mb-4">
+              5 Pilihan Draft dengan Lane Assignments
+              {validation.heroesWithLanes === 5 ? ' ✅' : ` ⚠️ (${validation.heroesWithLanes}/5 punya lanes)`}
+            </h2>
             <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
               {draftResult.draft.options.map((hero, idx) => {
                 const heroLanes = hero.lanes || [];
-                const LANE_ICONS = {
-                  'Gold Lane': '💰',
-                  'Exp Lane': '⚔️',
-                  'Mid Lane': '🎯',
-                  'Jungling': '🌳',
-                  'Roaming': '🛡️'
-                };
+                const assignedLane = LANE_ASSIGNMENTS[idx];
+                const hasNoLanes = heroLanes.length === 0;
+                const isLaneMatch = heroLanes.some(lane => lane.lane_name === assignedLane.lane);
                 
                 return (
                   <div
                     key={hero.name}
                     className={`rounded p-4 border-2 transition-all ${
-                      idx === 0
+                      hasNoLanes
+                        ? 'bg-red-900/30 border-red-500'
+                        : idx === 0
                         ? 'bg-blue-950 border-blue-500 shadow-lg shadow-blue-500'
-                        : 'bg-gray-800 border-gray-700 hover:border-yellow-500'
+                        : isLaneMatch
+                        ? 'bg-gray-800 border-green-500 hover:border-green-400'
+                        : 'bg-yellow-900/30 border-yellow-500'
                     }`}
                   >
                     <div className="text-center">
-                      <p className="font-bold text-lg mb-2">{idx === 0 ? '🎯' : '✓'}</p>
-                      <p className="font-bold">{hero.name}</p>
-                      <p className="text-sm text-gray-400 mt-1">{getPrimaryRole(hero.role)}</p>
-                      <p className="text-xs text-gray-500 mt-2">{hero.damageType}</p>
+                      {/* Lane Assignment */}
+                      <div className="mb-2 pb-2 border-b border-gray-600">
+                        <div className="text-2xl mb-1">{assignedLane.icon}</div>
+                        <p className="text-xs text-blue-300 font-semibold">{assignedLane.label}</p>
+                      </div>
+
+                      <p className="font-bold text-lg mb-1">{hero.name}</p>
+                      <p className="text-sm text-gray-400">{getPrimaryRole(hero.role)}</p>
+                      <p className="text-xs text-gray-500 mt-1">{hero.damageType}</p>
                       
                       {/* Lane Info */}
-                      {heroLanes.length > 0 && (
-                        <div className="mt-3 pt-2 border-t border-gray-600">
-                          <p className="text-xs text-gray-500 mb-2">Lanes:</p>
-                          <div className="space-y-1">
-                            {heroLanes.slice(0, 3).map((lane, lIdx) => (
-                              <div
-                                key={lIdx}
-                                className="text-xs px-2 py-1 bg-gray-700 rounded flex items-center justify-center gap-1"
-                              >
-                                <span>{LANE_ICONS[lane.lane_name] || '•'}</span>
-                                <span>{lane.lane_name}</span>
-                                {lane.priority === 1 && <span className="text-yellow-400">★</span>}
-                              </div>
-                            ))}
+                      <div className="mt-3 pt-2 border-t border-gray-600">
+                        {heroLanes.length > 0 ? (
+                          <div className="text-xs">
+                            <p className="text-gray-500 mb-2">Hero Lanes:</p>
+                            <div className="space-y-1">
+                              {heroLanes.slice(0, 3).map((lane, lIdx) => (
+                                <div
+                                  key={lIdx}
+                                  className={`px-2 py-1 rounded flex items-center justify-center gap-1 ${
+                                    lane.lane_name === assignedLane.lane
+                                      ? 'bg-green-700 text-white'
+                                      : 'bg-gray-700 text-gray-300'
+                                  }`}
+                                >
+                                  <span>{lane.lane_name}</span>
+                                  {lane.priority === 1 && <span className="text-yellow-400">★</span>}
+                                </div>
+                              ))}
+                            </div>
                           </div>
+                        ) : (
+                          <div className="text-xs">
+                            <div className="px-2 py-1 bg-red-700 rounded text-white font-semibold">
+                              ❌ Tidak ada data lanes
+                            </div>
+                            <p className="text-red-300 mt-1">
+                              Belum dikonfigurasi
+                            </p>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Status Badges */}
+                      {hasNoLanes && (
+                        <div className="mt-2 px-2 py-1 bg-red-600 rounded text-xs text-white font-semibold">
+                          ⚠ DATA LANES BELUM ADA!
+                        </div>
+                      )}
+
+                      {!hasNoLanes && !isLaneMatch && (
+                        <div className="mt-2 px-2 py-1 bg-yellow-600 rounded text-xs text-white">
+                          ⚠ Tidak cocok untuk {assignedLane.lane}
+                        </div>
+                      )}
+
+                      {isLaneMatch && (
+                        <div className="mt-2 px-2 py-1 bg-green-700 rounded text-xs text-white">
+                          ✓ Cocok dengan {assignedLane.lane}
                         </div>
                       )}
                     </div>
@@ -189,6 +342,26 @@ export default function DraftPickSimulator() {
           {/* Team Composition Analysis */}
           <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
             <h3 className="text-xl font-bold mb-4">Team Composition Analysis</h3>
+            
+            {/* Lanes Status */}
+            <div className="mb-4 p-3 bg-gray-700 rounded-lg">
+              <h4 className="text-sm font-semibold text-gray-300 mb-2">Lanes Configuration Status</h4>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-400">Heroes with lanes data:</span>
+                <span className={`text-lg font-bold ${
+                  validation.heroesWithLanes === 5
+                    ? 'text-green-400'
+                    : 'text-red-400'
+                }`}>
+                  {validation.heroesWithLanes} / 5
+                </span>
+              </div>
+              {validation.heroesWithLanes < 5 && (
+                <div className="mt-2 text-xs text-red-300">
+                  ⚠️ {draftResult.draft.options.filter(h => !h.lanes || h.lanes.length === 0).map(h => h.name).join(', ')} belum punya data lanes
+                </div>
+              )}
+            </div>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* Balance Status */}
