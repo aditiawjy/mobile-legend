@@ -22,7 +22,7 @@ export default function ItemsHome() {
   const debouncedQuery = useDebounce(q, 300)
 
   // Show all items toggle from query
-  const showAll = router.query.showAll === 'true'
+  const showAll = router.query.showAll === 'true' || router.query.showAll === undefined
 
   // Filter & Sort state - initialized from URL query
   const [filters, setFilters] = useState({
@@ -235,19 +235,6 @@ export default function ItemsHome() {
             )}
           </div>
           <div className="flex items-center gap-2">
-            <a
-              href="/"
-              className="text-sm inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-gray-200 text-gray-700 bg-white hover:bg-gray-100"
-            >
-              Heroes
-            </a>
-            <a
-              href="/damage-composition"
-              className="text-sm inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-purple-200 text-purple-700 bg-purple-50 hover:bg-purple-100"
-            >
-              Analysis
-            </a>
-            
             {/* Items CSV Update Button - Debug: Always visible */}
             <button
               onClick={handleUpdateItemsCSV}
@@ -266,37 +253,9 @@ export default function ItemsHome() {
                 {csvMessage}
               </span>
             )}
-            
-            <a
-              href="/compare-items"
-              className="text-sm inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-purple-200 text-purple-700 bg-purple-50 hover:bg-purple-100"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
-              Compare
-            </a>
-            <a
-              href="/?showAll=true"
-              className="text-sm inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-gray-200 text-gray-700 bg-white hover:bg-gray-100"
-            >
-              Heroes
-            </a>
-            <a
-              href="/edit-matches"
-              className="text-sm inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-gray-200 text-gray-700 bg-white hover:bg-gray-100"
-            >
-              Matches
-            </a>
-            <a
-              href="/"
-              className="text-sm inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-gray-200 text-gray-700 bg-white hover:bg-gray-100"
-            >
-              {showAll ? 'Dashboard' : 'Home'}
-            </a>
             {showAll && (
               <button
-                onClick={() => router.push('/items')}
+                onClick={() => router.push('/items?showAll=false')}
                 className="text-sm inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-gray-200 text-gray-700 bg-white hover:bg-gray-100"
               >
                 Kembali ke Search Items

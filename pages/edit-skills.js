@@ -251,8 +251,12 @@ export default function EditSkillsPage() {
       <div className="bg-gradient-to-br from-sky-50 via-white to-blue-50 min-h-screen">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Edit Skills</h1>
-            <p className="mt-2 text-gray-600">Kelola deskripsi skill untuk hero Mobile Legends</p>
+            <h1 className="text-3xl font-bold text-gray-900">
+              {name ? `Edit Skills: ${name}` : 'Edit Skills'}
+            </h1>
+            <p className="mt-2 text-gray-600">
+              Kelola deskripsi skill untuk hero Mobile Legends
+            </p>
           </div>
 
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
@@ -434,28 +438,44 @@ export default function EditSkillsPage() {
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Skills</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {fields.filter(f => f.section === 'skills').map(f => {
-                    const fieldValue = data && data[f.key] !== undefined && data[f.key] !== null ? data[f.key] : ''
+                  {[
+                    { title: 'Basic Attack', nameKey: 'skill1_name', descKey: 'skill1_desc' },
+                    { title: 'Skill 1', nameKey: 'skill2_name', descKey: 'skill2_desc' },
+                    { title: 'Skill 2', nameKey: 'skill3_name', descKey: 'skill3_desc' },
+                    { title: 'Skill 3', nameKey: 'skill4_name', descKey: 'skill4_desc' },
+                    { title: 'Ultimate', nameKey: 'ultimate_name', descKey: 'ultimate_desc' },
+                  ].map(group => {
+                    const nameField = fields.find(f => f.key === group.nameKey)
+                    const descField = fields.find(f => f.key === group.descKey)
+                    const nameValue = data && data[group.nameKey] !== undefined && data[group.nameKey] !== null ? data[group.nameKey] : ''
+                    const descValue = data && data[group.descKey] !== undefined && data[group.descKey] !== null ? data[group.descKey] : ''
                     return (
-                      <div key={f.key} className="space-y-2">
-                        <label className="block text-sm font-medium text-gray-700">{f.label}</label>
-                        {f.textarea ? (
-                          <textarea
-                            value={fieldValue}
-                            onChange={(e) => onChange(f.key, e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
-                            rows={4}
-                            placeholder={`Masukkan ${f.label.toLowerCase()}...`}
-                          />
-                        ) : (
+                      <div key={group.nameKey} className="space-y-3">
+                        <h4 className="text-md font-semibold text-gray-800">{group.title}</h4>
+                        <div className="space-y-2">
+                          <label className="block text-sm font-medium text-gray-700">
+                            {nameField ? nameField.label : `${group.title} Name`}
+                          </label>
                           <input
                             type="text"
-                            value={fieldValue}
-                            onChange={(e) => onChange(f.key, e.target.value)}
+                            value={nameValue}
+                            onChange={(e) => onChange(group.nameKey, e.target.value)}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
-                            placeholder={`Masukkan ${f.label.toLowerCase()}...`}
+                            placeholder={`Masukkan ${(nameField ? nameField.label : `${group.title} Name`).toLowerCase()}...`}
                           />
-                        )}
+                        </div>
+                        <div className="space-y-2">
+                          <label className="block text-sm font-medium text-gray-700">
+                            {descField ? descField.label : `${group.title} Description`}
+                          </label>
+                          <textarea
+                            value={descValue}
+                            onChange={(e) => onChange(group.descKey, e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
+                            rows={4}
+                            placeholder={`Masukkan ${(descField ? descField.label : `${group.title} Description`).toLowerCase()}...`}
+                          />
+                        </div>
                       </div>
                     )
                   })}

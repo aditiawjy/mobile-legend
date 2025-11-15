@@ -28,12 +28,22 @@ export default function Home() {
   const [adjustmentsLoading, setAdjustmentsLoading] = useState(true)
   const [allHeroes, setAllHeroes] = useState([])
   const [allHeroesLoading, setAllHeroesLoading] = useState(false)
+  const [allHeroesQuery, setAllHeroesQuery] = useState('')
   const [csvUpdating, setCsvUpdating] = useState(false)
   const [csvMessage, setCsvMessage] = useState('')
   const dropdownRef = useRef(null)
   const inputRef = useRef(null)
 
   const showAllHeroes = router.query.showAll === 'true'
+
+  const filteredAllHeroes = useMemo(() => {
+    if (!allHeroesQuery.trim()) return allHeroes
+    const q = allHeroesQuery.toLowerCase()
+    return allHeroes.filter((hero) => {
+      const name = (hero.hero_name || hero.name || '').toLowerCase()
+      return name.includes(q)
+    })
+  }, [allHeroes, allHeroesQuery])
 
   function useDebounce(value, delay) {
     const [v, setV] = useState(value)
@@ -630,7 +640,11 @@ export default function Home() {
                 <div className="flex items-center justify-between mb-6">
                   <div>
                     <h2 className="text-2xl font-bold text-gray-900">All Heroes</h2>
-                    <p className="text-gray-600 mt-1">Menampilkan semua {allHeroes.length} heroes dari database</p>
+                    <p className="text-gray-600 mt-1">
+                      {allHeroesQuery.trim()
+                        ? `Menampilkan ${filteredAllHeroes.length} dari ${allHeroes.length} heroes dari database`
+                        : `Menampilkan semua ${allHeroes.length} heroes dari database`}
+                    </p>
                   </div>
                   <button
                     onClick={() => router.push('/')}
@@ -640,49 +654,72 @@ export default function Home() {
                   </button>
                 </div>
 
+                <div className="mb-4">
+                  <div className="relative max-w-sm">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                      </svg>
+                    </div>
+                    <input
+                      type="text"
+                      value={allHeroesQuery}
+                      onChange={(e) => setAllHeroesQuery(e.target.value)}
+                      placeholder="Search cepat nama hero..."
+                      className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 text-sm bg-white"
+                    />
+                  </div>
+                </div>
+
                 {allHeroesLoading ? (
                   <div className="flex items-center justify-center py-12">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sky-600"></div>
                     <span className="ml-2 text-gray-600">Memuat heroes...</span>
                   </div>
                 ) : allHeroes.length > 0 ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-                    {allHeroes.map((hero, index) => (
-                      <div
-                        key={index}
-                        className="bg-gray-50 rounded-lg p-4 hover:shadow-md transition-all border border-gray-200"
-                      >
-                        <div 
-                          className="text-center cursor-pointer mb-3"
-                          onClick={() => onSelect(hero.hero_name || hero.name)}
+                  filteredAllHeroes.length > 0 ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                      {filteredAllHeroes.map((hero, index) => (
+                        <div
+                          key={index}
+                          className="bg-gray-50 rounded-lg p-4 hover:shadow-md transition-all border border-gray-200"
                         >
-                          <div className="w-16 h-16 bg-gradient-to-br from-sky-400 to-blue-500 rounded-full mx-auto mb-3 flex items-center justify-center">
-                            <span className="text-white font-bold text-lg">
-                              {hero.hero_name ? hero.hero_name.charAt(0).toUpperCase() : hero.name.charAt(0).toUpperCase()}
-                            </span>
+                          <div 
+                            className="text-center cursor-pointer mb-3"
+                            onClick={() => onSelect(hero.hero_name || hero.name)}
+                          >
+                            <div className="w-16 h-16 bg-gradient-to-br from-sky-400 to-blue-500 rounded-full mx-auto mb-3 flex items-center justify-center">
+                              <span className="text-white font-bold text-lg">
+                                {hero.hero_name ? hero.hero_name.charAt(0).toUpperCase() : hero.name.charAt(0).toUpperCase()}
+                              </span>
+                            </div>
+                            <h3 className="font-semibold text-gray-900 text-sm mb-1">
+                              {hero.hero_name || hero.name}
+                            </h3>
+                            <p className="text-xs text-gray-500">{hero.role || 'Hero'}</p>
                           </div>
-                          <h3 className="font-semibold text-gray-900 text-sm mb-1">
-                            {hero.hero_name || hero.name}
-                          </h3>
-                          <p className="text-xs text-gray-500">{hero.role || 'Hero'}</p>
+                          <div className="flex gap-2 pt-3 border-t border-gray-200">
+                            <button
+                              onClick={() => router.push(`/hero/${encodeURIComponent(hero.hero_name || hero.name)}`)}
+                              className="flex-1 text-xs px-2 py-1.5 bg-sky-100 text-sky-700 rounded hover:bg-sky-200 transition-colors"
+                            >
+                              Detail
+                            </button>
+                            <button
+                              onClick={() => router.push(`/edit-skills?name=${encodeURIComponent(hero.hero_name || hero.name)}`)}
+                              className="flex-1 text-xs px-2 py-1.5 bg-purple-100 text-purple-700 rounded hover:bg-purple-200 transition-colors"
+                            >
+                              Edit
+                            </button>
+                          </div>
                         </div>
-                        <div className="flex gap-2 pt-3 border-t border-gray-200">
-                          <button
-                            onClick={() => router.push(`/hero/${encodeURIComponent(hero.hero_name || hero.name)}`)}
-                            className="flex-1 text-xs px-2 py-1.5 bg-sky-100 text-sky-700 rounded hover:bg-sky-200 transition-colors"
-                          >
-                            Detail
-                          </button>
-                          <button
-                            onClick={() => router.push(`/edit-skills?name=${encodeURIComponent(hero.hero_name || hero.name)}`)}
-                            className="flex-1 text-xs px-2 py-1.5 bg-purple-100 text-purple-700 rounded hover:bg-purple-200 transition-colors"
-                          >
-                            Edit
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-12">
+                      <p className="text-gray-600">Tidak ada hero dengan nama yang cocok.</p>
+                    </div>
+                  )
                 ) : (
                   <div className="text-center py-12">
                     <p className="text-gray-600">Tidak ada heroes ditemukan di database.</p>
