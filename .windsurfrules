@@ -1,0 +1,19 @@
+# Windsurf AI Rules
+AI:
+  # Jangan membuat file baru kecuali diminta eksplisit
+  - Do NOT create new files (especially .md) unless I explicitly request it.
+
+  # Prioritaskan editing file yang sudah ada
+  - Always prefer editing existing files instead of generating new ones.
+
+  # Dokumentasi, catatan, atau penjelasan cukup di chat
+  - If documentation or explanation is needed, write it in the chat, not in a file.
+
+  # Saat kerja coding, fokus pada implementasi, bukan dokumentasi otomatis
+  - Do not generate Markdown documentation, READMEs, or notes unless I ask.
+
+  # Jangan membuat struktur folder baru tanpa instruksi
+  - Do not create new folders unless asked.
+
+  # Saat ragu, tanya sebelum membuat file
+  - Ask first before creating any new file.

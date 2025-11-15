@@ -127,6 +127,30 @@ export default function ManualDraftPick() {
     return false;
   };
 
+  const hasObjectiveControl = (hero) => {
+    const role = hero.role?.toLowerCase() || '';
+    const ar = hero.attack_reliance?.toLowerCase() || '';
+    const note = hero.note?.toLowerCase() || '';
+    const junglerKeywords = ['jungle', 'jungling', 'hyper', 'retri', 'retribution'];
+    const objectiveKeywords = ['lord', 'turtle', 'objective', 'secure', 'steal'];
+
+    if (junglerKeywords.some(keyword => ar.includes(keyword) || note.includes(keyword))) {
+      return true;
+    }
+
+    if (objectiveKeywords.some(keyword => note.includes(keyword))) {
+      return true;
+    }
+
+    if (role.includes('assassin') || role.includes('fighter')) {
+      if (objectiveKeywords.some(keyword => ar.includes(keyword))) {
+        return true;
+      }
+    }
+
+    return false;
+  };
+
   // Helper: Check if hero has combo with picked heroes
   const getComboWith = (hero, pickedHeroNames) => {
     if (!hero || !pickedHeroNames || pickedHeroNames.length === 0) return null;
@@ -435,6 +459,21 @@ export default function ManualDraftPick() {
       const hasTank = allPickedHeroes.some(h => isTankOrTanky(h));
       if (!hasTank) {
         errors.push('⚠️ KRITIS: Tim tidak punya Tank/Hero tahan badan! Tim akan sulit bertahan.');
+      }
+
+      const hasAnyCC = allPickedHeroes.some(h => hasCC(h));
+      if (!hasAnyCC) {
+        warnings.push('Tim tidak punya Crowd Control yang jelas (no hard CC).');
+      }
+
+      const hasAnyBurst = allPickedHeroes.some(h => hasBurst(h));
+      if (!hasAnyBurst) {
+        warnings.push('Tim tidak punya burst damage yang kuat (no burst).');
+      }
+
+      const hasAnyObjective = allPickedHeroes.some(h => hasObjectiveControl(h));
+      if (!hasAnyObjective) {
+        warnings.push('Tim lemah dalam objective control (Turtle/Lord).');
       }
     }
 

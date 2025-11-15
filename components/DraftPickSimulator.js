@@ -10,6 +10,43 @@ const LANE_ASSIGNMENTS = [
   { id: 5, label: 'Roaming', lane: 'Roaming', icon: '🛡️' },
 ];
 
+const hasCC = (hero) => {
+  const ar = hero.attackReliance?.toLowerCase() || '';
+  const note = hero.note?.toLowerCase() || '';
+  const ccKeywords = ['control', 'crowd', 'stun', 'immobilize', 'knock', 'slow', 'suppress', 'pull', 'freeze', 'terrify'];
+  return ccKeywords.some(keyword => ar.includes(keyword) || note.includes(keyword));
+};
+
+const hasBurst = (hero) => {
+  const ar = hero.attackReliance?.toLowerCase() || '';
+  const note = hero.note?.toLowerCase() || '';
+  return ar.includes('burst') || note.includes('burst');
+};
+
+const hasObjectiveControl = (hero) => {
+  const role = hero.role?.toLowerCase() || '';
+  const ar = hero.attackReliance?.toLowerCase() || '';
+  const note = hero.note?.toLowerCase() || '';
+  const junglerKeywords = ['jungle', 'jungling', 'hyper', 'retri', 'retribution'];
+  const objectiveKeywords = ['lord', 'turtle', 'objective', 'secure', 'steal'];
+
+  if (junglerKeywords.some(keyword => ar.includes(keyword) || note.includes(keyword))) {
+    return true;
+  }
+
+  if (objectiveKeywords.some(keyword => note.includes(keyword))) {
+    return true;
+  }
+
+  if (role.includes('assassin') || role.includes('fighter')) {
+    if (objectiveKeywords.some(keyword => ar.includes(keyword))) {
+      return true;
+    }
+  }
+
+  return false;
+};
+
 export default function DraftPickSimulator() {
   const [heroes, setHeroes] = useState([]);
   const [selectedHero, setSelectedHero] = useState('Miya');
@@ -64,6 +101,7 @@ export default function DraftPickSimulator() {
     const errors = [];
     const warnings = [];
     const heroesWithLanes = draftResult.draft.options.filter(h => h.lanes && h.lanes.length > 0);
+    const allHeroes = draftResult.draft.options;
 
     // Only check lane matching for heroes that HAVE lanes data
     draftResult.draft.options.forEach((hero, idx) => {
@@ -79,6 +117,23 @@ export default function DraftPickSimulator() {
         }
       }
     });
+
+    if (allHeroes.length > 0) {
+      const hasAnyCC = allHeroes.some(h => hasCC(h));
+      if (!hasAnyCC) {
+        warnings.push('Tim tidak punya Crowd Control yang jelas (no hard CC).');
+      }
+
+      const hasAnyBurst = allHeroes.some(h => hasBurst(h));
+      if (!hasAnyBurst) {
+        warnings.push('Tim tidak punya burst damage yang kuat (no burst).');
+      }
+
+      const hasAnyObjective = allHeroes.some(h => hasObjectiveControl(h));
+      if (!hasAnyObjective) {
+        warnings.push('Tim lemah dalam objective control (Turtle/Lord).');
+      }
+    }
 
     // No errors for missing lanes, just show info
     return {
