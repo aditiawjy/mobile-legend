@@ -89,6 +89,10 @@ export default function EditSkillsPage() {
             if (!uniqueAttackReliances.includes('Control/Charge')) {
               uniqueAttackReliances.push('Control/Charge')
             }
+            // Ensure Crowd Control/Regen is always available as an Attack Reliance option
+            if (!uniqueAttackReliances.includes('Crowd Control/Regen')) {
+              uniqueAttackReliances.push('Crowd Control/Regen')
+            }
             uniqueAttackReliances.sort()
             
             setRoles(uniqueRoles)

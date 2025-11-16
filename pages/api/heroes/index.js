@@ -36,8 +36,8 @@ export default async function handler(req, res) {
       // Get hero counters from hero_counter table
       const [counterRows] = await connection.execute(`
         SELECT hero_name,
-               counter_hero1, counter_hero2, counter_hero3, counter_hero4, counter_hero5,
-               counter_reason1, counter_reason2, counter_reason3, counter_reason4, counter_reason5
+               counter_hero1, counter_hero2, counter_hero3, counter_hero4, counter_hero5, counter_hero6,
+               counter_reason1, counter_reason2, counter_reason3, counter_reason4, counter_reason5, counter_reason6
         FROM hero_counter
       `)
 
@@ -63,6 +63,7 @@ export default async function handler(req, res) {
         pushCounter(row.counter_hero3, row.counter_reason3)
         pushCounter(row.counter_hero4, row.counter_reason4)
         pushCounter(row.counter_hero5, row.counter_reason5)
+        pushCounter(row.counter_hero6, row.counter_reason6)
       })
 
       // Attach lanes and counters to each hero
