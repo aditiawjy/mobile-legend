@@ -84,6 +84,12 @@ export default function EditSkillsPage() {
             const uniqueRoles = [...new Set(heroes.map(h => h.role).filter(Boolean))].sort()
             const uniqueDamageTypes = [...new Set(heroes.map(h => h.damage_type).filter(Boolean))].sort()
             const uniqueAttackReliances = [...new Set(heroes.map(h => h.attack_reliance).filter(Boolean))].sort()
+
+            // Ensure Control/Charge is always available as an Attack Reliance option
+            if (!uniqueAttackReliances.includes('Control/Charge')) {
+              uniqueAttackReliances.push('Control/Charge')
+            }
+            uniqueAttackReliances.sort()
             
             setRoles(uniqueRoles)
             setDamageTypes(uniqueDamageTypes)

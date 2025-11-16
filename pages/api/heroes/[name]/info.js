@@ -100,9 +100,13 @@ export default async function handler(req, res) {
         'counter_hero1',
         'counter_hero2',
         'counter_hero3',
+        'counter_hero4',
+        'counter_hero5',
         'counter_reason1',
         'counter_reason2',
-        'counter_reason3'
+        'counter_reason3',
+        'counter_reason4',
+        'counter_reason5'
       ]
 
       const hasCounterPayload = counterFields.some(f => Object.prototype.hasOwnProperty.call(body, f))
@@ -123,17 +127,17 @@ export default async function handler(req, res) {
           const counterId = existingCounter[0].id
           await query(
             `UPDATE hero_counter
-             SET counter_hero1 = ?, counter_hero2 = ?, counter_hero3 = ?,
-                 counter_reason1 = ?, counter_reason2 = ?, counter_reason3 = ?
+             SET counter_hero1 = ?, counter_hero2 = ?, counter_hero3 = ?, counter_hero4 = ?, counter_hero5 = ?,
+                 counter_reason1 = ?, counter_reason2 = ?, counter_reason3 = ?, counter_reason4 = ?, counter_reason5 = ?
              WHERE id = ?`,
             [...counterValues, counterId]
           )
         } else {
           await query(
             `INSERT INTO hero_counter
-             (hero_name, counter_hero1, counter_hero2, counter_hero3,
-              counter_reason1, counter_reason2, counter_reason3)
-             VALUES (?, ?, ?, ?, ?, ?, ?)`,
+             (hero_name, counter_hero1, counter_hero2, counter_hero3, counter_hero4, counter_hero5,
+              counter_reason1, counter_reason2, counter_reason3, counter_reason4, counter_reason5)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [name, ...counterValues]
           )
         }
@@ -176,8 +180,8 @@ export default async function handler(req, res) {
           }
 
       const counterRows = await query(
-        `SELECT counter_hero1, counter_hero2, counter_hero3,
-                counter_reason1, counter_reason2, counter_reason3
+        `SELECT counter_hero1, counter_hero2, counter_hero3, counter_hero4, counter_hero5,
+                counter_reason1, counter_reason2, counter_reason3, counter_reason4, counter_reason5
          FROM hero_counter
          WHERE LOWER(hero_name) = LOWER(?)
          LIMIT 1`,
@@ -199,6 +203,8 @@ export default async function handler(req, res) {
         pushCounter(row.counter_hero1, row.counter_reason1)
         pushCounter(row.counter_hero2, row.counter_reason2)
         pushCounter(row.counter_hero3, row.counter_reason3)
+        pushCounter(row.counter_hero4, row.counter_reason4)
+        pushCounter(row.counter_hero5, row.counter_reason5)
       }
 
       return res.status(200).json({ hero, compatibility, counters })

@@ -117,6 +117,10 @@ export default function AddHeroPage() {
         if (!uniqueAttackReliances.includes('Chase/Control')) {
           uniqueAttackReliances.push('Chase/Control')
         }
+        // Ensure Control/Charge is always available as an Attack Reliance option
+        if (!uniqueAttackReliances.includes('Control/Charge')) {
+          uniqueAttackReliances.push('Control/Charge')
+        }
         // Ensure Charge/Damage is always available as an Attack Reliance option
         if (!uniqueAttackReliances.includes('Charge/Damage')) {
           uniqueAttackReliances.push('Charge/Damage')

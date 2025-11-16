@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/router'
+import AppLayout from '../components/AppLayout'
 
 export default function EditHeroInfoPage() {
   const router = useRouter()
@@ -32,9 +33,13 @@ export default function EditHeroInfoPage() {
     counter_hero1: '',
     counter_hero2: '',
     counter_hero3: '',
+    counter_hero4: '',
+    counter_hero5: '',
     counter_reason1: '',
     counter_reason2: '',
-    counter_reason3: ''
+    counter_reason3: '',
+    counter_reason4: '',
+    counter_reason5: ''
   })
 
   const [allLanes, setAllLanes] = useState([])
@@ -121,22 +126,32 @@ export default function EditHeroInfoPage() {
             const c1 = info.counters[0] || {}
             const c2 = info.counters[1] || {}
             const c3 = info.counters[2] || {}
+            const c4 = info.counters[3] || {}
+            const c5 = info.counters[4] || {}
             setCounters({
               counter_hero1: c1.enemy || '',
               counter_hero2: c2.enemy || '',
               counter_hero3: c3.enemy || '',
+              counter_hero4: c4.enemy || '',
+              counter_hero5: c5.enemy || '',
               counter_reason1: c1.reason || '',
               counter_reason2: c2.reason || '',
-              counter_reason3: c3.reason || ''
+              counter_reason3: c3.reason || '',
+              counter_reason4: c4.reason || '',
+              counter_reason5: c5.reason || ''
             })
           } else {
             setCounters({
               counter_hero1: '',
               counter_hero2: '',
               counter_hero3: '',
+              counter_hero4: '',
+              counter_hero5: '',
               counter_reason1: '',
               counter_reason2: '',
-              counter_reason3: ''
+              counter_reason3: '',
+              counter_reason4: '',
+              counter_reason5: ''
             })
           }
         }
@@ -344,17 +359,16 @@ export default function EditHeroInfoPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50">
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <header className="mb-6 flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-gray-800">Edit Hero Info & Lanes</h1>
-          <div className="flex items-center gap-2">
-            <a href="/" className="text-sm inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-gray-200 text-gray-700 bg-white hover:bg-gray-100">Heroes</a>
-            <a href="/" className="text-sm inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-gray-200 text-gray-700 bg-white hover:bg-gray-100">Home</a>
+    <AppLayout>
+      <div className="bg-gradient-to-br from-purple-50 via-white to-blue-50 min-h-screen">
+        <div className="max-w-4xl mx-auto px-4 py-8">
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold text-gray-800">
+              {name ? `Edit Hero Info & Lanes: ${name}` : 'Edit Hero Info & Lanes'}
+            </h1>
           </div>
-        </header>
 
-        <section className="bg-white rounded-2xl shadow border border-gray-100 p-6 mb-6">
+          <section className="bg-white rounded-2xl shadow border border-gray-100 p-6 mb-6">
           <div className="mb-6">
             <label className="block text-sm font-medium text-gray-700 mb-1">Pilih Hero</label>
             <div className="relative">
@@ -617,6 +631,51 @@ export default function EditHeroInfoPage() {
                         />
                       </div>
                     </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Counter Hero 4</label>
+                        <input
+                          type="text"
+                          value={counters.counter_hero4}
+                          onChange={(e) => handleChangeCounters('counter_hero4', e.target.value)}
+                          className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-black focus:ring-black"
+                          placeholder="Opsional"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Counter Reason 4</label>
+                        <textarea
+                          value={counters.counter_reason4}
+                          onChange={(e) => handleChangeCounters('counter_reason4', e.target.value)}
+                          className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-black focus:ring-black"
+                          placeholder="Alasan tambahan"
+                          rows={2}
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Counter Hero 5</label>
+                        <input
+                          type="text"
+                          value={counters.counter_hero5}
+                          onChange={(e) => handleChangeCounters('counter_hero5', e.target.value)}
+                          className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-black focus:ring-black"
+                          placeholder="Opsional"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Counter Reason 5</label>
+                        <textarea
+                          value={counters.counter_reason5}
+                          onChange={(e) => handleChangeCounters('counter_reason5', e.target.value)}
+                          className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-black focus:ring-black"
+                          placeholder="Alasan tambahan"
+                          rows={2}
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -717,6 +776,7 @@ export default function EditHeroInfoPage() {
           )}
         </section>
       </div>
-    </main>
+      </div>
+    </AppLayout>
   )
 }
