@@ -11,6 +11,7 @@ const DRAFT_POSITIONS = [
 
 export default function ManualDraftPick() {
   const [draftPicks, setDraftPicks] = useState(['', '', '', '', '']);
+  const [enemyDraftPicks, setEnemyDraftPicks] = useState(['', '', '', '', '']);
   const [heroDetails, setHeroDetails] = useState([]);
   const [loading, setLoading] = useState(false);
   const [composition, setComposition] = useState(null);
@@ -100,6 +101,12 @@ export default function ManualDraftPick() {
     const newPicks = [...draftPicks];
     newPicks[index] = value;
     setDraftPicks(newPicks);
+  };
+
+  const handleEnemyPickChange = (index, value) => {
+    const newPicks = [...enemyDraftPicks];
+    newPicks[index] = value;
+    setEnemyDraftPicks(newPicks);
   };
 
   // Helper: Detect if hero has CC (Crowd Control)
@@ -486,6 +493,7 @@ export default function ManualDraftPick() {
 
   const handleClearAll = () => {
     setDraftPicks(['', '', '', '', '']);
+    setEnemyDraftPicks(['', '', '', '', '']);
     setHeroDetails([]);
     setComposition(null);
   };
@@ -576,7 +584,7 @@ export default function ManualDraftPick() {
   const validation = laneValidation();
 
   return (
-    <div className="w-full max-w-6xl mx-auto p-6 bg-gray-900 text-white rounded-lg">
+    <div className="w-full mx-auto p-6 bg-gray-900 text-white rounded-lg">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Manual Draft Pick</h1>
         {hasAnyPick && (
@@ -654,124 +662,191 @@ export default function ManualDraftPick() {
       </div>
 
       {/* Draft Pick Inputs */}
-      <div className="mb-8 space-y-4">
-        <h2 className="text-xl font-semibold mb-4">Select 5 Heroes by Lane</h2>
-        <div className="grid grid-cols-1 gap-4">
-          {DRAFT_POSITIONS.map((position, idx) => {
-            const recommendedHeroes = getRecommendedHeroesForLane(idx);
-            const hasRecommendations = recommendedHeroes.length > 0 && !draftPicks[idx];
-            const pickedHeroNames = draftPicks.filter((p, i) => i !== idx && p && p.trim());
+      <div className="mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Our Team Draft */}
+          <div className="space-y-4">
+            <h2 className="text-xl font-semibold mb-4">Select 5 Heroes by Lane</h2>
+            <div className="grid grid-cols-1 gap-4">
+              {DRAFT_POSITIONS.map((position, idx) => {
+                const recommendedHeroes = getRecommendedHeroesForLane(idx);
+                const hasRecommendations = recommendedHeroes.length > 0 && !draftPicks[idx];
+                const pickedHeroNames = draftPicks.filter((p, i) => i !== idx && p && p.trim());
 
-            return (
-              <div key={position.id} className="space-y-2">
-                <div className="flex items-center gap-4">
-                  <div className="flex-shrink-0 w-32">
-                    <div className="flex items-center gap-2">
-                      <span className="text-2xl">{position.icon}</span>
-                      <div>
-                        <span className="text-lg font-bold text-blue-400 block">{position.label}</span>
-                        <p className="text-xs text-gray-500">{position.lane}</p>
+                return (
+                  <div key={position.id} className="space-y-2">
+                    <div className="flex items-center gap-4">
+                      <div className="flex-shrink-0 w-32">
+                        <div className="flex items-center gap-2">
+                          <span className="text-2xl">{position.icon}</span>
+                          <div>
+                            <span className="text-lg font-bold text-blue-400 block">{position.label}</span>
+                            <p className="text-xs text-gray-500">{position.lane}</p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex-1">
+                        <HeroAutocomplete
+                          value={draftPicks[idx]}
+                          onChange={(value) => handlePickChange(idx, value)}
+                          placeholder={`Select hero for ${position.label}...`}
+                          position={position.label}
+                        />
                       </div>
                     </div>
-                  </div>
-                  <div className="flex-1">
-                    <HeroAutocomplete
-                      value={draftPicks[idx]}
-                      onChange={(value) => handlePickChange(idx, value)}
-                      placeholder={`Select hero for ${position.label}...`}
-                      position={position.label}
-                    />
-                  </div>
-                </div>
 
-                {/* Recommendations */}
-                {hasRecommendations && (
-                  <div className="ml-36 bg-gray-800 border border-blue-600/30 rounded-lg p-3">
-                    <p className="text-xs text-blue-300 mb-2 font-semibold flex items-center gap-1">
-                      <span>💡</span>
-                      <span>Smart Picks for {position.lane}</span>
-                      {pickedHeroNames.length > 0 && (
-                        <span className="text-gray-400">
-                          (synergizes with {pickedHeroNames.length === 1 
-                            ? pickedHeroNames[0] 
-                            : pickedHeroNames.length === 2 
-                              ? `${pickedHeroNames[0]} & ${pickedHeroNames[1]}`
-                              : `${pickedHeroNames[0]}, ${pickedHeroNames[1]} & ${pickedHeroNames.length - 2} more`
-                          })
-                        </span>
-                      )}
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {recommendedHeroes.map(hero => {
-                        const isPrimary = hero.lanes.find(l => l.lane_name === position.lane)?.priority === 1;
-                        const heroRole = hero.role?.split('/')[0];
-                        const damageType = hero.damage_type?.toLowerCase().includes('physical') ? '⚔️' : 
-                                          hero.damage_type?.toLowerCase().includes('magic') ? '✨' : '⚡';
-                        const attackRel = hero.attack_reliance?.toLowerCase().includes('basic') ? '👊' : 
-                                         hero.attack_reliance?.toLowerCase().includes('skill') ? '🎯' : '⚖️';
-                        
-                        // Check for Roaming-Mid synergy bonus (only for Mid Lane)
-                        let synergyBonus = '';
-                        if (idx === 2 && draftPicks[4]) { // Mid Lane with Roaming picked
-                          const roamingHero = heroDetails.find(h => 
-                            h.hero_name.toLowerCase() === draftPicks[4].toLowerCase()
-                          );
-                          if (roamingHero) {
-                            const roamPlaystyle = getRoamingPlaystyle(roamingHero);
-                            const roamHasCC = hasCC(roamingHero);
-                            const midHasCC = hasCC(hero);
-                            const midHasBurst = hasBurst(hero);
-                            const midHasArea = hasAreaDamage(hero);
-                            
-                            if (!roamHasCC && midHasCC) synergyBonus = '🎯CC'; // Mid provides CC
-                            else if (roamPlaystyle === 'pick-off' && midHasBurst) synergyBonus = '💥Burst';
-                            else if (roamPlaystyle === 'team-fight' && midHasArea) synergyBonus = '🌊AoE';
-                          }
-                        }
-                        
-                        // Check if hero is tank/tanky (CRITICAL for team)
-                        const heroIsTank = isTankOrTanky(hero);
-                        const teamHasTank = heroDetails.some(h => 
-                          pickedHeroNames.includes(h.hero_name) && isTankOrTanky(h)
-                        );
-                        
-                        // Check if hero has combo with picked heroes
-                        const heroCombo = hero.combo;
-                        const hasCompatibility = hero.compatMatches && hero.compatMatches.length > 0;
-                        
-                        return (
-                          <button
-                            key={hero.hero_name}
-                            onClick={() => handlePickChange(idx, hero.hero_name)}
-                            className={`px-3 py-1.5 rounded text-xs text-white transition-colors flex items-center gap-1.5 ${
-                              heroCombo 
-                                ? 'bg-purple-700 hover:bg-purple-600 border border-purple-500'
-                                : heroIsTank && !teamHasTank 
-                                  ? 'bg-red-700 hover:bg-red-600 border border-red-500' 
-                                  : hasCompatibility
-                                    ? 'bg-green-700 hover:bg-green-600 border border-green-500'
-                                    : 'bg-gray-700 hover:bg-blue-600'
-                            }`}
-                            title={`${hero.hero_name} - ${heroRole}\nDamage: ${hero.damage_type}\nAttack: ${hero.attack_reliance}\nScore: ${hero.score || 0}${synergyBonus ? `\n✨ Synergy: ${synergyBonus}` : ''}${heroIsTank && !teamHasTank ? '\n🛡️ TANK NEEDED!' : ''}${heroCombo ? `\n🔥 COMBO: ${heroCombo.comboType} with ${heroCombo.partnerHero}\n📝 ${heroCombo.description}` : ''}${hasCompatibility ? `\n🤝 COMPAT: ` + hero.compatMatches.map(m => `${m.from} (slot ${m.slot})`).join(', ') : ''}`}
-                          >
-                            <span>{hero.hero_name}</span>
-                            {isPrimary && <span className="text-yellow-400">★</span>}
-                            {heroCombo && <span className="text-orange-300 text-[9px]">🔥{heroCombo.comboType}</span>}
-                            {heroIsTank && !teamHasTank && !heroCombo && <span className="text-red-200 text-[9px]">🛡️TANK</span>}
-                            {hasCompatibility && !heroCombo && <span className="text-green-200 text-[9px]">🤝Compat</span>}
-                            {synergyBonus && !heroCombo && <span className="text-green-400 text-[9px]">{synergyBonus}</span>}
-                            <span className="text-gray-400 text-[10px] flex items-center gap-0.5">
-                              {damageType}{attackRel}
+                    {/* Recommendations */}
+                    {hasRecommendations && (
+                      <div className="ml-36 bg-gray-800 border border-blue-600/30 rounded-lg p-3">
+                        <p className="text-xs text-blue-300 mb-2 font-semibold flex items-center gap-1">
+                          <span>💡</span>
+                          <span>Smart Picks for {position.lane}</span>
+                          {pickedHeroNames.length > 0 && (
+                            <span className="text-gray-400">
+                              (synergizes with {pickedHeroNames.length === 1 
+                                ? pickedHeroNames[0] 
+                                : pickedHeroNames.length === 2 
+                                  ? `${pickedHeroNames[0]} & ${pickedHeroNames[1]}`
+                                  : `${pickedHeroNames[0]}, ${pickedHeroNames[1]} & ${pickedHeroNames.length - 2} more`}
+                              )
                             </span>
-                          </button>
-                        );
-                      })}
-                    </div>
+                          )}
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          {recommendedHeroes.map(hero => {
+                            const isPrimary = hero.lanes.find(l => l.lane_name === position.lane)?.priority === 1;
+                            const heroRole = hero.role?.split('/')[0];
+                            const damageType = hero.damage_type?.toLowerCase().includes('physical') ? '⚔️' : 
+                                              hero.damage_type?.toLowerCase().includes('magic') ? '✨' : '⚡';
+                            const attackRel = hero.attack_reliance?.toLowerCase().includes('basic') ? '👊' : 
+                                             hero.attack_reliance?.toLowerCase().includes('skill') ? '🎯' : '⚖️';
+                            
+                            // Check for Roaming-Mid synergy bonus (only for Mid Lane)
+                            let synergyBonus = '';
+                            if (idx === 2 && draftPicks[4]) { // Mid Lane with Roaming picked
+                              const roamingHero = heroDetails.find(h => 
+                                h.hero_name.toLowerCase() === draftPicks[4].toLowerCase()
+                              );
+                              if (roamingHero) {
+                                const roamPlaystyle = getRoamingPlaystyle(roamingHero);
+                                const roamHasCC = hasCC(roamingHero);
+                                const midHasCC = hasCC(hero);
+                                const midHasBurst = hasBurst(hero);
+                                const midHasArea = hasAreaDamage(hero);
+                                
+                                if (!roamHasCC && midHasCC) synergyBonus = '🎯CC'; // Mid provides CC
+                                else if (roamPlaystyle === 'pick-off' && midHasBurst) synergyBonus = '💥Burst';
+                                else if (roamPlaystyle === 'team-fight' && midHasArea) synergyBonus = '🌊AoE';
+                              }
+                            }
+                            
+                            // Check if hero is tank/tanky (CRITICAL for team)
+                            const heroIsTank = isTankOrTanky(hero);
+                            const teamHasTank = heroDetails.some(h => 
+                              pickedHeroNames.includes(h.hero_name) && isTankOrTanky(h)
+                            );
+                            
+                            // Check if hero has combo with picked heroes
+                            const heroCombo = hero.combo;
+                            const hasCompatibility = hero.compatMatches && hero.compatMatches.length > 0;
+                            
+                            return (
+                              <button
+                                key={hero.hero_name}
+                                onClick={() => handlePickChange(idx, hero.hero_name)}
+                                className={`px-3 py-1.5 rounded text-xs text-white transition-colors flex items-center gap-1.5 ${
+                                  heroCombo 
+                                    ? 'bg-purple-700 hover:bg-purple-600 border border-purple-500'
+                                    : heroIsTank && !teamHasTank 
+                                      ? 'bg-red-700 hover:bg-red-600 border border-red-500' 
+                                      : hasCompatibility
+                                        ? 'bg-green-700 hover:bg-green-600 border border-green-500'
+                                        : 'bg-gray-700 hover:bg-blue-600'
+                                }`}
+                                title={`${hero.hero_name} - ${heroRole}\nDamage: ${hero.damage_type}\nAttack: ${hero.attack_reliance}\nScore: ${hero.score || 0}${synergyBonus ? `\n✨ Synergy: ${synergyBonus}` : ''}${heroIsTank && !teamHasTank ? '\n🛡️ TANK NEEDED!' : ''}${heroCombo ? `\n🔥 COMBO: ${heroCombo.comboType} with ${heroCombo.partnerHero}\n📝 ${heroCombo.description}` : ''}${hasCompatibility ? `\n🤝 COMPAT: ` + hero.compatMatches.map(m => `${m.from} (slot ${m.slot})`).join(', ') : ''}`}
+                              >
+                                <span>{hero.hero_name}</span>
+                                {isPrimary && <span className="text-yellow-400">★</span>}
+                                {heroCombo && <span className="text-orange-300 text-[9px]">🔥{heroCombo.comboType}</span>}
+                                {heroIsTank && !teamHasTank && !heroCombo && <span className="text-red-200 text-[9px]">🛡️TANK</span>}
+                                {hasCompatibility && !heroCombo && <span className="text-green-200 text-[9px]">🤝Compat</span>}
+                                {synergyBonus && !heroCombo && <span className="text-green-400 text-[9px]">{synergyBonus}</span>}
+                                <span className="text-gray-400 text-[10px] flex items-center gap-0.5">
+                                  {damageType}{attackRel}
+                                </span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-            );
-          })}
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Enemy Draft (View Only) */}
+          <div className="space-y-4">
+            <h2 className="text-xl font-semibold mb-4">Enemy Draft (View Only)</h2>
+            <div className="grid grid-cols-1 gap-4">
+              {DRAFT_POSITIONS.map((position, idx) => {
+                const enemyName = enemyDraftPicks[idx];
+                const enemyHero = enemyName
+                  ? allHeroesWithLanes.find(h => h.hero_name && h.hero_name.toLowerCase() === enemyName.toLowerCase())
+                  : null;
+                const enemyCounters = enemyHero && Array.isArray(enemyHero.counters)
+                  ? enemyHero.counters
+                  : [];
+
+                return (
+                  <div key={position.id} className="space-y-2">
+                    <div className="flex items-center gap-4">
+                      <div className="flex-shrink-0 w-32">
+                        <div className="flex items-center gap-2">
+                          <span className="text-2xl">{position.icon}</span>
+                          <div>
+                            <span className="text-lg font-bold text-red-400 block">{position.label}</span>
+                            <p className="text-xs text-gray-500">Enemy {position.lane}</p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex-1">
+                        <HeroAutocomplete
+                          value={enemyDraftPicks[idx]}
+                          onChange={(value) => handleEnemyPickChange(idx, value)}
+                          placeholder={`Enemy hero for ${position.label}...`}
+                          position={`Enemy ${position.label}`}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Suggested counters for this enemy hero (from hero_counter) */}
+                    {enemyName && enemyCounters.length > 0 && (
+                      <div className="ml-36 bg-gray-800 border border-red-600/40 rounded-lg p-3 text-xs text-red-200">
+                        <p className="font-semibold mb-1 flex items-center gap-1">
+                          <span>⚔️</span>
+                          <span>
+                            Counters for <span className="font-bold">{enemyName}</span> (based on hero_counter):
+                          </span>
+                        </p>
+                        <ul className="space-y-0.5">
+                          {enemyCounters.map((c, i) => (
+                            <li key={i}>
+                              <span className="font-semibold">{c.enemy}</span>
+                              {c.reason && c.reason.trim() && (
+                                <span>{` - ${c.reason}`}</span>
+                              )}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </div>
       </div>
 
@@ -791,84 +866,115 @@ export default function ManualDraftPick() {
               {heroDetails.length === 5 ? ' ✅' : ` ⚠️ (Kurang ${5 - heroDetails.length} hero)`}
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-              {DRAFT_POSITIONS.map((position, idx) => {
-                // Find hero for this position from draftPicks (maintain correct index!)
-                const heroName = draftPicks[idx];
-                if (!heroName || !heroName.trim()) return null; // Skip empty slots
-                
-                const hero = heroDetails.find(h => 
-                  h.hero_name.toLowerCase() === heroName.toLowerCase()
-                );
-                if (!hero) return null; // Skip if hero not loaded yet
-                
-                const heroLanes = hero.lanes || [];
-                const isLaneMatch = heroLanes.some(lane => lane.lane_name === position.lane);
-                const hasNoLanes = heroLanes.length === 0;
-                
-                return (
-                  <div
-                    key={hero.hero_name}
-                    className={`rounded-lg p-4 border-2 transition-all ${
-                      hasNoLanes
-                        ? 'bg-gray-800 border-gray-700 hover:shadow-lg hover:shadow-gray-500/50'
-                        : isLaneMatch
-                        ? 'bg-gray-800 border-blue-500 hover:shadow-lg hover:shadow-blue-500/50'
-                        : 'bg-yellow-900/30 border-yellow-500'
-                    }`}
-                  >
-                    <div className="text-center">
-                      <div className="text-2xl mb-2">{position.icon}</div>
-                      <p className="font-bold text-lg mb-1">{hero.hero_name}</p>
-                      <p className="text-xs text-blue-400 mb-2">{position.lane}</p>
-                      <p className="text-sm text-gray-400 mb-2">
-                        {hero.role || 'Unknown Role'}
-                      </p>
-                      
-                      {/* Lane Info - Only show if lanes exist */}
-                      {heroLanes.length > 0 && (
-                        <div className="mt-2 mb-2">
-                          <div className="text-xs">
-                            <p className="text-gray-500 mb-1">Hero Lanes:</p>
-                            <div className="space-y-1">
-                              {heroLanes.map((lane, lIdx) => (
-                                <div
-                                  key={lIdx}
-                                  className={`px-2 py-1 rounded ${
-                                    lane.lane_name === position.lane
-                                      ? 'bg-green-700 text-white'
-                                      : 'bg-gray-700 text-gray-300'
-                                  }`}
-                                >
-                                  {lane.lane_name}
-                                  {lane.priority === 1 && ' ★'}
-                                </div>
-                              ))}
+              {(() => {
+                const enemyPickedNames = enemyDraftPicks
+                  .filter(name => name && name.trim())
+                  .map(name => name.toLowerCase());
+
+                return DRAFT_POSITIONS.map((position, idx) => {
+                  // Find hero for this position from draftPicks (maintain correct index!)
+                  const heroName = draftPicks[idx];
+                  if (!heroName || !heroName.trim()) return null; // Skip empty slots
+                  
+                  const hero = heroDetails.find(h => 
+                    h.hero_name.toLowerCase() === heroName.toLowerCase()
+                  );
+                  if (!hero) return null; // Skip if hero not loaded yet
+                  
+                  const heroLanes = hero.lanes || [];
+                  const isLaneMatch = heroLanes.some(lane => lane.lane_name === position.lane);
+                  const hasNoLanes = heroLanes.length === 0;
+
+                  const heroCounters = Array.isArray(hero.counters) ? hero.counters : [];
+                  const activeCounters = heroCounters.filter(c => 
+                    c.enemy && enemyPickedNames.includes(c.enemy.toLowerCase())
+                  );
+                  
+                  return (
+                    <div
+                      key={hero.hero_name}
+                      className={`rounded-lg p-4 border-2 transition-all ${
+                        hasNoLanes
+                          ? 'bg-gray-800 border-gray-700 hover:shadow-lg hover:shadow-gray-500/50'
+                          : isLaneMatch
+                          ? 'bg-gray-800 border-blue-500 hover:shadow-lg hover:shadow-blue-500/50'
+                          : 'bg-yellow-900/30 border-yellow-500'
+                      }`}
+                    >
+                      <div className="text-center">
+                        <div className="text-2xl mb-2">{position.icon}</div>
+                        <p className="font-bold text-lg mb-1">{hero.hero_name}</p>
+                        <p className="text-xs text-blue-400 mb-2">{position.lane}</p>
+                        <p className="text-sm text-gray-400 mb-2">
+                          {hero.role || 'Unknown Role'}
+                        </p>
+                        
+                        {/* Lane Info - Only show if lanes exist */}
+                        {heroLanes.length > 0 && (
+                          <div className="mt-2 mb-2">
+                            <div className="text-xs">
+                              <p className="text-gray-500 mb-1">Hero Lanes:</p>
+                              <div className="space-y-1">
+                                {heroLanes.map((lane, lIdx) => (
+                                  <div
+                                    key={lIdx}
+                                    className={`px-2 py-1 rounded ${
+                                      lane.lane_name === position.lane
+                                        ? 'bg-green-700 text-white'
+                                        : 'bg-gray-700 text-gray-300'
+                                    }`}
+                                  >
+                                    {lane.lane_name}
+                                    {lane.priority === 1 && '★'}
+                                  </div>
+                                ))}
+                              </div>
                             </div>
+
+                            {/* Status Badge - Only for lane mismatch */}
+                            {!isLaneMatch && (
+                              <div className="mt-2 px-2 py-1 bg-yellow-600 rounded text-xs text-white">
+                                ⚠ Not typical for {position.lane}
+                              </div>
+                            )}
                           </div>
+                        )}
 
-                          {/* Status Badge - Only for lane mismatch */}
-                          {!isLaneMatch && (
-                            <div className="mt-2 px-2 py-1 bg-yellow-600 rounded text-xs text-white">
-                              ⚠ Not typical for {position.lane}
-                            </div>
-                          )}
+                        <div className="space-y-1 text-xs text-gray-400 mt-2">
+                          <p>
+                            <span className="text-gray-500">Damage:</span>{' '}
+                            {hero.damage_type || 'Unknown'}
+                          </p>
+                          <p>
+                            <span className="text-gray-500">Type:</span>{' '}
+                            {hero.attack_reliance || 'Unknown'}
+                          </p>
                         </div>
-                      )}
 
-                      <div className="space-y-1 text-xs text-gray-400 mt-2">
-                        <p>
-                          <span className="text-gray-500">Damage:</span>{' '}
-                          {hero.damage_type || 'Unknown'}
-                        </p>
-                        <p>
-                          <span className="text-gray-500">Type:</span>{' '}
-                          {hero.attack_reliance || 'Unknown'}
-                        </p>
+                        {/* Counter info vs enemy draft */}
+                        {activeCounters.length > 0 && (
+                          <div className="mt-3 text-xs text-red-300 text-left">
+                            <p className="font-semibold flex items-center gap-1 justify-center">
+                              <span>⚠️</span>
+                              <span>Countered by enemy draft:</span>
+                            </p>
+                            <ul className="mt-1 space-y-0.5">
+                              {activeCounters.map((c, i) => (
+                                <li key={i}>
+                                  <span className="font-semibold">{c.enemy}</span>
+                                  {c.reason && c.reason.trim() && (
+                                    <span>{` - ${c.reason}`}</span>
+                                  )}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
                       </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                });
+              })()}
             </div>
           </div>
 
@@ -931,6 +1037,78 @@ export default function ManualDraftPick() {
                     </li>
                   ))}
                 </ul>
+              );
+            })()}
+          </div>
+
+          {/* Counter vs Enemy Draft Summary */}
+          <div className="mb-8 bg-red-900/20 border border-red-600 rounded-lg p-4">
+            <h3 className="text-lg font-semibold text-red-300 mb-2 flex items-center gap-2">
+              <span>\ud83d\udee1</span>
+              <span>Counter vs Enemy Draft</span>
+            </h3>
+            {(() => {
+              const enemyPicked = enemyDraftPicks
+                .filter(name => name && name.trim())
+                .map(name => name.toLowerCase());
+
+              if (enemyPicked.length === 0) {
+                return (
+                  <p className="text-xs text-red-200">
+                    Isi enemy draft di panel kanan untuk melihat apakah ada hero kamu yang tercounter keras oleh draft musuh.
+                  </p>
+                );
+              }
+
+              const threatEntries = [];
+
+              heroDetails.forEach(hero => {
+                const heroCounters = Array.isArray(hero.counters) ? hero.counters : [];
+                const activeCounters = heroCounters.filter(c => 
+                  c.enemy && enemyPicked.includes(c.enemy.toLowerCase())
+                );
+
+                if (activeCounters.length > 0) {
+                  threatEntries.push({
+                    hero: hero.hero_name,
+                    counters: activeCounters,
+                  });
+                }
+              });
+
+              if (threatEntries.length === 0) {
+                return (
+                  <p className="text-xs text-green-200">
+                    Tidak ada hard counter yang tercatat di database untuk draft musuh saat ini. Kamu masih aman secara match-up murni.
+                  </p>
+                );
+              }
+
+              return (
+                <>
+                  <p className="text-xs text-red-200 mb-2">
+                    {threatEntries.length}/{heroDetails.length} hero kamu memiliki hard counter di enemy draft (berdasarkan tabel hero_counter).
+                  </p>
+                  <ul className="space-y-1 text-xs text-red-100">
+                    {threatEntries.map((entry, idx) => (
+                      <li key={idx}>
+                        <span className="font-semibold">{entry.hero}</span>
+                        <span className="mx-1">\u2190</span>
+                        <span>
+                          {entry.counters
+                            .map(c => {
+                              const base = c.enemy;
+                              if (c.reason && c.reason.trim()) {
+                                return `${base} (${c.reason})`;
+                              }
+                              return base;
+                            })
+                            .join(', ')}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </>
               );
             })()}
           </div>

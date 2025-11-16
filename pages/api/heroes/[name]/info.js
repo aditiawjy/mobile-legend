@@ -19,7 +19,7 @@ export default async function handler(req, res) {
       const columnNames = columns.map(col => col.COLUMN_NAME)
       console.log('[Hero Info API] Available columns:', columnNames)
       
-      // List of fields we want to update
+      // List of fields we want to update on heroes table
       const requestedFields = ['role', 'damage_type', 'attack_reliance', 'note']
 
       // Build dynamic UPDATE query only for existing columns
@@ -36,19 +36,18 @@ export default async function handler(req, res) {
         }
       }
       
-      if (updates.length === 0) {
-        console.log('[Hero Info API] No fields to update')
-        return res.status(400).json({ error: 'no fields to update' })
+      if (updates.length > 0) {
+        params.push(name)
+        
+        const sqlQuery = `UPDATE heroes SET ${updates.join(', ')} WHERE LOWER(hero_name) = LOWER(?)`
+        console.log('[Hero Info API] SQL Query:', sqlQuery)
+        console.log('[Hero Info API] SQL Params:', params)
+        
+        const result = await query(sqlQuery, params)
+        console.log('[Hero Info API] Update result:', result)
+      } else {
+        console.log('[Hero Info API] No hero core fields to update (role/damage_type/attack_reliance/note)')
       }
-      
-      params.push(name)
-      
-      const sqlQuery = `UPDATE heroes SET ${updates.join(', ')} WHERE LOWER(hero_name) = LOWER(?)`
-      console.log('[Hero Info API] SQL Query:', sqlQuery)
-      console.log('[Hero Info API] SQL Params:', params)
-      
-      const result = await query(sqlQuery, params)
-      console.log('[Hero Info API] Update result:', result)
       
       // Handle hero_compatibility upsert if compatibility fields are present in the body
       const compatFields = [
@@ -96,6 +95,50 @@ export default async function handler(req, res) {
         }
       }
 
+      // Handle hero_counter upsert if counter fields are present in the body
+      const counterFields = [
+        'counter_hero1',
+        'counter_hero2',
+        'counter_hero3',
+        'counter_reason1',
+        'counter_reason2',
+        'counter_reason3'
+      ]
+
+      const hasCounterPayload = counterFields.some(f => Object.prototype.hasOwnProperty.call(body, f))
+
+      if (hasCounterPayload) {
+        const counterValues = counterFields.map(f => {
+          if (!Object.prototype.hasOwnProperty.call(body, f)) return null
+          const v = body[f]
+          return v === undefined || v === null || v === '' ? null : v
+        })
+
+        const existingCounter = await query(
+          'SELECT id FROM hero_counter WHERE LOWER(hero_name) = LOWER(?) LIMIT 1',
+          [name]
+        )
+
+        if (existingCounter && existingCounter.length > 0) {
+          const counterId = existingCounter[0].id
+          await query(
+            `UPDATE hero_counter
+             SET counter_hero1 = ?, counter_hero2 = ?, counter_hero3 = ?,
+                 counter_reason1 = ?, counter_reason2 = ?, counter_reason3 = ?
+             WHERE id = ?`,
+            [...counterValues, counterId]
+          )
+        } else {
+          await query(
+            `INSERT INTO hero_counter
+             (hero_name, counter_hero1, counter_hero2, counter_hero3,
+              counter_reason1, counter_reason2, counter_reason3)
+             VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            [name, ...counterValues]
+          )
+        }
+      }
+
       return res.status(200).json({ ok: true, updated: updates.length })
     } else if (req.method === 'GET') {
       // Fetch hero basic info
@@ -132,7 +175,33 @@ export default async function handler(req, res) {
             synergy_reason4: ''
           }
 
-      return res.status(200).json({ hero, compatibility })
+      const counterRows = await query(
+        `SELECT counter_hero1, counter_hero2, counter_hero3,
+                counter_reason1, counter_reason2, counter_reason3
+         FROM hero_counter
+         WHERE LOWER(hero_name) = LOWER(?)
+         LIMIT 1`,
+        [name]
+      )
+
+      const counters = []
+      if (counterRows && counterRows.length > 0) {
+        const row = counterRows[0]
+        const pushCounter = (enemy, reason) => {
+          if (enemy && enemy.trim()) {
+            counters.push({
+              enemy: enemy.trim(),
+              reason: (reason || '').trim()
+            })
+          }
+        }
+
+        pushCounter(row.counter_hero1, row.counter_reason1)
+        pushCounter(row.counter_hero2, row.counter_reason2)
+        pushCounter(row.counter_hero3, row.counter_reason3)
+      }
+
+      return res.status(200).json({ hero, compatibility, counters })
     }
 
     res.setHeader('Allow', 'PUT, GET')

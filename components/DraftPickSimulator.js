@@ -147,7 +147,7 @@ export default function DraftPickSimulator() {
   const validation = draftResult ? laneValidation() : { isValid: true, errors: [], warnings: [], heroesWithLanes: 0 };
 
   return (
-    <div className="w-full max-w-6xl mx-auto p-6 bg-gray-900 text-white rounded-lg">
+    <div className="w-full mx-auto p-6 bg-gray-900 text-white rounded-lg">
       <h1 className="text-3xl font-bold mb-6">Draft Pick Simulator (Auto Recommendation)</h1>
 
       {/* Hero Selection */}

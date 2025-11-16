@@ -105,9 +105,17 @@ export default function AddHeroPage() {
         if (!uniqueAttackReliances.includes('Finisher/Chase')) {
           uniqueAttackReliances.push('Finisher/Chase')
         }
+        // Ensure Chase/Finisher is always available as an Attack Reliance option
+        if (!uniqueAttackReliances.includes('Chase/Finisher')) {
+          uniqueAttackReliances.push('Chase/Finisher')
+        }
         // Ensure Poke/Finisher is always available as an Attack Reliance option
         if (!uniqueAttackReliances.includes('Poke/Finisher')) {
           uniqueAttackReliances.push('Poke/Finisher')
+        }
+        // Ensure Chase/Control is always available as an Attack Reliance option
+        if (!uniqueAttackReliances.includes('Chase/Control')) {
+          uniqueAttackReliances.push('Chase/Control')
         }
         // Ensure Charge/Damage is always available as an Attack Reliance option
         if (!uniqueAttackReliances.includes('Charge/Damage')) {
@@ -124,6 +132,10 @@ export default function AddHeroPage() {
         // Ensure Burst/Finisher is always available as an Attack Reliance option
         if (!uniqueAttackReliances.includes('Burst/Finisher')) {
           uniqueAttackReliances.push('Burst/Finisher')
+        }
+        // Ensure Burst/Control is always available as an Attack Reliance option
+        if (!uniqueAttackReliances.includes('Burst/Control')) {
+          uniqueAttackReliances.push('Burst/Control')
         }
         // Ensure Burst/Crowd Control is always available as an Attack Reliance option
         if (!uniqueAttackReliances.includes('Burst/Crowd Control')) {

@@ -47,6 +47,8 @@ export default function EditSkillsPage() {
     synergy_reason4: ''
   })
 
+  const [counters, setCounters] = useState([])
+
   // Dropdown options
   const [roles, setRoles] = useState([])
   const [damageTypes, setDamageTypes] = useState([])
@@ -163,6 +165,12 @@ export default function EditSkillsPage() {
               synergy_reason3: '',
               synergy_reason4: ''
             })
+          }
+
+          if (heroInfoDetail && Array.isArray(heroInfoDetail.counters)) {
+            setCounters(heroInfoDetail.counters)
+          } else {
+            setCounters([])
           }
         })
         .catch(e => {
@@ -480,52 +488,83 @@ export default function EditSkillsPage() {
                 </div>
               </div>
 
-              {/* Hero Compatibility (read-only, edited via Edit Hero Info) */}
+              {/* Hero Compatibility & Counters (read-only, edited via Edit Hero Info / DB) */}
               {name && (
-                <div className="border-b border-gray-200 pb-4">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Hero Compatibility (Read-only)</h3>
-                  <p className="text-xs text-gray-500 mb-3">
-                    Data ini diambil dari pengaturan di halaman <span className="font-semibold">Edit Hero Info</span>.
-                  </p>
-                  <div className="space-y-4">
-                    {[1, 2, 3, 4].map((idx) => {
-                      const partnerKey = `partner_hero${idx}`
-                      const reasonKey = `synergy_reason${idx}`
-                      const partner = compatibility[partnerKey]
-                      const reason = compatibility[reasonKey]
+                <div className="border-b border-gray-200 pb-4 space-y-6">
+                  {/* Compatibility */}
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Hero Compatibility (Read-only)</h3>
+                    <p className="text-xs text-gray-500 mb-3">
+                      Data ini diambil dari pengaturan di halaman <span className="font-semibold">Edit Hero Info</span>.
+                    </p>
+                    <div className="space-y-4">
+                      {[1, 2, 3, 4].map((idx) => {
+                        const partnerKey = `partner_hero${idx}`
+                        const reasonKey = `synergy_reason${idx}`
+                        const partner = compatibility[partnerKey]
+                        const reason = compatibility[reasonKey]
 
-                      if (!partner && !reason) return null
+                        if (!partner && !reason) return null
 
-                      return (
-                        <div key={idx} className="bg-gray-50 border border-gray-200 rounded-lg p-3">
-                          <p className="text-sm font-medium text-gray-800">
-                            Partner {idx}: {partner || '-'}
-                          </p>
-                          {reason && (
-                            <p className="mt-1 text-xs text-gray-600 whitespace-pre-line">
-                              {reason}
+                        return (
+                          <div key={idx} className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                            <p className="text-sm font-medium text-gray-800">
+                              Partner {idx}: {partner || '-'}
                             </p>
-                          )}
-                        </div>
-                      )
-                    })}
-                    {!compatibility.partner_hero1 &&
-                      !compatibility.partner_hero2 &&
-                      !compatibility.partner_hero3 &&
-                      !compatibility.partner_hero4 && (
-                        <p className="text-xs text-gray-500">
-                          Belum ada hero compatibility yang diatur untuk hero ini.
-                        </p>
-                      )}
-                    <div className="pt-2">
-                      <button
-                        type="button"
-                        onClick={() => router.push(`/edit-hero-info?name=${encodeURIComponent(name)}`)}
-                        className="inline-flex items-center px-3 py-1.5 rounded-md border border-gray-300 text-xs font-medium text-gray-700 bg-white hover:bg-gray-100"
-                      >
-                        Buka Halaman Edit Hero Info
-                      </button>
+                            {reason && (
+                              <p className="mt-1 text-xs text-gray-600 whitespace-pre-line">
+                                {reason}
+                              </p>
+                            )}
+                          </div>
+                        )
+                      })}
+                      {!compatibility.partner_hero1 &&
+                        !compatibility.partner_hero2 &&
+                        !compatibility.partner_hero3 &&
+                        !compatibility.partner_hero4 && (
+                          <p className="text-xs text-gray-500">
+                            Belum ada hero compatibility yang diatur untuk hero ini.
+                          </p>
+                        )}
+                      <div className="pt-2">
+                        <button
+                          type="button"
+                          onClick={() => router.push(`/edit-hero-info?name=${encodeURIComponent(name)}`)}
+                          className="inline-flex items-center px-3 py-1.5 rounded-md border border-gray-300 text-xs font-medium text-gray-700 bg-white hover:bg-gray-100"
+                        >
+                          Buka Halaman Edit Hero Info
+                        </button>
+                      </div>
                     </div>
+                  </div>
+
+                  {/* Hero Counters */}
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Hero Counters (Read-only)</h3>
+                    <p className="text-xs text-gray-500 mb-3">
+                      Data ini diambil dari tabel <span className="font-semibold">hero_counter</span> di database. Interpretasi: hero-hero di bawah ini adalah musuh yang kuat melawan <span className="font-semibold">{name}</span>.
+                    </p>
+                    {Array.isArray(counters) && counters.length > 0 ? (
+                      <div className="space-y-3">
+                        {counters.map((c, idx) => (
+                          <div key={idx} className="bg-red-50 border border-red-200 rounded-lg p-3">
+                            <p className="text-sm font-medium text-red-800">
+                              Counter {idx + 1}: {c.enemy || '-'}
+                            </p>
+                            {c.reason && c.reason.trim() && (
+                              <p className="mt-1 text-xs text-red-700 whitespace-pre-line">
+                                {c.reason}
+                              </p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-gray-500">
+                        Belum ada hero counter yang diatur untuk hero ini di tabel <span className="font-semibold">hero_counter</span>.
+                      </p>
+                    )}
                   </div>
                 </div>
               )}

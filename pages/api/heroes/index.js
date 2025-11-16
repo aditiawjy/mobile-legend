@@ -33,10 +33,41 @@ export default async function handler(req, res) {
         })
       })
 
-      // Attach lanes to each hero
+      // Get hero counters from hero_counter table
+      const [counterRows] = await connection.execute(`
+        SELECT hero_name,
+               counter_hero1, counter_hero2, counter_hero3,
+               counter_reason1, counter_reason2, counter_reason3
+        FROM hero_counter
+      `)
+
+      const countersMap = {}
+      counterRows.forEach(row => {
+        if (!row.hero_name) return
+        if (!countersMap[row.hero_name]) {
+          countersMap[row.hero_name] = []
+        }
+
+        const pushCounter = (enemy, reason) => {
+          if (enemy && enemy.trim()) {
+            const cleanEnemy = enemy.trim()
+            countersMap[row.hero_name].push({
+              enemy: cleanEnemy,
+              reason: (reason || '').trim()
+            })
+          }
+        }
+
+        pushCounter(row.counter_hero1, row.counter_reason1)
+        pushCounter(row.counter_hero2, row.counter_reason2)
+        pushCounter(row.counter_hero3, row.counter_reason3)
+      })
+
+      // Attach lanes and counters to each hero
       const heroesWithLanes = heroes.map(hero => ({
         ...hero,
-        lanes: lanesMap[hero.hero_name] || []
+        lanes: lanesMap[hero.hero_name] || [],
+        counters: countersMap[hero.hero_name] || []
       }))
 
       // Do NOT end the pool per request; Next.js dev server reuses it.
