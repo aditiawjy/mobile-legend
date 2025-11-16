@@ -340,9 +340,19 @@ export default function DraftPickSimulator() {
                   <div>
                     <p className="font-bold text-lg">{partner.name}</p>
                     <p className="text-sm text-gray-400">{partner.role}</p>
+                    {partner.compatibility && (
+                      <p className="mt-1 text-xs text-green-300 flex items-center gap-1">
+                        <span>🤝</span>
+                        <span>DB Compatibility (slot {partner.compatibility.slot})</span>
+                      </p>
+                    )}
                   </div>
                   <div className="text-right">
-                    <p className="text-sm text-yellow-300">{partner.reason}</p>
+                    <p className="text-sm text-yellow-300">
+                      {partner.compatibility?.reason && partner.compatibility.reason.trim()
+                        ? partner.compatibility.reason
+                        : partner.reason}
+                    </p>
                   </div>
                 </div>
               ))}

@@ -37,19 +37,80 @@ export default async function handler(req, res) {
       console.error('Error fetching combos:', err);
     }
 
-    // Check for combos in recommended partners
+    // Fetch hero compatibility from database (who this hero is good with)
+    let heroCompatibility = null;
+    try {
+      console.log('Fetching hero compatibility from database...');
+      const compatRows = await query(
+        `SELECT partner_hero1, partner_hero2, partner_hero3, partner_hero4,
+                synergy_reason1, synergy_reason2, synergy_reason3, synergy_reason4
+         FROM hero_compatibility
+         WHERE LOWER(hero_name) = LOWER(?)
+         LIMIT 1`,
+        [heroName]
+      );
+      if (compatRows && compatRows.length > 0) {
+        heroCompatibility = compatRows[0];
+        console.log('Hero compatibility found for', heroName);
+      }
+    } catch (err) {
+      console.error('Error fetching hero compatibility:', err);
+    }
+
+    const compatibilityPartners = [];
+    if (heroCompatibility) {
+      if (heroCompatibility.partner_hero1) {
+        compatibilityPartners.push({
+          name: heroCompatibility.partner_hero1,
+          reason: heroCompatibility.synergy_reason1 || '',
+          slot: 1,
+        });
+      }
+      if (heroCompatibility.partner_hero2) {
+        compatibilityPartners.push({
+          name: heroCompatibility.partner_hero2,
+          reason: heroCompatibility.synergy_reason2 || '',
+          slot: 2,
+        });
+      }
+      if (heroCompatibility.partner_hero3) {
+        compatibilityPartners.push({
+          name: heroCompatibility.partner_hero3,
+          reason: heroCompatibility.synergy_reason3 || '',
+          slot: 3,
+        });
+      }
+      if (heroCompatibility.partner_hero4) {
+        compatibilityPartners.push({
+          name: heroCompatibility.partner_hero4,
+          reason: heroCompatibility.synergy_reason4 || '',
+          slot: 4,
+        });
+      }
+    }
+
+    // Check for combos and compatibility in recommended partners
     const partnersWithCombo = draftResult.partners.map(partner => {
       const combo = heroCombos.find(c => 
         (c.hero1.toLowerCase() === heroName.toLowerCase() && c.hero2.toLowerCase() === partner.name.toLowerCase()) ||
         (c.hero2.toLowerCase() === heroName.toLowerCase() && c.hero1.toLowerCase() === partner.name.toLowerCase())
       );
+
+      const compat = compatibilityPartners.find(c => 
+        c.name && c.name.toLowerCase() === partner.name.toLowerCase()
+      );
+
       return {
         ...partner,
         combo: combo ? {
           comboType: combo.combo_type,
           synergyScore: combo.synergy_score,
           description: combo.description
-        } : null
+        } : null,
+        compatibility: compat ? {
+          reason: compat.reason,
+          slot: compat.slot,
+        } : null,
       };
     });
 
@@ -197,6 +258,23 @@ export default async function handler(req, res) {
       heroesWithLanes = assignedHeroes.filter(h => h !== null);
     } catch (err) {
       console.error('Error fetching lanes from database:', err);
+    }
+
+    // Attach compatibility info into recommendations.partnerRoles as well
+    if (draftResult.recommendations && Array.isArray(draftResult.recommendations.partnerRoles)) {
+      const partnerRolesWithCompatibility = draftResult.recommendations.partnerRoles.map(pr => {
+        const compat = compatibilityPartners.find(c => 
+          c.name && c.name.toLowerCase() === pr.name.toLowerCase()
+        );
+        return {
+          ...pr,
+          compatibility: compat ? {
+            reason: compat.reason,
+            slot: compat.slot,
+          } : null,
+        };
+      });
+      draftResult.recommendations.partnerRoles = partnerRolesWithCompatibility;
     }
 
     res.status(200).json({

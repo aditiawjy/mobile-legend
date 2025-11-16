@@ -36,6 +36,17 @@ export default function EditSkillsPage() {
     return initialData
   })
 
+  const [compatibility, setCompatibility] = useState({
+    partner_hero1: '',
+    partner_hero2: '',
+    partner_hero3: '',
+    partner_hero4: '',
+    synergy_reason1: '',
+    synergy_reason2: '',
+    synergy_reason3: '',
+    synergy_reason4: ''
+  })
+
   // Dropdown options
   const [roles, setRoles] = useState([])
   const [damageTypes, setDamageTypes] = useState([])
@@ -91,6 +102,16 @@ export default function EditSkillsPage() {
     if (!name) {
       // Reset data when no hero is selected
       setData(Object.fromEntries(fields.map(f => [f.key, ''])))
+      setCompatibility({
+        partner_hero1: '',
+        partner_hero2: '',
+        partner_hero3: '',
+        partner_hero4: '',
+        synergy_reason1: '',
+        synergy_reason2: '',
+        synergy_reason3: '',
+        synergy_reason4: ''
+      })
       return
     }
     
@@ -107,9 +128,10 @@ export default function EditSkillsPage() {
       // Load both hero info and skills
       Promise.all([
         fetch(`/api/get_hero_detail?name=${encodeURIComponent(name)}`).then(r => r.ok ? r.json() : {}),
-        fetch(`/api/heroes/${encodeURIComponent(name)}/skills`).then(r => r.ok ? r.json() : {})
+        fetch(`/api/heroes/${encodeURIComponent(name)}/skills`).then(r => r.ok ? r.json() : {}),
+        fetch(`/api/heroes/${encodeURIComponent(name)}/info`).then(r => r.ok ? r.json() : {})
       ])
-        .then(([heroInfo, skillsInfo]) => {
+        .then(([heroInfo, skillsInfo, heroInfoDetail]) => {
           const emptyData = Object.fromEntries(fields.map(f => [f.key, '']))
           const combinedData = {
             ...emptyData,
@@ -118,6 +140,30 @@ export default function EditSkillsPage() {
             hero_name: name
           }
           setData(combinedData)
+
+          if (heroInfoDetail && heroInfoDetail.compatibility) {
+            setCompatibility({
+              partner_hero1: heroInfoDetail.compatibility.partner_hero1 || '',
+              partner_hero2: heroInfoDetail.compatibility.partner_hero2 || '',
+              partner_hero3: heroInfoDetail.compatibility.partner_hero3 || '',
+              partner_hero4: heroInfoDetail.compatibility.partner_hero4 || '',
+              synergy_reason1: heroInfoDetail.compatibility.synergy_reason1 || '',
+              synergy_reason2: heroInfoDetail.compatibility.synergy_reason2 || '',
+              synergy_reason3: heroInfoDetail.compatibility.synergy_reason3 || '',
+              synergy_reason4: heroInfoDetail.compatibility.synergy_reason4 || ''
+            })
+          } else {
+            setCompatibility({
+              partner_hero1: '',
+              partner_hero2: '',
+              partner_hero3: '',
+              partner_hero4: '',
+              synergy_reason1: '',
+              synergy_reason2: '',
+              synergy_reason3: '',
+              synergy_reason4: ''
+            })
+          }
         })
         .catch(e => {
           console.error('Error loading data:', e)
@@ -433,6 +479,56 @@ export default function EditSkillsPage() {
                   })}
                 </div>
               </div>
+
+              {/* Hero Compatibility (read-only, edited via Edit Hero Info) */}
+              {name && (
+                <div className="border-b border-gray-200 pb-4">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Hero Compatibility (Read-only)</h3>
+                  <p className="text-xs text-gray-500 mb-3">
+                    Data ini diambil dari pengaturan di halaman <span className="font-semibold">Edit Hero Info</span>.
+                  </p>
+                  <div className="space-y-4">
+                    {[1, 2, 3, 4].map((idx) => {
+                      const partnerKey = `partner_hero${idx}`
+                      const reasonKey = `synergy_reason${idx}`
+                      const partner = compatibility[partnerKey]
+                      const reason = compatibility[reasonKey]
+
+                      if (!partner && !reason) return null
+
+                      return (
+                        <div key={idx} className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                          <p className="text-sm font-medium text-gray-800">
+                            Partner {idx}: {partner || '-'}
+                          </p>
+                          {reason && (
+                            <p className="mt-1 text-xs text-gray-600 whitespace-pre-line">
+                              {reason}
+                            </p>
+                          )}
+                        </div>
+                      )
+                    })}
+                    {!compatibility.partner_hero1 &&
+                      !compatibility.partner_hero2 &&
+                      !compatibility.partner_hero3 &&
+                      !compatibility.partner_hero4 && (
+                        <p className="text-xs text-gray-500">
+                          Belum ada hero compatibility yang diatur untuk hero ini.
+                        </p>
+                      )}
+                    <div className="pt-2">
+                      <button
+                        type="button"
+                        onClick={() => router.push(`/edit-hero-info?name=${encodeURIComponent(name)}`)}
+                        className="inline-flex items-center px-3 py-1.5 rounded-md border border-gray-300 text-xs font-medium text-gray-700 bg-white hover:bg-gray-100"
+                      >
+                        Buka Halaman Edit Hero Info
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Skills Section */}
               <div>

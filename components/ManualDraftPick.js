@@ -16,6 +16,7 @@ export default function ManualDraftPick() {
   const [composition, setComposition] = useState(null);
   const [allHeroesWithLanes, setAllHeroesWithLanes] = useState([]);
   const [heroCombos, setHeroCombos] = useState([]);
+  const [heroCompatibility, setHeroCompatibility] = useState({}); // map hero_name(lower) -> compatibility
 
   // Load all heroes with lanes data on mount
   useEffect(() => {
@@ -59,6 +60,41 @@ export default function ManualDraftPick() {
     };
     loadCombos();
   }, []);
+
+  // Load hero compatibility data for picked heroes (from /api/heroes/[name]/info)
+  useEffect(() => {
+    const loadCompatibility = async () => {
+      // Determine which hero names we need compatibility for
+      const namesToFetch = heroDetails
+        .map(h => h.hero_name)
+        .filter(Boolean)
+        .filter(name => !heroCompatibility[name.toLowerCase()]);
+
+      if (namesToFetch.length === 0) return;
+
+      const updates = {};
+      for (const heroName of namesToFetch) {
+        try {
+          const res = await fetch(`/api/heroes/${encodeURIComponent(heroName)}/info`);
+          if (!res.ok) continue;
+          const info = await res.json();
+          if (info && info.compatibility) {
+            updates[heroName.toLowerCase()] = info.compatibility;
+          }
+        } catch (error) {
+          console.error('Error loading hero compatibility for', heroName, error);
+        }
+      }
+
+      if (Object.keys(updates).length > 0) {
+        setHeroCompatibility(prev => ({ ...prev, ...updates }));
+      }
+    };
+
+    if (heroDetails && heroDetails.length > 0) {
+      loadCompatibility();
+    }
+  }, [heroDetails]);
 
   const handlePickChange = (index, value) => {
     const newPicks = [...draftPicks];
@@ -208,6 +244,7 @@ export default function ManualDraftPick() {
         const hasTargetLane = hero.lanes && hero.lanes.some(l => l.lane_name === targetLane);
         // Check if not already picked
         const notPicked = !pickedHeroNames.some(name => name.toLowerCase() === hero.hero_name.toLowerCase());
+        // Only show heroes that actually have this lane; compatibility affects scoring, not eligibility
         return hasTargetLane && notPicked;
       })
       .map(hero => {
@@ -316,12 +353,63 @@ export default function ManualDraftPick() {
           score += comboBonus;
         }
 
-        return { ...hero, score, combo };
-      })
-      .sort((a, b) => b.score - a.score) // Sort by score descending
-      .slice(0, 5); // Top 5 recommendations
+        // Score 8: Hero Compatibility (from hero_compatibility table)
+        // If this hero is explicitly marked as a good partner for any picked hero, add a bonus
+        const compatMatches = [];
+        pickedHeroes.forEach(selHero => {
+          if (!selHero || !selHero.hero_name) return;
+          const compat = heroCompatibility[selHero.hero_name.toLowerCase()];
+          if (!compat) return;
 
-    return recommended;
+          const targetName = hero.hero_name.toLowerCase();
+          // Skip self-compatibility (hero → hero yang sama)
+          if (selHero.hero_name.toLowerCase() === targetName) return;
+
+          if (compat.partner_hero1 && compat.partner_hero1.toLowerCase() === targetName) {
+            compatMatches.push({
+              from: selHero.hero_name,
+              slot: 1,
+              reason: compat.synergy_reason1 || '',
+            });
+          }
+          if (compat.partner_hero2 && compat.partner_hero2.toLowerCase() === targetName) {
+            compatMatches.push({
+              from: selHero.hero_name,
+              slot: 2,
+              reason: compat.synergy_reason2 || '',
+            });
+          }
+          if (compat.partner_hero3 && compat.partner_hero3.toLowerCase() === targetName) {
+            compatMatches.push({
+              from: selHero.hero_name,
+              slot: 3,
+              reason: compat.synergy_reason3 || '',
+            });
+          }
+          if (compat.partner_hero4 && compat.partner_hero4.toLowerCase() === targetName) {
+            compatMatches.push({
+              from: selHero.hero_name,
+              slot: 4,
+              reason: compat.synergy_reason4 || '',
+            });
+          }
+        });
+
+        if (compatMatches.length > 0) {
+          // Small but meaningful bonus for DB-defined compatibility
+          score += 25;
+        }
+
+        return { ...hero, score, combo, compatMatches };
+      })
+      .sort((a, b) => b.score - a.score); // Sort by score descending
+
+    // Prioritize heroes with explicit compatibility in the top 5
+    const compatHeroes = recommended.filter(h => h.compatMatches && h.compatMatches.length > 0);
+    const nonCompatHeroes = recommended.filter(h => !h.compatMatches || h.compatMatches.length === 0);
+    const prioritized = [...compatHeroes, ...nonCompatHeroes];
+
+    return prioritized.slice(0, 5); // Top 5 with compatibility prioritized
   };
 
   const fetchHeroDetails = async (heroNames) => {
@@ -649,6 +737,7 @@ export default function ManualDraftPick() {
                         
                         // Check if hero has combo with picked heroes
                         const heroCombo = hero.combo;
+                        const hasCompatibility = hero.compatMatches && hero.compatMatches.length > 0;
                         
                         return (
                           <button
@@ -659,14 +748,17 @@ export default function ManualDraftPick() {
                                 ? 'bg-purple-700 hover:bg-purple-600 border border-purple-500'
                                 : heroIsTank && !teamHasTank 
                                   ? 'bg-red-700 hover:bg-red-600 border border-red-500' 
-                                  : 'bg-gray-700 hover:bg-blue-600'
+                                  : hasCompatibility
+                                    ? 'bg-green-700 hover:bg-green-600 border border-green-500'
+                                    : 'bg-gray-700 hover:bg-blue-600'
                             }`}
-                            title={`${hero.hero_name} - ${heroRole}\nDamage: ${hero.damage_type}\nAttack: ${hero.attack_reliance}\nScore: ${hero.score || 0}${synergyBonus ? `\n✨ Synergy: ${synergyBonus}` : ''}${heroIsTank && !teamHasTank ? '\n🛡️ TANK NEEDED!' : ''}${heroCombo ? `\n🔥 COMBO: ${heroCombo.comboType} with ${heroCombo.partnerHero}\n📝 ${heroCombo.description}` : ''}`}
+                            title={`${hero.hero_name} - ${heroRole}\nDamage: ${hero.damage_type}\nAttack: ${hero.attack_reliance}\nScore: ${hero.score || 0}${synergyBonus ? `\n✨ Synergy: ${synergyBonus}` : ''}${heroIsTank && !teamHasTank ? '\n🛡️ TANK NEEDED!' : ''}${heroCombo ? `\n🔥 COMBO: ${heroCombo.comboType} with ${heroCombo.partnerHero}\n📝 ${heroCombo.description}` : ''}${hasCompatibility ? `\n🤝 COMPAT: ` + hero.compatMatches.map(m => `${m.from} (slot ${m.slot})`).join(', ') : ''}`}
                           >
                             <span>{hero.hero_name}</span>
                             {isPrimary && <span className="text-yellow-400">★</span>}
                             {heroCombo && <span className="text-orange-300 text-[9px]">🔥{heroCombo.comboType}</span>}
                             {heroIsTank && !teamHasTank && !heroCombo && <span className="text-red-200 text-[9px]">🛡️TANK</span>}
+                            {hasCompatibility && !heroCombo && <span className="text-green-200 text-[9px]">🤝Compat</span>}
                             {synergyBonus && !heroCombo && <span className="text-green-400 text-[9px]">{synergyBonus}</span>}
                             <span className="text-gray-400 text-[10px] flex items-center gap-0.5">
                               {damageType}{attackRel}
@@ -778,6 +870,69 @@ export default function ManualDraftPick() {
                 );
               })}
             </div>
+          </div>
+
+          {/* Compatibility Summary */}
+          <div className="mb-8 bg-green-900/20 border border-green-600 rounded-lg p-4">
+            <h3 className="text-lg font-semibold text-green-300 mb-2 flex items-center gap-2">
+              <span>🤝</span>
+              <span>Hero Compatibility Summary</span>
+            </h3>
+            {(() => {
+              const activeCompat = [];
+              // For each picked hero, check if they have compat partners also present in the draft
+              heroDetails.forEach(sourceHero => {
+                const compat = heroCompatibility[sourceHero.hero_name?.toLowerCase()];
+                if (!compat) return;
+
+                const partnersInDraft = [];
+                const pushIfMatch = (partnerName, slot, reason) => {
+                  if (!partnerName) return;
+                  // Skip self-compatibility
+                  if (partnerName.toLowerCase() === sourceHero.hero_name?.toLowerCase()) return;
+                  const match = heroDetails.find(h => h.hero_name && h.hero_name.toLowerCase() === partnerName.toLowerCase());
+                  if (match) {
+                    partnersInDraft.push({ name: match.hero_name, slot, reason: reason || '' });
+                  }
+                };
+
+                pushIfMatch(compat.partner_hero1, 1, compat.synergy_reason1);
+                pushIfMatch(compat.partner_hero2, 2, compat.synergy_reason2);
+                pushIfMatch(compat.partner_hero3, 3, compat.synergy_reason3);
+                pushIfMatch(compat.partner_hero4, 4, compat.synergy_reason4);
+
+                if (partnersInDraft.length > 0) {
+                  activeCompat.push({
+                    hero: sourceHero.hero_name,
+                    partners: partnersInDraft,
+                  });
+                }
+              });
+
+              if (activeCompat.length === 0) {
+                return (
+                  <p className="text-xs text-green-200">
+                    Belum ada pasangan hero dalam draft ini yang cocok dengan data hero_compatibility di database.
+                  </p>
+                );
+              }
+
+              return (
+                <ul className="space-y-2 text-xs text-green-100">
+                  {activeCompat.map((entry, idx) => (
+                    <li key={idx}>
+                      <span className="font-semibold">{entry.hero}</span>
+                      <span className="mx-1">→</span>
+                      <span>
+                        {entry.partners
+                          .map(p => `${p.name} (slot ${p.slot}${p.reason ? `: ${p.reason}` : ''})`)
+                          .join(', ')}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              );
+            })()}
           </div>
 
           {/* Team Composition Analysis */}

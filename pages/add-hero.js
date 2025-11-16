@@ -47,8 +47,110 @@ export default function AddHeroPage() {
         
         // Extract unique values
         const uniqueRoles = [...new Set(heroes.map(h => h.role).filter(Boolean))].sort()
+
+        // Normalize duplicate Mage entries (case-insensitive) to a single 'Mage'
+        const mageIndexes = uniqueRoles
+          .map((role, idx) => ({ role, idx }))
+          .filter(r => r.role.toLowerCase() === 'mage')
+          .map(r => r.idx)
+
+        if (mageIndexes.length > 0) {
+          // Keep the first as 'Mage'
+          uniqueRoles[mageIndexes[0]] = 'Mage'
+          // Remove the rest (from end to start so indexes stay valid)
+          mageIndexes
+            .slice(1)
+            .sort((a, b) => b - a)
+            .forEach(i => uniqueRoles.splice(i, 1))
+        }
+
+        // Ensure combined role Assassin/Marksman is always available as an option
+        if (!uniqueRoles.includes('Assassin/Marksman')) {
+          uniqueRoles.push('Assassin/Marksman')
+        }
+        // Ensure combined role Support/Mage is always available as an option
+        if (!uniqueRoles.includes('Support/Mage')) {
+          uniqueRoles.push('Support/Mage')
+        }
+        // Ensure combined role Mage/Assassin is always available as an option
+        if (!uniqueRoles.includes('Mage/Assassin')) {
+          uniqueRoles.push('Mage/Assassin')
+        }
+
+        uniqueRoles.sort()
         const uniqueDamageTypes = [...new Set(heroes.map(h => h.damage_type).filter(Boolean))].sort()
         const uniqueAttackReliances = [...new Set(heroes.map(h => h.attack_reliance).filter(Boolean))].sort()
+
+        // Remove incorrect 'support crowd control' option (case-insensitive)
+        const invalidIdx = uniqueAttackReliances.findIndex(v => v && v.toLowerCase() === 'support crowd control')
+        if (invalidIdx !== -1) {
+          uniqueAttackReliances.splice(invalidIdx, 1)
+        }
+
+        // Normalize legacy 'burst magic damage' (no slash) into 'Burst/Magic Damage'
+        const burstMagicIdxs = uniqueAttackReliances
+          .map((v, i) => ({ v, i }))
+          .filter(x => x.v && x.v.toLowerCase() === 'burst magic damage')
+          .map(x => x.i)
+
+        if (burstMagicIdxs.length > 0) {
+          uniqueAttackReliances[burstMagicIdxs[0]] = 'Burst/Magic Damage'
+          burstMagicIdxs
+            .slice(1)
+            .sort((a, b) => b - a)
+            .forEach(i => uniqueAttackReliances.splice(i, 1))
+        }
+
+        // Ensure Finisher/Chase is always available as an Attack Reliance option
+        if (!uniqueAttackReliances.includes('Finisher/Chase')) {
+          uniqueAttackReliances.push('Finisher/Chase')
+        }
+        // Ensure Poke/Finisher is always available as an Attack Reliance option
+        if (!uniqueAttackReliances.includes('Poke/Finisher')) {
+          uniqueAttackReliances.push('Poke/Finisher')
+        }
+        // Ensure Charge/Damage is always available as an Attack Reliance option
+        if (!uniqueAttackReliances.includes('Charge/Damage')) {
+          uniqueAttackReliances.push('Charge/Damage')
+        }
+        // Ensure Charge/Regen is always available as an Attack Reliance option
+        if (!uniqueAttackReliances.includes('Charge/Regen')) {
+          uniqueAttackReliances.push('Charge/Regen')
+        }
+        // Ensure Guard/Charge is always available as an Attack Reliance option
+        if (!uniqueAttackReliances.includes('Guard/Charge')) {
+          uniqueAttackReliances.push('Guard/Charge')
+        }
+        // Ensure Burst/Finisher is always available as an Attack Reliance option
+        if (!uniqueAttackReliances.includes('Burst/Finisher')) {
+          uniqueAttackReliances.push('Burst/Finisher')
+        }
+        // Ensure Burst/Crowd Control is always available as an Attack Reliance option
+        if (!uniqueAttackReliances.includes('Burst/Crowd Control')) {
+          uniqueAttackReliances.push('Burst/Crowd Control')
+        }
+        // Ensure Burst/Magic Damage is always available as an Attack Reliance option
+        if (!uniqueAttackReliances.includes('Burst/Magic Damage')) {
+          uniqueAttackReliances.push('Burst/Magic Damage')
+        }
+        // Ensure Burst/Charge is always available as an Attack Reliance option
+        if (!uniqueAttackReliances.includes('Burst/Charge')) {
+          uniqueAttackReliances.push('Burst/Charge')
+        }
+        // Ensure Push/Damage is always available as an Attack Reliance option
+        if (!uniqueAttackReliances.includes('Push/Damage')) {
+          uniqueAttackReliances.push('Push/Damage')
+        }
+        // Ensure Regen/Control is always available as an Attack Reliance option
+        if (!uniqueAttackReliances.includes('Regen/Control')) {
+          uniqueAttackReliances.push('Regen/Control')
+        }
+        // Ensure correct Support/Crowd Control option is present
+        if (!uniqueAttackReliances.includes('Support/Crowd Control')) {
+          uniqueAttackReliances.push('Support/Crowd Control')
+        }
+
+        uniqueAttackReliances.sort()
         
         console.log('Options loaded:', {
           roles: uniqueRoles.length,

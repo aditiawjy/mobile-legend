@@ -17,6 +17,17 @@ export default function EditHeroInfoPage() {
     note: ''
   })
 
+  const [compatibility, setCompatibility] = useState({
+    partner_hero1: '',
+    partner_hero2: '',
+    partner_hero3: '',
+    partner_hero4: '',
+    synergy_reason1: '',
+    synergy_reason2: '',
+    synergy_reason3: '',
+    synergy_reason4: ''
+  })
+
   const [allLanes, setAllLanes] = useState([])
   const [heroLanes, setHeroLanes] = useState([])
   const [selectedLaneId, setSelectedLaneId] = useState('')
@@ -59,27 +70,52 @@ export default function EditHeroInfoPage() {
       setErr('')
       setOk('')
       try {
-        // Fetch hero info
-        const heroRes = await fetch(`/api/heroes/${encodeURIComponent(name)}/info`, { method: 'PUT' }).catch(() => null)
-        
-        // Get from /api/heroes list
+        const infoRes = await fetch(`/api/heroes/${encodeURIComponent(name)}/info`)
+        if (infoRes.ok) {
+          const info = await infoRes.json()
+          if (info.hero) {
+            setHeroData({
+              role: info.hero.role || '',
+              damage_type: info.hero.damage_type || '',
+              attack_reliance: info.hero.attack_reliance || '',
+              note: info.hero.note || ''
+            })
+          } else {
+            setHeroData({ role: '', damage_type: '', attack_reliance: '', note: '' })
+          }
+
+          if (info.compatibility) {
+            setCompatibility({
+              partner_hero1: info.compatibility.partner_hero1 || '',
+              partner_hero2: info.compatibility.partner_hero2 || '',
+              partner_hero3: info.compatibility.partner_hero3 || '',
+              partner_hero4: info.compatibility.partner_hero4 || '',
+              synergy_reason1: info.compatibility.synergy_reason1 || '',
+              synergy_reason2: info.compatibility.synergy_reason2 || '',
+              synergy_reason3: info.compatibility.synergy_reason3 || '',
+              synergy_reason4: info.compatibility.synergy_reason4 || ''
+            })
+          } else {
+            setCompatibility({
+              partner_hero1: '',
+              partner_hero2: '',
+              partner_hero3: '',
+              partner_hero4: '',
+              synergy_reason1: '',
+              synergy_reason2: '',
+              synergy_reason3: '',
+              synergy_reason4: ''
+            })
+          }
+        }
+
         const heroesRes = await fetch('/api/heroes')
         if (heroesRes.ok) {
           const heroes = await heroesRes.json()
           const hero = heroes.find(h => h.hero_name.toLowerCase() === name.toLowerCase())
           
-          if (hero) {
-            setHeroData({
-              role: hero.role || '',
-              damage_type: hero.damage_type || '',
-              attack_reliance: hero.attack_reliance || '',
-              note: hero.note || ''
-            })
-            
-            // Set hero lanes if available
-            if (hero.lanes && Array.isArray(hero.lanes)) {
-              setHeroLanes(hero.lanes)
-            }
+          if (hero && hero.lanes && Array.isArray(hero.lanes)) {
+            setHeroLanes(hero.lanes)
           }
         }
       } catch (e) {
@@ -235,6 +271,10 @@ export default function EditHeroInfoPage() {
     setHeroData(prev => ({ ...prev, [field]: value }))
   }
 
+  const handleChangeCompatibility = (field, value) => {
+    setCompatibility(prev => ({ ...prev, [field]: value }))
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!name) return
@@ -247,7 +287,10 @@ export default function EditHeroInfoPage() {
       const res = await fetch(`/api/heroes/${encodeURIComponent(name)}/info`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(heroData)
+        body: JSON.stringify({
+          ...heroData,
+          ...compatibility
+        })
       })
 
       if (!res.ok) {
@@ -364,6 +407,103 @@ export default function EditHeroInfoPage() {
                     placeholder="Deskripsi hero..."
                     rows={3}
                   />
+                </div>
+
+                <div className="mt-6 border-t pt-4">
+                  <h3 className="text-md font-semibold text-gray-800 mb-3">Hero Compatibility</h3>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Partner Hero 1</label>
+                        <input
+                          type="text"
+                          value={compatibility.partner_hero1}
+                          onChange={(e) => handleChangeCompatibility('partner_hero1', e.target.value)}
+                          className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-black focus:ring-black"
+                          placeholder="Contoh: Angela, Tigreal"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Synergy Reason 1</label>
+                        <textarea
+                          value={compatibility.synergy_reason1}
+                          onChange={(e) => handleChangeCompatibility('synergy_reason1', e.target.value)}
+                          className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-black focus:ring-black"
+                          placeholder="Alasan sinergi (combo, peel, buff, dll.)"
+                          rows={2}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Partner Hero 2</label>
+                        <input
+                          type="text"
+                          value={compatibility.partner_hero2}
+                          onChange={(e) => handleChangeCompatibility('partner_hero2', e.target.value)}
+                          className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-black focus:ring-black"
+                          placeholder="Contoh: Johnson, Rafaela"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Synergy Reason 2</label>
+                        <textarea
+                          value={compatibility.synergy_reason2}
+                          onChange={(e) => handleChangeCompatibility('synergy_reason2', e.target.value)}
+                          className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-black focus:ring-black"
+                          placeholder="Alasan sinergi tambahan"
+                          rows={2}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Partner Hero 3</label>
+                        <input
+                          type="text"
+                          value={compatibility.partner_hero3}
+                          onChange={(e) => handleChangeCompatibility('partner_hero3', e.target.value)}
+                          className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-black focus:ring-black"
+                          placeholder="Contoh: Grock, Lolita"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Synergy Reason 3</label>
+                        <textarea
+                          value={compatibility.synergy_reason3}
+                          onChange={(e) => handleChangeCompatibility('synergy_reason3', e.target.value)}
+                          className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-black focus:ring-black"
+                          placeholder="Alasan sinergi tambahan"
+                          rows={2}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Partner Hero 4</label>
+                        <input
+                          type="text"
+                          value={compatibility.partner_hero4}
+                          onChange={(e) => handleChangeCompatibility('partner_hero4', e.target.value)}
+                          className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-black focus:ring-black"
+                          placeholder="Contoh: Faramis, Pharsa"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Synergy Reason 4</label>
+                        <textarea
+                          value={compatibility.synergy_reason4}
+                          onChange={(e) => handleChangeCompatibility('synergy_reason4', e.target.value)}
+                          className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-black focus:ring-black"
+                          placeholder="Alasan sinergi tambahan"
+                          rows={2}
+                        />
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 <button

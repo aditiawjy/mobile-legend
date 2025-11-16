@@ -50,10 +50,92 @@ export default async function handler(req, res) {
       const result = await query(sqlQuery, params)
       console.log('[Hero Info API] Update result:', result)
       
+      // Handle hero_compatibility upsert if compatibility fields are present in the body
+      const compatFields = [
+        'partner_hero1',
+        'partner_hero2',
+        'partner_hero3',
+        'partner_hero4',
+        'synergy_reason1',
+        'synergy_reason2',
+        'synergy_reason3',
+        'synergy_reason4'
+      ]
+
+      const hasCompatPayload = compatFields.some(f => Object.prototype.hasOwnProperty.call(body, f))
+
+      if (hasCompatPayload) {
+        const compatValues = compatFields.map(f => {
+          if (!Object.prototype.hasOwnProperty.call(body, f)) return null
+          const v = body[f]
+          return v === undefined || v === null || v === '' ? null : v
+        })
+
+        const existing = await query(
+          'SELECT id FROM hero_compatibility WHERE LOWER(hero_name) = LOWER(?) LIMIT 1',
+          [name]
+        )
+
+        if (existing && existing.length > 0) {
+          const compatId = existing[0].id
+          await query(
+            `UPDATE hero_compatibility
+             SET partner_hero1 = ?, partner_hero2 = ?, partner_hero3 = ?, partner_hero4 = ?,
+                 synergy_reason1 = ?, synergy_reason2 = ?, synergy_reason3 = ?, synergy_reason4 = ?
+             WHERE id = ?`,
+            [...compatValues, compatId]
+          )
+        } else {
+          await query(
+            `INSERT INTO hero_compatibility
+             (hero_name, partner_hero1, partner_hero2, partner_hero3, partner_hero4,
+              synergy_reason1, synergy_reason2, synergy_reason3, synergy_reason4)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [name, ...compatValues]
+          )
+        }
+      }
+
       return res.status(200).json({ ok: true, updated: updates.length })
+    } else if (req.method === 'GET') {
+      // Fetch hero basic info
+      const heroRows = await query(
+        `SELECT role, damage_type, attack_reliance, note
+         FROM heroes
+         WHERE LOWER(hero_name) = LOWER(?)
+         LIMIT 1`,
+        [name]
+      )
+
+      const hero = heroRows && heroRows.length > 0 ? heroRows[0] : null
+
+      // Fetch hero compatibility info
+      const compatRows = await query(
+        `SELECT partner_hero1, partner_hero2, partner_hero3, partner_hero4,
+                synergy_reason1, synergy_reason2, synergy_reason3, synergy_reason4
+         FROM hero_compatibility
+         WHERE LOWER(hero_name) = LOWER(?)
+         LIMIT 1`,
+        [name]
+      )
+
+      const compatibility = compatRows && compatRows.length > 0
+        ? compatRows[0]
+        : {
+            partner_hero1: '',
+            partner_hero2: '',
+            partner_hero3: '',
+            partner_hero4: '',
+            synergy_reason1: '',
+            synergy_reason2: '',
+            synergy_reason3: '',
+            synergy_reason4: ''
+          }
+
+      return res.status(200).json({ hero, compatibility })
     }
 
-    res.setHeader('Allow', 'PUT')
+    res.setHeader('Allow', 'PUT, GET')
     return res.status(405).json({ error: 'Method not allowed' })
   } catch (e) {
     console.error('[Hero Info API] Error:', e.message)
