@@ -165,6 +165,10 @@ export default function AddHeroPage() {
         if (!uniqueAttackReliances.includes('Crowd Control/Regen')) {
           uniqueAttackReliances.push('Crowd Control/Regen')
         }
+        // Ensure Crowd Control/Poke is always available as an Attack Reliance option (optional)
+        if (!uniqueAttackReliances.includes('Crowd Control/Poke')) {
+          uniqueAttackReliances.push('Crowd Control/Poke')
+        }
         // Ensure correct Support/Crowd Control option is present
         if (!uniqueAttackReliances.includes('Support/Crowd Control')) {
           uniqueAttackReliances.push('Support/Crowd Control')

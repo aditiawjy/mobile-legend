@@ -72,6 +72,9 @@ Use this skill in Ejected State: The Mecha Sentry will return to Atlas immediate
 Aulus fits best in drafts that want a durable, DPS?oriented fighter in the frontline who can both peel and threaten the enemy backline. As his ultimate upgrades his axe over time, he gains more range, penetration, and damage, turning him into a strong mid? to late?game bruiser around objectives and 5v5s. He pairs well with crowd?control supports and tanks that can lock enemies in his burn field and skill range. However, he is vulnerable to hard crowd control and early invades before his items and axe upgrades come online. When played around his scaling and Fighting Spirit windows, Aulus becomes a reliable damage frontliner who can anchor team fights and melt anyone who stands in his path","","","","Fighting Spirit","Aulus adds a stack of Fighting Spirit to his axe per second for 3s after dealing damage to any enemy (up to 3 stacks). Each stack grants 15% extra Attack Speed. Aulus also deals 42-210 extra Physical Damage with his Basic Attacks at max Fighting Spirit stacks (scales with level). The damage counts as Attack Effect.","Aulus, Charge!","Aulus removes all Slowing Effects and gains 30% extra Movement Speed and 30% Damage Reduction against attacks from the front for 5s.","The Power of Axe","Aulus brandishes his axe, dealing 200 (+70% Total Physical Attack) Physical Damage to enemies in a fan-shaped area and slowing them by 20% for 3s. At max stacks of Fighting Spirit, he deals additional Physical Damage equal to 3.5% of the targets' Max HP. After hitting enemy targets, he enhances his Basic Attacks for 3s. Aulus recovers HP by 50 (+1% Total HP) after each Basic Attack.","","","Undying Fury","Passive: Every time Undying Fury is upgraded, Aulus crafts a part for his axe in order. Blade Craft: His Basic Attacks deal 50 extra Physical Damage. Handle Craft: Permanently increases his Attack Range by 65% and the range of The Power of Axe. Hammer Craft: Permanently increases his Physical Penetration by 20%.
 
 Active: Aulus raises his axe and smashes it to the ground (this skill can only be interrupted by Suppression), dealing 210 (+100% Extra Physical Attack) Physical Damage to enemies in a line and slowing them by 90% for 0.5s. A burning trail that lasts for 5s is left on the ground, dealing 90 (+40% Extra Physical Attack) Physical Damage to enemies who walk on it every 0.5s and slowing them by 70%."
+"Aurora","Mage","Magic","Crowd Control/Poke","Aurora is a Magic damage Mage whose Attack Reliance is Crowd Control/Poke, meaning she focuses more on locking enemies down and softening them from range than on pure burst or sustained DPS. Her passive, Pride of Ice, lets her self-freeze instead of dying, becoming invincible for 1.5 seconds and gradually restoring 30% of her Max HP when she would otherwise take fatal damage (with a long cooldown). This makes her especially threatening in siege and team-fight setups: she can stand at a safer distance to poke and control, and even if she’s caught once, Pride of Ice gives her a built?in “second chance” to survive dives and rejoin the fight after her team follows up on her crowd control","","","","Pride of Ice","Upon taking fatal damage, Aurora freezes herself for 1.5s, becoming invincible during this time and gradually recovering 30% Max HP. This effect has a 150s cooldown.
+
+Aurora's freeze effects can also affect Turrets.","Hailstone Blast","Aurora summons an icy meteorite to strike at the target location, dealing 400 (+90% Total Magic Power) Magic Damage and slowing targets hit by 40% for 1s. Afterward, 5 hailstones fall, each dealing 40 (+10% Total Magic Power) Magic Damage.","Frosty Breeze","Aurora blows Frosty Breeze in a fan-shaped area in the target direction, dealing 225 (+75% Total Magic Power) Magic Damage to enemies hit, and creating a frozen area at the far-end of the attack that deals a total of 225 (+75% Total Magic Power) Magic Damage to enemies in the area and freezes them for 1s.","","","Frigid Glacier","Aurora creates a frost path in the target direction, dealing 100 (+40% Total Magic Power) Magic Damage to enemies in the path and reducing their Movement Speed by 80% for 1.2s. The frost path gradually becomes glaciers that spread until reaching their maximum size and shattering, dealing 600 (+150% Total Magic Power) Magic Damage to all enemies in the area and freezing targets for 1s. Every 100 Magic Power that Aurora has will increase the freeze duration by 0.2s."
 "Badang","Fighter","Physical","Charge/Burst","Badang is a fighter who is very strong at locking enemies in place and bursting them down with his wall and punch combo. His kit is most threatening in narrow areas like jungle paths or around objectives, where he can trap targets against his barrier and land multiple enhanced punches for heavy damage. Badang can act as a frontline bruiser who starts fights or follows up on allies’ crowd control to quickly eliminate priority targets. However, he struggles against highly mobile heroes who can dash out of his wall, as well as heavy crowd control and long?range poke that prevent him from getting into melee range. Badang works best with teammates who provide reliable crowd control, additional burst, or displacement to help keep enemies inside his combo zone and secure kills","","","","Chivalry Fist","Every time Badang's Basic Attack hits a target, he gains a stack of Chivalry Fist. After gaining 4 stacks, his next Basic Attack deals 50 (+30% Total Physical Attack) extra Physical Damage to enemies hit and knocks them back. Enemies that are knocked into obstacles will be stunned for 0.6s (Minions and Creeps are stunned directly).
 Fist Wind generated by Badang's skills will trigger this effect directly, and Fist Wind from his Ultimate increases the stun duration to 1s.","Fist Wind","Badang unleashes a gust of Fist Wind in the target direction, dealing 125 (+100% Total Physical Attack) Physical Damage to enemies hit, slowing them by 30% for 1.5s, and knocking them back. The Fist Wind will explode upon hitting an obstacle, dealing 100 (+60% Total Physical Attack) Physical Damage to nearby enemies. Fist Wind can trigger attack effects and grants Badang 1 Chivalry Fist stack upon cast.
 Badang stores up to 2 Fist Wind charges and restores 1 charge every 8s.","Fist Break","Badang dashes in the target direction, dealing 230 (+50% Total Physical Attack) Physical Damage to enemies in his path while gaining a 250 (+150% Total Physical Attack) shield that lasts 3s. He stops immediately upon hitting an enemy hero, slightly knocking them back while creating an obstacle that lasts 4s behind them. Enemies hit by the obstacle are dealt 130 (+30% Total Physical Attack) Physical Damage.
@@ -248,6 +251,13 @@ Enemies hit by Guinevere's skills or enhanced Basic Attack will be marked for 5s
 Successfully hitting an enemy reduces all her skill cooldowns by 1s.","Spatial Migration","Guinevere leaps to the target location, dealing 250 (+80% Total Magic Power) Magic Damage. Enemy heroes and Creeps hit will be knocked airborne for 1s and take 125 (+50% Total Magic Power) additional Magic Damage.
 Use Again: Guinevere blinks toward the target direction and leaves an illusion behind. If the illusion takes damage by hero, it restores Super Magic for Guinevere and explodes after 1.5s, dealing 100 (+30% Total Magic Power) Magic Damage to nearby enemies.","","","Violet Requiem","Guinevere creates a force field around her, gaining Control Immunity while attacking nearby enemies 11 times within 2s, dealing 880 (+385% Total Magic Power) Magic Damage in total.
 Airborne enemies hit will be knocked airborne again, up to 8 additional times."
+"Gusion","Assassin","Magic","Burst/Magic Damage","Gusion is a magic damage Assassin focused on burst/Magic Damage from fast skill combos rather than basic right?click DPS. His passive, Dagger Specialist, adds runes to his daggers whenever he casts skills, empowering his next Basic Attack to deal extra damage based on the target’s Max HP and restoring HP to himself. With Sword Spike, he throws a dagger to mark an enemy and then instantly blinks behind them, while Shadowblade Slaughter lets him throw and recall multiple daggers to hit and slow several targets. His ultimate, Incandescence, gives him high mobility and resets Sword Spike and Shadowblade Slaughter, enabling double casts and more daggers in a single combo. Overall, Gusion is designed as a high?mobility, high?burst assassin who excels at quickly deleting priority targets but requires precise execution and good positioning to avoid getting caught.","","","","Dagger Specialist","Each skill cast adds a rune to Gusion's dagger (stacks up to 4 times). Each stack enhances Gusion's next Basic Attack to deal additional damage equal to 3% of the target's Max HP and restore 50 (+25% Total Magic Power) HP to himself.","Sword Spike","Gusion throws a dagger in the target direction, dealing 200 (+50% Total Magic Power) Magic Damage to the first enemy hit and marking them.
+
+Use Again: Gusion moves behind the marked enemy, dealing 200 (+100% Total Magic Power) Magic Damage to them. This skill cannot be interrupted while Gusion is moving behind the marked enemy.","Shadowblade Slaughter","Gusion throws a volley of daggers in the target direction, each dealing 100 (+40% Total Magic Power) Magic Damage to enemies hit and slowing them by 6% for 2s (when hit by multiple daggers, the slow effect can stack up to 30%).
+
+Use Again: Gusion recalls the daggers, each dealing 65 (+40% Total Magic Power) Magic Damage to enemies in its path.","","","Incandescence","Gusion dashes to the target location, resetting the cooldowns of Sword Spike and Shadowblade Slaughter. If Shadowblade Slaughter was cast once before the reset, Gusion can throw another five daggers on his next Shadowblade Slaughter cast, and recall a total of ten daggers afterward.
+
+Use Again: Gusion dashes a short distance in the target direction."
 "Hanabi","Marksman","Physical","finisher/damage","Hanabi is a late?game marksman who excels at team fights and front?to?back damage thanks to her bouncing Basic Attacks and strong anti?crowd?control tools. With Petal Barrage, her attacks can consistently hit multiple targets, shredding grouped enemies and applying on?hit effects across the frontline and backline at the same time. She has no dash and poor mobility, but Equinox’s shield and control immunity allow her to ignore many pick tools and hard CC attempts as long as she times it well, making her surprisingly hard to lock down when properly protected.
 
 Hanabi fits best in comps that can frontline for her and keep enemies within bounce range, such as tanky initiators and strong peel supports. She thrives in drawn?out 5v5 fights around objectives where she can free?hit behind her team, stacking Petal Barrage damage and scaling with items. However, she is vulnerable to burst assassins and heavy dive if her shield is down or her team lacks peel. When drafted with reliable engage plus protection, Hanabi can act as a high?safety DPS anchor who slowly but surely takes over the game once she hits her core items","","","","Ninjutsu: Petal Barrage","Hanabi's Basic Attacks and skills will launch Petal Blades after hitting a target, dealing 30% damage, and bouncing up to 4 times to nearby enemies. Bounces from her Basic Attacks inherit her Attack Effects.","Ninjutsu: Equinox","Passive: The secret Ninjutsu of the Scarlet Shadow makes Hanabi immune to control effects when she has a shield from any source.
@@ -271,427 +281,7 @@ Hilda fits best in lineups that want to play aggressively from the early game, i
 "Irithel","Marksman","Physical","Finisher/Burst","Irithel is a mobile marksman who can attack while moving, making her strong at kiting and repositioning during fights. Her kit gives her good wave clear, armor reduction, and area damage, allowing her to pressure lanes and contribute consistently in teamfights once she has items. With her ultimate, she can quickly jump in to amplify her damage and hit multiple targets, especially when enemies are grouped or already controlled by her team. However, she is weak in the early game, needs farm and proper positioning, and struggles against heavy crowd control or burst assassins that can catch her before she can kite away. Irithel works best with teammates who can protect her, provide reliable crowd control or frontline, and create safe windows for her to deal continuous damage from mid to late game","","","","Jungle Heart","Irithel and Leo's immaculate teamwork allows her to shoot while moving. Each Basic Attack will shoot 2 crossbow bolt(s) (but takes longer to refill) that deal (+55% Total Physical Attack) Physical Damage per bolt (inherits a portion of Attack Effects).
 Moving will build up Jungle Heart, up to a maximum of 10 units, and cause the next Basic Attack to unleash 1 additional bolt(s).","Strafe","Irithel launches a volley of arrows on the target area, dealing 330 (+60% Total Physical Attack) Physical Damage to enemies within and reducing their Physical Defense by 15 for 3s.
 ","Force of The Queen","Leo lets out a piercing roar, dealing 200 (+60% Total Physical Attack) Physical Damage to nearby enemies and slowing them by 40% for 2s.","","","Heavy Crossbow","Irithel orders Leo to leap in the target direction and empowers her crossbow for 10s. For the duration, she gains 30 Movement Speed and her Basic Attacks shoot enhanced crossbow bolts, dealing 120 (+65% Total Physical Attack) Physical Damage to the target and nearby units. Jungle Heart also accumulates faster for the duration."
-"Ixia","Marksman","Physical","Finisher/Damage","
-2 days ago
-12hs ago
-5hs ago
-26m ago
-9m ago
-5m ago
-1s ago
-Show More
-Aku akan extend lagi sistem hero counter dari 5 menjadi 6 slot di kode (API + Edit Hero Info), lalu beri instruksi SQL untuk menambah kolom counter_hero6 dan counter_reason6 di tabel hero_counter supaya tidak error seperti sebelumnya.
-
-1
-Extend hero_counter support to Counter Hero 6 / Counter Reason 6 in API, Edit Hero Info UI, and related logic
-
-Aku akan upgrade lagi sistem hero counter dari 5 ke 6 slot di kode (API dan Edit Hero Info), lalu jelaskan perintah SQL yang harus kamu jalankan untuk menambah kolom ke?6 di tabel hero_counter. Setelah itu, semua tempat yang baca counters (Edit Skills, Draft Pick) otomatis bisa pakai sampai 6 counter.
-
-Aku akan upgrade lagi sistem hero counter dari 5 jadi 6 slot di kode (API dan UI), lalu kasih perintah SQL yang perlu kamu jalankan untuk menambah kolom ke?6 di tabel hero_counter supaya tidak muncul error Unknown column.
-
-info.js
-+11
--8
-Aku baru extend API /api/heroes/[name]/info ke 6 slot, tapi masih perlu pastikan /api/heroes dan halaman edit-hero-info juga ikut support Counter 6 (state + UI). Setelah itu aku jelaskan SQL ALTER TABLE untuk nambah kolom counter_hero6 dan counter_reason6 di DB supaya tidak error.
-
-Aku akan lanjut menyamakan semua bagian supaya benar?benar mendukung sampai Counter Hero 6: update /api/heroes agar membaca 6 slot counter, update state & form di edit-hero-info untuk Counter 6, lalu kasih instruksi SQL untuk menambah kolom counter_hero6 dan counter_reason6 di tabel hero_counter agar tidak error.
-
-index.js
-+3
--2
-Aku akan lengkapi dukungan Counter Hero 6 di seluruh stack: API /api/heroes sudah aku update, sekarang aku akan update state + form di 
-edit-hero-info.js
- supaya ada Counter Hero 6 / Reason 6, lalu jelaskan perintah SQL untuk menambah kolom counter_hero6 dan counter_reason6 di tabel hero_counter agar tidak muncul error Unknown column.
-
-edit-hero-info.js
-+10
--3
-Saya akan lengkapi dukungan Counter Hero 6 di UI Edit Hero Info (form Hero Counters), lalu jelaskan perintah SQL untuk menambah kolom counter_hero6 dan counter_reason6 di tabel hero_counter supaya tidak error di draft pick / API.
-
-Aku akan menambah field Counter Hero 6 dan Counter Reason 6 di form Hero Counters pada 
-edit-hero-info.js
-, lalu jelaskan perintah SQL untuk menambah kolom counter_hero6 dan counter_reason6 di tabel hero_counter agar tidak error.
-
-edit-hero-info.js
-+22
-Sekarang kode sudah support Counter Hero 1–6. Supaya tidak error seperti Unknown column 'counter_hero5/6', kamu perlu update tabel hero_counter di database.
-
-1. ALTER TABLE untuk hero_counter
-Kalau kolom 5 dan 6 belum ada sama sekali, jalankan:
-
-sql
-ALTER TABLE hero_counter
-  ADD COLUMN counter_hero5   VARCHAR(255) NULL AFTER counter_hero4,
-  ADD COLUMN counter_hero6   VARCHAR(255) NULL AFTER counter_hero5,
-  ADD COLUMN counter_reason5 TEXT        NULL AFTER counter_reason4,
-  ADD COLUMN counter_reason6 TEXT        NULL AFTER counter_reason5;
-Kalau kamu sebelumnya sudah menambahkan kolom 5 (counter_hero5, counter_reason5), tapi belum kolom 6, cukup jalankan:
-
-sql
-ALTER TABLE hero_counter
-  ADD COLUMN counter_hero6   VARCHAR(255) NULL AFTER counter_hero5,
-  ADD COLUMN counter_reason6 TEXT        NULL AFTER counter_reason5;
-Lalu cek:
-
-sql
-DESCRIBE hero_counter;
-Pastikan ada:
-
-counter_hero1 … counter_hero6
-counter_reason1 … counter_reason6
-2. Apa yang sudah disiapkan di kode
-/api/heroes/[name]/info
-PUT terima: counter_hero1..6, counter_reason1..6 dan upsert ke hero_counter.
-GET baca counter_hero1..6 + reason dan mengisi array counters (dipakai edit-skills, Manual Draft Pick).
-/api/heroes
-Query hero_counter sekarang baca counter_hero1..6 + counter_reason1..6.
-Setiap hero di response punya counters sampai 6 entry.
-/edit-hero-info
-State counters sudah ada:
-counter_hero1..6, counter_reason1..6.
-Form Hero Counters menampilkan input:
-Counter Hero 1–6 + Counter Reason 1–6.
-Submit akan kirim semua ke API.
-3. Setelah ALTER TABLE
-Restart dev server kalau perlu: npm run dev.
-Buka:
-http://localhost:3001/edit-hero-info?name=… ? isi sampai 6 counter, klik Simpan Info Hero.
-http://localhost:3001/edit-skills?name=… ? bagian Hero Counters (read-only) akan menampilkan sampai 6.
-http://localhost:3001/draft-pick ? panel counter vs enemy juga baca sampai 6.
-Kalau setelah ALTER TABLE masih ada error, kirim pesan error MySQL/Next.js?nya, nanti kita cek bareng.
-
-Feedback submitted
-
-Your recent terminal commands:
-> npm run dev
-
-tigreal notes tanpa tulisan excel
-
-Berikut English note untuk Tigreal tanpa kata itu:
-
-Tigreal is a front?line tank who focuses on hard engage, crowd control, and peeling for his team. His kit lets him start fights reliably with knock?ups and slows, then lock multiple enemies in place with his ultimate, creating perfect setups for his allies’ damage. When positioned well, Tigreal can punish mispositioned enemies, force key targets into bad spots, and protect his backline by knocking away or controlling divers. However, he has limited damage, relies on cooldowns, and can struggle against highly mobile heroes or lineups that can easily dodge or interrupt his ultimate. Tigreal works best with teammates who provide strong area damage or follow?up crowd control so every successful combo he starts can quickly be converted into kills and objective control.
-
-Feedback submitted
-
-
-notes zilong tanpa excel
-
-Berikut English note untuk Zilong tanpa kata itu:
-
-Zilong is a physical fighter–assassin who focuses on fast pickoffs and split push pressure. His kit allows him to quickly dive onto isolated targets, displace them with his spear, and finish them with boosted attack speed and true damage from his ultimate. In the side lane, Zilong can constantly threaten turrets and punish enemies who rotate late or defend alone. However, he is vulnerable to crowd control and burst damage, and he becomes much less effective if he falls behind or dives without proper vision. Zilong works best with teammates who can provide wave control, vision, and distraction in teamfights so he can look for flanks, take down key backline targets, or trade objectives on the map.
-
-Feedback submitted
-
-
-freya notes tanap tulsian excel
-
-Berikut English note untuk Freya tanpa kata itu:
-
-Freya is a fighter who relies on jumping into the middle of fights, using her shields and empowered basic attacks to trade aggressively at close range. Her kit gives her strong single-target lockdown and burst during her ultimate, allowing her to quickly pressure squishy heroes or frontline targets that stand too close. With items, Freya can become very durable while still dealing meaningful damage, making her a constant threat in skirmishes and small teamfights. However, she is vulnerable to kiting, hard crowd control, and heroes that can out-sustain or out-range her before she gets into melee range. Freya works best with teammates who provide reliable engage, additional crowd control, or peel so she can safely dive in, stick to her targets, and avoid being focused down too early in the fight.
-
-Feedback submitted
-
-
-jalankan git add commit dan push lagi
-
-Aku akan jalankan lagi tiga perintah terpisah dari folder d:\nextjs\mobile-legend: git add ., lalu git commit dengan pesan singkat yang merangkum perubahan terakhir (counter 6 + beberapa notes/opsi), lalu git push ke main.
-
-…\mobile-legend > git add .
-
-
-warning: in the working copy of 'pages/edit-he
-ro-info.js', LF will be replaced by CRLF the next time Git touches it                       warning: in the working copy of 'public/csv/he
-roes.csv', LF will be replaced by CRLF the next time Git touches it
-Exit Code 0
-Feedback submitted
-
-
-continue
-
-Aku baru menjalankan git add .. Sekarang akan aku lanjutkan dengan git commit lalu git push sebagai dua perintah terpisah dari folder proyek kamu.
-
-…\mobile-legend > git commit -m ""chore: extend hero counters to 6 and update notes/options""
-
-
-[main e6b9ed1] chore: extend hero counters to 
-6 and update notes/options
- 6 files changed, 74 insertions(+), 18 deletio
-ns(-)
-Exit Code 0
-…\mobile-legend > git push
-
-
-Git operations sudah selesai.
-
-git add .: sukses
-git commit:
-chore: extend hero counters to 6 and update notes/options
-(6 files changed, 74 insertions, 18 deletions)
-git push: sukses ke GitHub (main: 9818464 ? e6b9ed1)
-Saat ini:
-
-Hero counter sudah support sampai 6 slot di API + Edit Hero Info + draft pick.
-Attack Reliance dropdown sudah punya opsi Control/Charge dan Crowd Control/Regen.
-Beberapa hero notes terakhir (Tigreal, Zilong, Freya, dll.) juga sudah ikut ke commit.
-Kalau mau lanjut, kita bisa:
-
-Tambah/cek counter untuk hero tertentu di /edit-hero-info?name=..., atau
-Lanjut generate notes hero lain.
-Feedback submitted
-
-
-saber notes tanpa tulsian excel
-
-Berikut English note untuk Saber tanpa tulisan itu:
-
-Saber is an assassin who specializes in quickly eliminating single targets, especially fragile backline heroes. His kit lets him close the gap with mobility, apply armor reduction, and lock one enemy in place with his ultimate, making him very threatening in pickoffs and small skirmishes. When ahead, Saber can repeatedly dive onto enemy carries, delete them, and then reset fights in his team’s favor. However, he is vulnerable to crowd control, tanky frontlines, and heroes that can survive or negate his initial burst. Saber works best with teammates who provide vision, wave control, and follow-up damage so he can find clean angles to flank, isolate priority targets, and escape or reset after his combo.
-
-Feedback submitted
-
-
-Counter Hero 6 seperti harus ditamabhkan lagi jadi 7
-
-Sekarang sistem kita sudah full support Counter Hero 1–6 di:
-
-DB (kalau ALTER TABLE untuk 5 & 6 sudah kamu jalankan)
-API /api/heroes/[name]/info dan /api/heroes
-UI Edit Hero Info, Edit Skills (read-only), dan Draft Pick
-Kalau mau naik jadi 7, berarti:
-
-Database: tambah kolom lagi di hero_counter
-(ini wajib, kalau tidak nanti error Unknown column 'counter_hero7').
-sql
-ALTER TABLE hero_counter
-  ADD COLUMN counter_hero7   VARCHAR(255) NULL AFTER counter_hero6,
-  ADD COLUMN counter_reason7 TEXT        NULL AFTER counter_reason6;
-Kode yang harus diubah lagi:
-/api/heroes/[name]/info
-Tambah dukungan counter_hero7 + counter_reason7 di:
-counterFields
-query UPDATE hero_counter
-query INSERT INTO hero_counter
-query SELECT ... FROM hero_counter
-pushCounter
- untuk slot ke?7
-/api/heroes
-Tambah kolom ke?7 di SELECT hero_name, counter_hero1..7, counter_reason1..7
-dan 
-pushCounter(row.counter_hero7, row.counter_reason7)
-.
-edit-hero-info
-Tambah counter_hero7 + counter_reason7 di state counters.
-useEffect loader: baca info.counters[6].
-Reset state counters: kosongkan sampai 7.
-Form Hero Counters: tambah blok Counter Hero 7 + Counter Reason 7.
-Itu cukup banyak perubahan lagi di semua layer (kita baru saja lakukan hal yang sama untuk 4 ? 5 ? 6).
-
-Karena ini mulai panjang:
-
-Kalau kamu pasti mau 7 slot, tulis saja:
-ya, lanjutkan ke 7
-dan aku akan lanjut implement di kode + kasih SQL final untuk DB.
-Kalau 6 slot sudah cukup untuk kebutuhan draft (misalnya 3–4 counter utama + 2 cadangan), kita bisa stabilkan di 6 dulu dan fokus ke fitur lain (misalnya notes, synergy, atau view di draft).
-Feedback submitted
-
-
-update kode saya juga
-
-Aku akan perbarui kode untuk mendukung Counter Hero 7 di semua layer yang perlu: API /api/heroes/[name]/info, API /api/heroes, dan form Edit Hero Info (state + UI). Setelah itu aku jelaskan lagi SQL ALTER TABLE yang harus kamu jalankan di database untuk menambah kolom counter_hero7 dan counter_reason7 supaya tidak error.
-
-1
-Extend hero_counter support to Counter Hero 7 / Counter Reason 7 in API, Edit Hero Info UI, and related logic
-
-Aku akan update kode supaya mendukung Counter Hero 7 di semua layer (API dan Edit Hero Info), lalu kasih instruksi ALTER TABLE yang perlu kamu jalankan di database. Setelah itu aku tandai TODO terkait sebagai selesai.
-
-Aku akan benar-benar extend kode ke Counter Hero 7 di tiga tempat: /api/heroes/[name]/info, /api/heroes, dan 
-edit-hero-info.js
- (state + form). Setelah itu aku kasih SQL ALTER TABLE yang perlu kamu jalankan, lalu tandai TODO terkait sebagai selesai.
-
-info.js
-+11
--8
-Aku akan melengkapi update kode supaya Counter Hero 7 benar?benar didukung di semua layer: /api/heroes, state & form di edit-hero-info. Setelah itu aku jelaskan SQL ALTER TABLE yang perlu kamu jalankan agar tidak muncul error di database, lalu tandai TODO terkait sebagai selesai.
-
-index.js
-+3
--2
-Aku akan merapikan kode supaya sistem benar-benar support Counter Hero 1–7 di semua layer: state & form di 
-edit-hero-info.js
- (tambah slot ke?7), lalu jelaskan perintah SQL untuk menambah kolom ke?7 di tabel hero_counter. Setelah itu aku tandai TODO ekstensi ke 7 sebagai selesai.
-
-edit-hero-info.js
-+10
--3
-Aku sudah extend dukungan Counter Hero sampai 7 di API (/api/heroes dan /api/heroes/[name]/info) dan di state + loader edit-hero-info. Tinggal satu langkah: menambahkan input form Counter Hero 7 / Counter Reason 7 di UI dan memberi kamu SQL ALTER TABLE untuk menambah kolom di DB. Setelah itu aku tandai TODO ekstensi ke 7 sebagai selesai.
-
-Aku akan melengkapi form Hero Counters di 
-edit-hero-info.js
- supaya ada input Counter Hero 7 / Counter Reason 7 juga, lalu tandai TODO ekstensi sampai 7 sebagai selesai dan jelaskan ke kamu perubahan + SQL yang perlu dijalankan di database.
-
-edit-hero-info.js
-+22
-Sekarang kodenya sudah aku update untuk Counter Hero 1–7, di semua layer yang perlu.
-
-1. Perubahan kode yang sudah jadi
-API /api/heroes/[name]/info
-PUT:
-Menerima field:
-counter_hero1 … counter_hero7
-counter_reason1 … counter_reason7
-Upsert ke tabel hero_counter dengan 7 slot (UPDATE/INSERT sudah disesuaikan).
-GET:
-SELECT counter_hero1..7, counter_reason1..7 FROM hero_counter …
-Di-loop dengan 
-pushCounter(...)
- ? hasil counters array bisa sampai 7 item.
-API /api/heroes
-Query hero_counter sekarang:
-SELECT hero_name, counter_hero1..7, counter_reason1..7 FROM hero_counter
-Untuk setiap hero:
-Diisi hero.counters = [{ enemy, reason }, …] sampai 7 entry kalau ada.
-pages/edit-hero-info.js
-State counters:
-js
-{
-  counter_hero1..7,
-  counter_reason1..7
-}
-Loader useEffect:
-Baca info.counters[0..6] dan sinkron ke state.
-Reset: semua 7 slot dikosongkan.
-Form Hero Counters:
-Sekarang ada input:
-Counter Hero 1–7
-Counter Reason 1–7
-Semua konsumen lain (Edit Skills read-only + Manual Draft Pick) pakai counters array, jadi otomatis ikut sampai 7 slot tanpa perlu diubah lagi.
-
-2. Yang HARUS kamu lakukan di database
-Supaya tidak muncul error Unknown column 'counter_hero7' in 'SELECT', jalankan di MySQL:
-
-sql
-ALTER TABLE hero_counter
-  ADD COLUMN counter_hero7   VARCHAR(255) NULL AFTER counter_hero6,
-  ADD COLUMN counter_reason7 TEXT        NULL AFTER counter_reason6;
-Catatan:
-
-Dari log sebelumnya sudah kelihatan kolom 1–6 sudah ada dan jalan.
-Perintah di atas hanya menambah kolom ke?7.
-Setelah itu:
-
-Restart dev server kalau perlu: npm run dev.
-Buka:
-http://localhost:3001/edit-hero-info?name=Layla (atau hero lain).
-Di section Hero Counters harus terlihat slot 1–7.
-Isi beberapa nilai di Counter Hero 6 & 7 ? klik Simpan Info Hero.
-Cek:
-/edit-skills?name=... ? Hero Counters (read-only) menampilkan sampai 7.
-/draft-pick ? rekomendasi counter & summary juga akan pakai data counter baru ini.
-Status:
-Kode sudah up to date untuk Counter Hero 1–7, tinggal pastikan ALTER TABLE di atas sudah dijalankan.
-
-Feedback submitted
-
-
-tambah lagi Counter Hero 7 jadi 8
-
-Oke, kita naikkan lagi kapasitas ke Counter Hero 8 juga. Aku akan update semua layer yang sama seperti sebelumnya (API info, API heroes, dan Edit Hero Info UI) lalu kasih kamu SQL ALTER TABLE tambahan untuk menambah kolom ke?8 di tabel hero_counter.
-
-1
-Extend hero_counter support to Counter Hero 8 / Counter Reason 8 in API, Edit Hero Info UI, and related logic
-
-Aku akan extend lagi dukungan hero counter dari 7 ke 8 slot di semua layer yang sudah kita pakai sebelumnya: API detail hero, API list hero, dan form Edit Hero Info. Setelah itu aku beri kamu perintah SQL ALTER TABLE untuk menambah kolom ke?8 di tabel hero_counter, supaya tidak muncul error kolom baru.
-
-info.js
-+11
--8
-Aku akan lanjutkan perubahan supaya semua layer benar-benar support sampai Counter Hero 8: update /api/heroes, update state + loader + form di 
-edit-hero-info.js
-, lalu kasih kamu SQL ALTER TABLE untuk kolom ke?8 dan tandai TODO ini selesai.
-
-index.js
-+3
--2
-Aku akan lanjutkan extend ke Counter Hero 8 di sisi UI: update state & loader counters di 
-edit-hero-info.js
-, plus tambah input form untuk Counter Hero 8 / Reason 8. Setelah itu aku kasih perintah SQL yang perlu kamu jalankan di DB dan tandai TODO ekstensi ke 8 sebagai selesai.
-
-edit-hero-info.js
-+10
--3
-User just asked for Counter Hero 7 -> 8; I've already updated APIs and edit-hero-info state, but not the form UI yet. Need to add Counter Hero 8 inputs, then provide SQL ALTER TABLE and brief summary.
-
-Aku akan menambahkan field UI untuk Counter Hero 8 / Counter Reason 8 di 
-edit-hero-info.js
-, lalu menandai TODO ekstensi ke 8 sebagai selesai dan memberikan perintah SQL yang perlu kamu jalankan di database.
-
-edit-hero-info.js
-+22
-Sekarang kode kamu sudah support Counter Hero 1–8 penuh.
-
-1. Layer yang sudah di?update
-API /api/heroes/[name]/info
-PUT:
-Menerima dan menyimpan:
-counter_hero1 … counter_hero8
-counter_reason1 … counter_reason8
-UPDATE/INSERT ke hero_counter sudah pakai 8 slot.
-GET:
-SELECT counter_hero1..8, counter_reason1..8 FROM hero_counter
-Di?push ke array counters sampai 8 entry.
-API /api/heroes
-Ambil semua kolom:
-counter_hero1..8, counter_reason1..8
-Bangun hero.counters = [{ enemy, reason }, …] sampai 8 item.
-pages/edit-hero-info.js
-State counters sekarang punya:
-counter_hero1..8, counter_reason1..8
-Loader info.counters:
-Baca index 0–7 ? isi ke state.
-Reset:
-Kosongkan semua 8 slot.
-Form UI Hero Counters:
-Input untuk Counter Hero 1–8 + Counter Reason 1–8 sudah ada.
-Karena edit-skills dan 
-ManualDraftPick
- pakai counters array dari API, mereka otomatis bisa membaca sampai 8 slot tanpa diubah lagi.
-
-2. SQL yang wajib kamu jalankan di DB
-Supaya tidak error Unknown column 'counter_hero8':
-
-sql
-ALTER TABLE hero_counter
-  ADD COLUMN counter_hero8   VARCHAR(255) NULL AFTER counter_hero7,
-  ADD COLUMN counter_reason8 TEXT        NULL AFTER counter_reason7;
-(Asumsi kolom 1–7 sudah ada. Kalau 7 belum, jalankan dulu ALTER untuk 7 yang sudah aku kirim sebelumnya.)
-
-3. Cek cepat di UI
-Jalankan ALTER TABLE di atas di MySQL.
-Buka: /edit-hero-info?name=...
-Di section Hero Counters harus terlihat slot 1–8.
-Isi Counter Hero 7 & 8, klik Simpan Info Hero.
-Cek /edit-skills?name=... dan /draft-pick untuk memastikan data counter baru ikut terbaca.
-Kalau sudah kamu tes dan perlu tambah hal lain (misalnya tampilan counter di draft summary), bilang saja.
-
-Feedback submitted
-
-
-wanwan notes tanap kalimat excel
-
-Wanwan is a mobile marksman who relies on constant repositioning and precise timing to shine in team fights. Her skill set lets her dash repeatedly while attacking, making her hard to catch and allowing her to poke safely before committing. By targeting different weak points on enemies, she can quickly build up damage and unlock a powerful ultimate that can wipe out low?HP opponents in one burst. Wanwan performs best when she has room to farm and when teammates provide frontline and crowd control so she can freely kite and look for angles. However, she is vulnerable to hard lockdown, burst assassins, and drafts that can punish her short range and scaling time before she hits her item spikes.
-
-Feedback submitted
-
-
-gord notes tanpa kalimat excel
-
-Gord is a high-damage mage who focuses on long-range poke and sustained magic damage through his skill combo. His abilities let him control space in team fights, harass enemies from a safe distance, and punish targets that misposition or walk through choke points. Once he locks someone with his stun, he can quickly follow up with his ultimate channel to melt squishy heroes and force the enemy team to scatter. However, Gord is very immobile and vulnerable to assassins, hard engage, and crowd control that can interrupt his ultimate. He works best when paired with teammates who can peel, provide vision, and set up reliable lockdown so he can safely channel his damage from the backline.
-
-Feedback submitted
-
-
-notes buat lxia tanpa tulisan excel
-
-Lxia is a burst-oriented mage who thrives on controlling zones and punishing enemies that step into her range at the wrong time. Her skills let her continuously poke, clear waves quickly, and set up traps that force opponents to respect her positioning around objectives. When she times her combos well, Lxia can delete fragile targets and disrupt the enemy frontline before they fully engage. She is especially strong in tight areas where enemies have limited space to dodge her abilities. However, Lxia is vulnerable to hard engage, assassins that can dive her backline, and heroes with strong mobility or sustain who can survive her initial burst and retaliate. She works best with teammates who can provide vision, crowd control, and peel so she can safely output damage from mid to late game.","","","","Siphon Starlium","Ixia's Basic Attacks and skills apply a stack of Starlium Charge to enemies on hit. When Ixia performs a Basic Attack on an enemy with two stacks of Starlium Charge, the attack will consume the stacks and be replaced with Siphon Starlium, dealing (+150% Total Physical Attack) (+200 Lifesteal) plus (+10*Hero Level) Physical Damage to the target. Ixia recovers HP equal to the damage dealt by Siphon Starlium (only 20(+150 Lifesteal)% against non-hero units) and reduces the target's Movement Speed by 25% for 1s.
+"Ixia","Marksman","Physical","Finisher/Damage","Lxia is a burst-oriented mage who thrives on controlling zones and punishing enemies that step into her range at the wrong time. Her skills let her continuously poke, clear waves quickly, and set up traps that force opponents to respect her positioning around objectives. When she times her combos well, Lxia can delete fragile targets and disrupt the enemy frontline before they fully engage. She is especially strong in tight areas where enemies have limited space to dodge her abilities. However, Lxia is vulnerable to hard engage, assassins that can dive her backline, and heroes with strong mobility or sustain who can survive her initial burst and retaliate. She works best with teammates who can provide vision, crowd control, and peel so she can safely output damage from mid to late game.","","","","Siphon Starlium","Ixia's Basic Attacks and skills apply a stack of Starlium Charge to enemies on hit. When Ixia performs a Basic Attack on an enemy with two stacks of Starlium Charge, the attack will consume the stacks and be replaced with Siphon Starlium, dealing (+150% Total Physical Attack) (+200 Lifesteal) plus (+10*Hero Level) Physical Damage to the target. Ixia recovers HP equal to the damage dealt by Siphon Starlium (only 20(+150 Lifesteal)% against non-hero units) and reduces the target's Movement Speed by 25% for 1s.
 Siphon Starlium can trigger on all enemies in front of Ixia that are within her Basic Attack range, but it cannot Crit.
 Ixia's Basic Attacks cannot trigger Lifesteal.","Dual Beam","Ixia fires 2 Starlium-charged energy beams along the ground in the target direction, dealing 75 (+80% Total Physical Attack) Physical Damage to enemies in a rectangular area. When hitting enemy heroes, Ixia gains 50% Movement Speed for 2s.
 Enemies hit by both beams will take double damage.","Star Helix","Ixia unleashes a canister of Starlium energy in the target direction, knocking back nearby enemies, and pulling enemies in range to the center line after a short delay and dealing 200 (+60% Total Physical Attack) Physical Damage.","","","Full Barrage","Ixia reassembles her weapon into 6 smaller weapons and enters the Barrage state for 4s. In this state, Ixia's Basic Attacks and skills can hit enemies in the large fan-shaped area in front of her but not outside it. Ixia's Basic Attacks can hit up to 6 enemy units (prioritizes heroes), and Siphon Starlium will fire simultaneously with her normal Basic Attacks."
@@ -729,7 +319,7 @@ If the target is an enemy hero, the cooldowns of Karina's non-Ultimate skills ar
 Karina's next Basic Attack within the duration deals 150 (+55% Total Magic Power) Magic Damage, slows the target by 45% for 1s, and is guaranteed to Crit. Casting the enhanced Basic Attack or Shadow Assault ends the Dance of Blades state early.","Dance of Death","Karina launches a spinning slash, dealing 375 (+125% Total Magic Power) Magic Damage to nearby enemies.","","","Shadow Assault","Karina dashes to the target enemy hero, dealing them 350 (+160% Total Magic Power) Magic Damage, applying a Shadow Mark to them, and leaving a Shadowform behind them. The Shadow Mark and Shadowform both last 5s. If the enemy dies within the duration, the cooldown of this skill is reset.
 
 Use Again: Karina dashes back to the Shadowform's location, dealing 150 (+50% Total Magic Power) Magic Damage to enemies along the way."
-"Karrie","Marksman","Physical","Finisher/Damage","","","","","Lightwheel Mark","Karrie's Basic Attacks and skills apply a stack of Lightwheel Mark on hit. Once a target has 5 stacks of Lightwheel Marks, the marks will turn into a lightwheel, dealing True Damage equal to 5 (+1% Extra Physical Attack)% of the target's Max HP to them (only up to 300 damage against Creeps).","Spinning Lightwheel","Karrie releases a sphere of surging energy in the target direction, dealing 250 (+90% Total Physical Attack) Physical Damage to enemies in its path. The sphere will stop upon hitting an enemy hero or reaching its max travel distance, continuously dealing 150 (+20% Total Physical Attack) Physical Damage to nearby enemies and slowing them by 80% for 1s.","Phantom Step","Karrie dashes in the target direction while throwing a lightwheel at the nearest enemy, dealing 150 (+70% Total Physical Attack) Physical Damage and applying a stack of Lightwheel Mark on them.
+"Karrie","Marksman","Physical","Finisher/Damage","Karrie is a Physical Marksman with an Attack Reliance of Finisher/Damage, built to shred high?HP targets rather than just poke. Her passive, Lightwheel Mark, makes her Basic Attacks and skills apply stacks to enemies; at 5 stacks, they detonate into a lightwheel that deals Max HP–based True Damage, letting her melt tanks and bruisers very quickly. With Spinning Lightwheel, she can slow and zone enemies in a line, and Phantom Step gives her a short dash plus an extra lightwheel hit for both mobility and DPS weaving. Her ultimate, Speedy Lightwheel, puts her into Dual Wield state, greatly boosting her attack pattern by throwing two lightwheels per Basic Attack and increasing her movement speed, turning her into a late?game finisher who excels at deleting frontliners and closing out fights once enemies are low or locked down by her team.","","","","Lightwheel Mark","Karrie's Basic Attacks and skills apply a stack of Lightwheel Mark on hit. Once a target has 5 stacks of Lightwheel Marks, the marks will turn into a lightwheel, dealing True Damage equal to 5 (+1% Extra Physical Attack)% of the target's Max HP to them (only up to 300 damage against Creeps).","Spinning Lightwheel","Karrie releases a sphere of surging energy in the target direction, dealing 250 (+90% Total Physical Attack) Physical Damage to enemies in its path. The sphere will stop upon hitting an enemy hero or reaching its max travel distance, continuously dealing 150 (+20% Total Physical Attack) Physical Damage to nearby enemies and slowing them by 80% for 1s.","Phantom Step","Karrie dashes in the target direction while throwing a lightwheel at the nearest enemy, dealing 150 (+70% Total Physical Attack) Physical Damage and applying a stack of Lightwheel Mark on them.
 
 When in Dual Wield state, Karrie throws two lightwheels instead.","","","Speedy Lightwheel","Karrie enters Dual Wield state for 10s, during which she gains 20% Movement Speed and throws two lightwheels with each Basic Attack, each dealing 40 (+50% Total Physical Attack) Physical Damage and inheriting a portion of Attack Effects.
 "
@@ -813,11 +403,13 @@ Melissa fits best in drafts that want a backline carry protected by strong peel 
 "Miya","Marksman","physical_attack_speed","Finisher/Damage","Miya is a classic scaling marksman who focuses on high attack speed, on?hit damage, and tower taking rather than early kill pressure. With her passive and attack?speed steroids, she becomes a strong front?to?back DPS threat in the mid to late game, quickly shredding both frontline and structures if left unchecked. Her kit gives her reliable single?target damage with some AoE potential from split arrows, making her effective in extended fights where she can continuously free?hit from the backline.
 
 Miya fits best in team compositions that can protect a stationary hyper?carry and buy time for her to reach her core items. She synergizes well with tanks and supports that provide peel, hard crowd control, and strong front?line presence, allowing her to stand still and maximize DPS. Her ultimate offers invisibility, movement speed, and CC cleanse, letting her reposition or dodge key engages when timed well. However, she is vulnerable to early aggression and dive if her team cannot peel for her. When drafted with solid front line and disengage tools, Miya becomes a reliable late?game win condition who can secure objectives and out?damage most enemy carries in drawn?out fights","","","","Moon Blessing","Each time Miya hits a target with her Basic Attack, she gains 5% Attack Speed for 4s. Stacks up to 5 times. After reaching full stacks, Miya summons a Moonlight Shadow with each Basic Attack that deals 30 (+20% Total Physical Attack)Physical Damage and inherits a portion of Attack Effects.","Moon Arrow","Miya shoots two extra arrows with each Basic Attack, dealing 10 (+100% Total Physical Attack)Physical Damage to the target enemy and 30% damage to nearby targets. This effect lasts 4s. Each extra arrow inherits a portion of Attack Effects.","Arrow of Eclipse","Miya launches an empowered arrow on the target area, dealing 270 (+45% Total Physical Attack)Physical Damage to enemies within and immobilizing them for 1.2s. The arrow then splits into 6 scattering minor arrows, each dealing 40 (+20% Total Physical Attack)Physical Damage to the first enemy hit and slowing them by 30% for 2s.","","","Hidden Moonlight","Miya removes all debuffs on her and conceals herself, gaining 35% extra Movement Speed. This state lasts 2s or until she launches an attack.Miya gains full stacks of Moon Blessing upon leaving the state."
-"Moskov","Marksman","Physical","Finisher/Chase","","","","","Spear of Quiescence","Moskov's Basic Attacks can penetrate the target and deal (+68% Total Physical Attack)- (+110% Total Physical Attack) Physical Damage to enemies behind them (scales with hero level). Each Basic Attack hit reduces the cooldowns of Abyss Walker by 0.8s and Spear of Misery by 0.8s.","Abyss Walker","Moskov teleports to the target location, increasing his Attack Speed to 1.15 times for 3s. Meanwhile, his Basic Attack deals (+10% Total Physical Attack) more damage to enemies behind the primary target.","Spear of Misery","Moskov launches a powerful strike at the target enemy hero or Creep, dealing 300 (+60% Total Physical Attack) Physical Damage, knocking them back, and revealing their position for 2s.
+"Moskov","Marksman","Physical","Finisher/Chase","Moskov is a marksman who specializes in high attack speed, piercing basic attacks, and strong late-game DPS. His skill set lets him reposition quickly, poke multiple enemies through line attacks, and secure kills from long range with his ultimate. In team fights, Moskov can shred frontliners while still threatening the backline if he finds good angles through minions or enemy heroes. He is especially strong when he can freely farm and reach his core items, turning him into a major threat around objectives. However, Moskov is vulnerable to crowd control, burst assassins, and early-game pressure that delays his item spikes. He works best with teammates who can provide peel, reliable engage or disengage, and crowd control to keep enemies within his attack range.","","","","Spear of Quiescence","Moskov's Basic Attacks can penetrate the target and deal (+68% Total Physical Attack)- (+110% Total Physical Attack) Physical Damage to enemies behind them (scales with hero level). Each Basic Attack hit reduces the cooldowns of Abyss Walker by 0.8s and Spear of Misery by 0.8s.","Abyss Walker","Moskov teleports to the target location, increasing his Attack Speed to 1.15 times for 3s. Meanwhile, his Basic Attack deals (+10% Total Physical Attack) more damage to enemies behind the primary target.","Spear of Misery","Moskov launches a powerful strike at the target enemy hero or Creep, dealing 300 (+60% Total Physical Attack) Physical Damage, knocking them back, and revealing their position for 2s.
 
-If the target collides with an enemy hero when knocked back, they'll both take 200 (+30% Total Physical Attack) Physical Damage and be stunned for 1.2s. If the enemy is knocked into a wall, they will also be stunned for the same duration.","","","Skill Priority","Moskov launches a powerful strike at the target enemy hero or Creep, dealing 300 (+60% Total Physical Attack) Physical Damage, knocking them back, and revealing their position for 2s.
+If the target collides with an enemy hero when knocked back, they'll both take 200 (+30% Total Physical Attack) Physical Damage and be stunned for 1.2s. If the enemy is knocked into a wall, they will also be stunned for the same duration.","","","Spear of Destruction","After a short delay, Moskov throws the Spear of Destruction in the target direction, dealing 340 (+100% Total Physical Attack) Physical Damage to enemies in its path and to the first enemy hero hit. Upon hitting an enemy hero, the spear pierces them, dealing 10% extra Physical Damage to enemies behind them. The target and enemies hit by the piercing damage will be slowed by 50% for 1s (the slow duration scales with the spear's travel time, up to 3s).
 
-If the target collides with an enemy hero when knocked back, they'll both take 200 (+30% Total Physical Attack) Physical Damage and be stunned for 1.2s. If the enemy is knocked into a wall, they will also be stunned for the same duration."
+When Spear of Destruction hits the first enemy hero, it creates a shadow behind them and refreshes the cooldown of Abyss Walker.
+
+Use Again: Moskov casts Abyss Walker from the shadow's location (shares the same cooldown as the skill)."
 "Nana","mage","magic","poke/burst","Nana is a poke/control mage who excels at disrupting enemy engages, providing annoying crowd control, and contributing consistent magic damage from a safe distance. Her kit revolves around zoning with Magic Boomerang, transforming enemies with Molina Smooch, and using Molina’s Gift passive to survive what would normally be lethal burst, making her much harder to pick off. With reliable slows, polymorph, and AoE damage from Molina Blitz, she can repeatedly harass in lane and make it very risky for enemies to dive her team.
 
 Nana fits best in drafts that want simple but effective utility and poke from the mage slot rather than complex combo execution. She pairs well with frontliners and marksmen who benefit from extra peel and setup, as her polymorph and slows make it easier to lock targets down or kite divers. However, she lacks hard burst compared to pure nuker mages and can feel less impactful in very high?tempo comps that rely on fast one?shot kills. When played around vision and good positioning, Nana becomes an extremely annoying control mage who constantly chips away at enemies and punishes careless engages with polymorphs and follow?up damage","","","","Molina's Gift","Upon taking fatal damage. Nana removes all debuffs on her and transforms, becoming untargetable and invincible and gains 30% Movement speed for 2s. she also recovers 10% max hp over the duration. Nana can only transform once every 150s and cannot cast skills in the transformed form","Magic Boomerang","Nana hurls her magic boomerang in the target direction, dealing damage to enemies hit on its way out and back. the boomerang deals 300(+90% total magic power) Magic damage to the first enemy hit. for every additional enemy hit, the damage is reduced by 10% (max reduction of 30%)","Molina Smooch","Nana throws molina at the target location, dealing 250(+50% total magic power) Magic damage to enemies within range and transforming enemy heroes hit into small animals. if molina does not hit an enemy hero, she will remain on the ground and chase the nearest enemy hero that comes into range. transforming the first enemy hero she touches. transform: reduces the target's movement speed by 50% and magic defense by 30% for 1.5s transformed heroes cannot attack or use skills.","","","Molina Blitz","Nana summons molina to strike the target area 3 times, each time dealing 440(+140% total magic power) Magic damage to enemies within and slowing them by 30% for 1s. enemies hit consecutively will be stunned for 1s"
@@ -840,6 +432,8 @@ The Attractor detonates upon reaching the maximum range, dealing 30 (+10% Total 
 Use Again: Natan switches places with the Reverse-Clone.
 
 Each cast reduces other skills' remaining cooldowns by 50%. The Reverse-Clone will disappear if Natan is too far away."
+"Nolan","Assassin","Physical","CHase/Burst","Nolan is a physical Assassin focused on chase/burst damage built around his unique Dimensional Rift mechanic. Each time he casts skills, Nolan leaves rifts on the ground; when two rifts interact, they activate, pulling enemies toward the center and dealing high Physical Damage after a short delay. Every rift activation that hits enemies also restores his Energy, letting him chain abilities more frequently, while repeated hits on the same target have reduced damage to prevent overkill. Overall, Nolan functions as a mobility?and?zone?control assassin who excels at dragging enemies into his rift patterns and bursting them down if they misstep into his setup","","","","Dimensional Rift","Nolan's skills will leave a Rift. When a rift comes into contact with another rift, they will activate and pull enemies to their center and deal 240 (+140% Extra Physical Attack) Physical Damage after a short delay. Each time a rift activation hits an enemy, Nolan will gain 20 Energy. If an enemy is hit by multiple rift activations, the damage after the first hit will be reduced by 40%.
+Cosmic Leap: If Nolan does not deal or take damage for 5s, he enhances his next Basic Attack to dash to the target, dealing (+120% Total Physical Attack) Physical Damage and leaving a Rift. (Damage to and from Minions or Creeps will not prevent Nolan from getting this effect.)","Expansion","Nolan cuts a rectangular area in front of him with his cosmic gauge, dealing 230 (+40% Total Physical Attack) Physical Damage and leaving a Rift at the first enemy hit.","Gauge","Nolan charges in the target direction and slashes with his cosmic gauge, dealing 70 (+13% Total Physical Attack) Physical Damage to enemies in his path and leaving a Rift.","","","Fracture","Nolan slashes at the target location 3 times, dealing 120 (+50% Extra Physical Attack) Physical Damage with each slash while leaving 3 rifts and slowing the target hit by 30% for 0.5s. The rifts will be activated automatically while Nolan dashes backward."
 "Novaria","Mage","magic","Burst/Poke","Novaria is a long?range poke/burst mage who specializes in sniping enemies from fog of war and controlling space with empowered astral spheres. Her kit revolves around setting up Astral Meteor zones and then using Astral Recall into Star Shatter to fire high?damage projectiles that scale with travel distance, allowing her to chunk enemies from very far away. With Astral Echo providing vision and hitbox enlargement on marked targets, she can reliably land skill shots and make it difficult for enemies to walk into contested areas.
 
 Novaria fits best in drafts that want strong siege, zone control, and objective setup rather than hard all?in engage. She pairs extremely well with tanks and supports that can front line, provide vision, or lock targets inside her spheres so her long?range shots are easier to hit. However, she is vulnerable to hard dive and assassins if they manage to bypass her frontline, as she relies on range and terrain rather than strong self?peel. When played with good positioning, vision control, and patience, Novaria becomes a high?pressure artillery mage who can soften the entire enemy team before major fights even begin.","","","","Star Trail","Astral Spheres summoned by Novaria will continuously slow nearby enemies by 20% and grant vision of them.","Astral Meteor","Novaria summons an Astral Sphere at the target location, continuously dealing 75 (+25% Total Magic Power) Magic Damage to nearby enemies. After 2s, the sphere will explode, dealing Magic Damage equal to 260 (+50% Total Magic Power) plus 4% of the enemy's Max HP to nearby enemies, and increasing Astral Sphere's slow effect to 2.5 times the original slow effect.","Astral Recall","Novaria summons an Astral Sphere at a distance and draws it towards her. At the same time, Novaria gains 20% Movement Speed and can pass through terrain. Passing through a wall will increase the Movement Speed bonus to 60%. When the Astral Sphere reaches Novaria, she can cast Star Shatter to launch it in a target direction within 5s. The sphere will explode when hitting an enemy hero, dealing Magic Damage equal to 230 (+70% Total Magic Power) plus 4% of the target's Max HP. The damage will increase based on the Astral Sphere's travel distance (starting from when the sphere is summoned), up to 2.5 times the original damage.","","","Astral Echo","Novaria scatters Astral Echo in the target direction, briefly slowing enemy heroes hit by 50% while applying Astral Ring on them, increasing their hitbox by 2.5 times and revealing their surrounding area. This effect lasts 5s."
@@ -848,6 +442,14 @@ Killing an enemy hero directly grants 1 Bone Shard(s).
 Obsidia's Basic Attacks deal 80 (+70% Total Physical Attack) Physical Damage, inheriting 70% Attack Effects.","Abyssal Bone Needle","Obsidia launches an Abyssal Bone Needle, dealing 325 (+80% Total Physical Attack) Physical Damage to enemies hit and triggering Return to Bone on the first enemy hero struck.","Phantom Shadowmeld","Obsidia descends into the Abyss and enters Shadowmeld Form, gaining 500% Movement Speed for 0.3s.","","","Hunt of Bone","Obsidia shoots Bones of Wrath in the target direction, dealing 125 (+60% Extra Physical Attack) Physical Damage and briefly stunning the first enemy hero hit, and pulls herself near them. The Bones of Wrath then tether to the enemy, preventing Obsidia from moving more than 4 units away from them. The enemy cannot use displacement skills, and their movement will pull Obsidia along. During this time, Obsidia gains 5 temporary Bone Shard(s). This effect lasts 3s.
 During this time, Obsidia can move through obstacles and use Basic Attacks while moving. Phantom Shadowmeld is enhanced, with its duration increased to 1s and cooldown reduced to 33%."
 "Odette","mage","magic","burst/poke","Odette is a mage who focuses on wide-area burst damage and strong teamfight presence, especially when she can fully channel her ultimate. Her kit lets her poke and control zones from medium range, then commit with a large circular ultimate that can wipe out grouped enemies if they lack interruption or mobility. When protected by her teammates, Odette can decide fights around objectives by forcing enemies to choose between backing away or taking massive damage. However, she is vulnerable while channeling, and she struggles against assassins, long-range poke, and lineups with reliable crowd control that can cancel her ultimate. Odette works best with teammates who provide strong frontline, hard engage, or lockdown so she can safely position, start or follow up teamfights, and unleash her full damage on multiple targets","","","","Lakeshore Ambience","Each skill cast grants extra range on Odette's next Basic Attack within 8s and causes it to bounce between enemies (or an enemy and herself if only one enemy is in range), dealing 144-200 (+50% Total Magic Power)Magic Damage per hit. Odette's skills will also trigger this effect when hitting an enemy. This effect stacks up to 3 times.","Avian Authority","Odette releases a magic swan in the target direction, dealing 300 (+150% Total Magic Power) Magic Damage  to enemies hit and slowing them by 30% for 2s.","Blue Nova","Odette releases a set of magic energy balls in the target direction, dealing 250 (+50% Total Magic Power) Magic Damage  to the first enemy hit and immobilizing them for 1.5s. After hitting an enemy, another energy ball will split off and attack a nearby enemy (prioritizes enemy heroes), dealing them 250 (+50% Total Magic Power) Magic Damage and immobilizing them for 1.5s.","","","Swan Song","Odette begins to dance, gaining a 1400 (+150% Total Magic Power) shield while dealing up to 2400 (+900% Total Magic Power) Magic Damage to enemies in a large area around her for 5s. The bounce speed and frequency of Lakeshore Ambience's sound wave in the area are also enhanced when the skill is active.Use again while the skill is active to dash in the target direction.The skill is a channeling cast and will be interrupted if Odette is hit by high level control effects (knocked airborne, transformed, etc.) or if she performs another action."
+"Paquito","Fighter/Assassin","Physical","Chase/Damage","","","","","Champ Stance","After every 3 skill casts, Paquito enters the Champ Stance, gaining an enhanced skill ignoring his current cooldowns. He gains 60% extra Movement Speed that decays over 1.8s after casting the enhanced skill.
+Paquito's Basic Attacks only deal (+85% Total Physical Attack) Physical Damage.","Heavy Left Punch","Paquito throws a punch in the target direction, dealing 210 (+50% Total Physical Attack) Physical Damage to enemies hit. If this skill hits an enemy hero or Creep, Paquito will also gain a 150 (+135% Total Physical Attack) shield for 2.5s.
+
+Champ Stance: The damage is increased to 350 (+100% Total Physical Attack) Physical Damage and the shield value is increased to 140%. The normal and enhanced shields can stack.","Jab","Paquito dashes in the target direction and throws a jab, dealing 200 (+165% Total Physical Attack) Physical Damage to enemies hit. Paquito will stop and throw the jab immediately upon colliding with an enemy hero or Creep during the dash.
+
+Champ Stance: The damage is increased to 350 (+230% Total Physical Attack) Physical Damage.","","","Knockout Strike","Paquito launches an elbow strike in the target direction, dealing 250 (+50% Total Physical Attack) Physical Damage to enemies hit and knocking them back. He then throws a haymaker, dealing 300 (+90% Total Physical Attack) Physical Damage to enemies hit and slowing them by 75% for 1s, as he darts backward.
+
+Champ Stance: Instead of a haymaker, Paquito launches an uppercut after the elbow strike, dealing 400 (+120% Total Physical Attack) Physical Damage to enemies hit and knocking them airborne for 0.5s."
 "Pharsa","Mage","magic","Burst/Poke","Pharsa is a long?range burst mage who specializes in controlling vision and poking enemies from an extremely safe distance. With her flight form, she can quickly reposition over walls, rotate between lanes, and set up favorable angles before team fights. Once in position, her ultimate lets her bombard a large area with high burst damage, forcing enemies to either retreat or risk getting chunked out before objectives.
 
 Pharsa fits best in comps that want strong siege, waveclear, and objective control. She pairs very well with frontliners and supports that can provide hard engage or reliable crowd control to keep enemies inside her ultimate zone. However, she is vulnerable if caught without her flight or if assassins manage to dive past her frontline, since she has limited defensive tools and relies heavily on positioning. When drafted with solid peel and good vision, Pharsa becomes a powerful artillery mage who can dictate the pace of fights and make it difficult for the enemy team to walk into key areas of the map","","","","Spiritual Unity","Every 5 to 8s (varies with Feathered Air Strike level), Verri enters the Hunting state and assists Pharsa on her next attack against an enemy hero, dealing extra Magic Damage equal to 8% of the target's Max HP (+ 1% for every 200 Magic Power owned) and slowing them by 60% for 1s.","Curse of Crow","Pharsa unleashes a blast of magic at the target location, dealing 300 (+120% Total Magic Power) Magic Damage to enemies hit and marking them for 4s.When Pharsa hits a marked enemy with a Basic Attack or active skill, the mark is consumed to stun them for 1s.Marked enemies have their position revealed.","Energy Impact","Pharsa releases magic energy in the target direction, dealing 525 (+145% Total Magic Power) Magic Damage to enemies hit.","Wings by Wings","Pharsa turns into mist and wraps herself around Verri, gaining 150% extra Movement Speed (decreasing over time) and the ability to fly over terrain. This state lasts up to 5s or until she uses a Basic Attack or skills, or is controlled. The skill's cooldown is reduced by 0s each time Pharsa levels up.","Feathered Air Strike","Passive: Each level-up reduces Spiritual Unity's interval by 1s. Active: Pharsa takes flight for 8s and bombards the target location, dealing 570 (+160% Total Magic Power) Magic Damage to enemies within the area. This skill can be cast up to 4 times within the duration."

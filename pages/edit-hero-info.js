@@ -38,6 +38,12 @@ export default function EditHeroInfoPage() {
     counter_hero6: '',
     counter_hero7: '',
     counter_hero8: '',
+    counter_hero9: '',
+    counter_hero10: '',
+    counter_hero11: '',
+    counter_hero12: '',
+    counter_hero13: '',
+    counter_hero14: '',
     counter_reason1: '',
     counter_reason2: '',
     counter_reason3: '',
@@ -45,7 +51,13 @@ export default function EditHeroInfoPage() {
     counter_reason5: '',
     counter_reason6: '',
     counter_reason7: '',
-    counter_reason8: ''
+    counter_reason8: '',
+    counter_reason9: '',
+    counter_reason10: '',
+    counter_reason11: '',
+    counter_reason12: '',
+    counter_reason13: '',
+    counter_reason14: ''
   })
 
   const [allLanes, setAllLanes] = useState([])
@@ -137,6 +149,12 @@ export default function EditHeroInfoPage() {
             const c6 = info.counters[5] || {}
             const c7 = info.counters[6] || {}
             const c8 = info.counters[7] || {}
+            const c9 = info.counters[8] || {}
+            const c10 = info.counters[9] || {}
+            const c11 = info.counters[10] || {}
+            const c12 = info.counters[11] || {}
+            const c13 = info.counters[12] || {}
+            const c14 = info.counters[13] || {}
             setCounters({
               counter_hero1: c1.enemy || '',
               counter_hero2: c2.enemy || '',
@@ -146,6 +164,12 @@ export default function EditHeroInfoPage() {
               counter_hero6: c6.enemy || '',
               counter_hero7: c7.enemy || '',
               counter_hero8: c8.enemy || '',
+              counter_hero9: c9.enemy || '',
+              counter_hero10: c10.enemy || '',
+              counter_hero11: c11.enemy || '',
+              counter_hero12: c12.enemy || '',
+              counter_hero13: c13.enemy || '',
+              counter_hero14: c14.enemy || '',
               counter_reason1: c1.reason || '',
               counter_reason2: c2.reason || '',
               counter_reason3: c3.reason || '',
@@ -153,7 +177,13 @@ export default function EditHeroInfoPage() {
               counter_reason5: c5.reason || '',
               counter_reason6: c6.reason || '',
               counter_reason7: c7.reason || '',
-              counter_reason8: c8.reason || ''
+              counter_reason8: c8.reason || '',
+              counter_reason9: c9.reason || '',
+              counter_reason10: c10.reason || '',
+              counter_reason11: c11.reason || '',
+              counter_reason12: c12.reason || '',
+              counter_reason13: c13.reason || '',
+              counter_reason14: c14.reason || ''
             })
           } else {
             setCounters({
@@ -165,6 +195,12 @@ export default function EditHeroInfoPage() {
               counter_hero6: '',
               counter_hero7: '',
               counter_hero8: '',
+              counter_hero9: '',
+              counter_hero10: '',
+              counter_hero11: '',
+              counter_hero12: '',
+              counter_hero13: '',
+              counter_hero14: '',
               counter_reason1: '',
               counter_reason2: '',
               counter_reason3: '',
@@ -172,7 +208,13 @@ export default function EditHeroInfoPage() {
               counter_reason5: '',
               counter_reason6: '',
               counter_reason7: '',
-              counter_reason8: ''
+              counter_reason8: '',
+              counter_reason9: '',
+              counter_reason10: '',
+              counter_reason11: '',
+              counter_reason12: '',
+              counter_reason13: '',
+              counter_reason14: ''
             })
           }
         }
@@ -757,6 +799,138 @@ export default function EditHeroInfoPage() {
                         <textarea
                           value={counters.counter_reason8}
                           onChange={(e) => handleChangeCounters('counter_reason8', e.target.value)}
+                          className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-black focus:ring-black"
+                          placeholder="Alasan tambahan"
+                          rows={2}
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Counter Hero 9</label>
+                        <input
+                          type="text"
+                          value={counters.counter_hero9}
+                          onChange={(e) => handleChangeCounters('counter_hero9', e.target.value)}
+                          className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-black focus:ring-black"
+                          placeholder="Opsional"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Counter Reason 9</label>
+                        <textarea
+                          value={counters.counter_reason9}
+                          onChange={(e) => handleChangeCounters('counter_reason9', e.target.value)}
+                          className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-black focus:ring-black"
+                          placeholder="Alasan tambahan"
+                          rows={2}
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Counter Hero 10</label>
+                        <input
+                          type="text"
+                          value={counters.counter_hero10}
+                          onChange={(e) => handleChangeCounters('counter_hero10', e.target.value)}
+                          className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-black focus:ring-black"
+                          placeholder="Opsional"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Counter Reason 10</label>
+                        <textarea
+                          value={counters.counter_reason10}
+                          onChange={(e) => handleChangeCounters('counter_reason10', e.target.value)}
+                          className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-black focus:ring-black"
+                          placeholder="Alasan tambahan"
+                          rows={2}
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Counter Hero 11</label>
+                        <input
+                          type="text"
+                          value={counters.counter_hero11}
+                          onChange={(e) => handleChangeCounters('counter_hero11', e.target.value)}
+                          className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-black focus:ring-black"
+                          placeholder="Opsional"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Counter Reason 11</label>
+                        <textarea
+                          value={counters.counter_reason11}
+                          onChange={(e) => handleChangeCounters('counter_reason11', e.target.value)}
+                          className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-black focus:ring-black"
+                          placeholder="Alasan tambahan"
+                          rows={2}
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Counter Hero 12</label>
+                        <input
+                          type="text"
+                          value={counters.counter_hero12}
+                          onChange={(e) => handleChangeCounters('counter_hero12', e.target.value)}
+                          className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-black focus:ring-black"
+                          placeholder="Opsional"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Counter Reason 12</label>
+                        <textarea
+                          value={counters.counter_reason12}
+                          onChange={(e) => handleChangeCounters('counter_reason12', e.target.value)}
+                          className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-black focus:ring-black"
+                          placeholder="Alasan tambahan"
+                          rows={2}
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Counter Hero 13</label>
+                        <input
+                          type="text"
+                          value={counters.counter_hero13}
+                          onChange={(e) => handleChangeCounters('counter_hero13', e.target.value)}
+                          className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-black focus:ring-black"
+                          placeholder="Opsional"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Counter Reason 13</label>
+                        <textarea
+                          value={counters.counter_reason13}
+                          onChange={(e) => handleChangeCounters('counter_reason13', e.target.value)}
+                          className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-black focus:ring-black"
+                          placeholder="Alasan tambahan"
+                          rows={2}
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Counter Hero 14</label>
+                        <input
+                          type="text"
+                          value={counters.counter_hero14}
+                          onChange={(e) => handleChangeCounters('counter_hero14', e.target.value)}
+                          className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-black focus:ring-black"
+                          placeholder="Opsional"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Counter Reason 14</label>
+                        <textarea
+                          value={counters.counter_reason14}
+                          onChange={(e) => handleChangeCounters('counter_reason14', e.target.value)}
                           className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-black focus:ring-black"
                           placeholder="Alasan tambahan"
                           rows={2}
