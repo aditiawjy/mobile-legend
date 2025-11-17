@@ -156,7 +156,7 @@ export default async function handler(req, res) {
              (hero_name,
               counter_hero1, counter_hero2, counter_hero3, counter_hero4, counter_hero5, counter_hero6, counter_hero7, counter_hero8, counter_hero9, counter_hero10, counter_hero11, counter_hero12, counter_hero13, counter_hero14,
               counter_reason1, counter_reason2, counter_reason3, counter_reason4, counter_reason5, counter_reason6, counter_reason7, counter_reason8, counter_reason9, counter_reason10, counter_reason11, counter_reason12, counter_reason13, counter_reason14)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [name, ...counterValues]
           )
         }
