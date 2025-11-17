@@ -1,14 +1,7 @@
 import { useState, useEffect } from 'react';
+import { fetchLanes, getDefaultLanes } from '../lib/laneConstants';
 
 const getPrimaryRole = (roleString) => roleString?.split('/')[0].trim() || roleString;
-
-const LANE_ASSIGNMENTS = [
-  { id: 1, label: 'Gold Lane', lane: 'Gold Lane', icon: '💰' },
-  { id: 2, label: 'Exp Lane', lane: 'Exp Lane', icon: '⚔️' },
-  { id: 3, label: 'Mid Lane', lane: 'Mid Lane', icon: '🎯' },
-  { id: 4, label: 'Jungling', lane: 'Jungling', icon: '🌳' },
-  { id: 5, label: 'Roaming', lane: 'Roaming', icon: '🛡️' },
-];
 
 const hasCC = (hero) => {
   const ar = hero.attackReliance?.toLowerCase() || '';
@@ -53,6 +46,7 @@ export default function DraftPickSimulator() {
   const [draftResult, setDraftResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [lanes, setLanes] = useState(getDefaultLanes()); // Dynamic lanes from DB
 
   useEffect(() => {
     // Load heroes list on client side for selection
@@ -65,6 +59,21 @@ export default function DraftPickSimulator() {
         }
       })
       .catch(err => console.error('Error loading heroes:', err));
+  }, []);
+
+  // Load lanes from database (data-driven, not hardcoded)
+  useEffect(() => {
+    async function loadLanes() {
+      try {
+        const fetchedLanes = await fetchLanes();
+        setLanes(fetchedLanes);
+        console.log('Loaded lanes from DB:', fetchedLanes.map(l => l.lane).join(', '));
+      } catch (error) {
+        console.error('Error loading lanes:', error);
+        // Keep default lanes as fallback
+      }
+    }
+    loadLanes();
   }, []);
 
   const simulateDraft = async (heroName) => {
@@ -94,53 +103,84 @@ export default function DraftPickSimulator() {
     }
   }, []);
 
-  // Validate lanes
+  // Enhanced lane validation (strict mode)
   const laneValidation = () => {
     if (!draftResult || !draftResult.draft.options) return { isValid: true, errors: [], warnings: [] };
 
     const errors = [];
     const warnings = [];
-    const heroesWithLanes = draftResult.draft.options.filter(h => h.lanes && h.lanes.length > 0);
     const allHeroes = draftResult.draft.options;
+    const heroesWithLanes = allHeroes.filter(h => h.lanes && h.lanes.length > 0);
+    const heroesWithoutLanes = allHeroes.filter(h => !h.lanes || h.lanes.length === 0);
 
-    // Only check lane matching for heroes that HAVE lanes data
-    draftResult.draft.options.forEach((hero, idx) => {
+    // CRITICAL ERROR: Heroes without lane data
+    if (heroesWithoutLanes.length > 0) {
+      heroesWithoutLanes.forEach(hero => {
+        errors.push(`⚠️ KRITIS: ${hero.name} tidak punya data lanes. Jalankan 'npm run sync:heroes' atau tambahkan lanes di DB.`);
+      });
+    }
+
+    // Track lane mismatches and duplicates
+    const usedPrimaryLanes = new Set();
+    let mismatchCount = 0;
+
+    allHeroes.forEach((hero, idx) => {
       const heroLanes = hero.lanes || [];
-      const assignedLane = LANE_ASSIGNMENTS[idx];
+      const assignedLane = lanes[idx];
 
-      // Skip validation if hero doesn't have lanes data yet
-      if (heroLanes.length > 0) {
-        // Check if hero matches assigned lane
-        const isLaneMatch = heroLanes.some(lane => lane.lane_name === assignedLane.lane);
-        if (!isLaneMatch) {
-          warnings.push(`${hero.name}: Tidak cocok untuk ${assignedLane.lane}`);
+      // Skip validation if hero doesn't have lanes data
+      if (heroLanes.length === 0) return;
+
+      // Check if hero matches assigned lane
+      const isLaneMatch = heroLanes.some(lane => lane.lane_name === assignedLane.lane);
+      if (!isLaneMatch) {
+        // ERROR: Lane mismatch (strict)
+        errors.push(`❌ ${hero.name}: Tidak cocok untuk ${assignedLane.lane} (lanes: ${heroLanes.map(l => l.lane_name).join(', ')})`);
+        mismatchCount++;
+      }
+
+      // Check for duplicate primary lanes
+      const primaryLane = heroLanes.find(l => l.priority === 1)?.lane_name;
+      if (primaryLane) {
+        if (usedPrimaryLanes.has(primaryLane) && primaryLane !== assignedLane.lane) {
+          warnings.push(`⚠️ Duplicate primary lane: ${primaryLane} (${hero.name})`);
         }
+        usedPrimaryLanes.add(primaryLane);
       }
     });
 
+    // CRITICAL ERROR: Too many mismatches (3+ out of 5)
+    if (mismatchCount >= 3 && heroesWithLanes.length >= 3) {
+      errors.push(`⚠️ KRITIS: ${mismatchCount}/${heroesWithLanes.length} heroes tidak cocok dengan lane assignment. Draft tidak optimal!`);
+    }
+
+    // Team composition checks (warnings only)
     if (allHeroes.length > 0) {
       const hasAnyCC = allHeroes.some(h => hasCC(h));
       if (!hasAnyCC) {
-        warnings.push('Tim tidak punya Crowd Control yang jelas (no hard CC).');
+        warnings.push('⚠️ Tim tidak punya Crowd Control yang jelas (no hard CC).');
       }
 
       const hasAnyBurst = allHeroes.some(h => hasBurst(h));
       if (!hasAnyBurst) {
-        warnings.push('Tim tidak punya burst damage yang kuat (no burst).');
+        warnings.push('⚠️ Tim tidak punya burst damage yang kuat (no burst).');
       }
 
       const hasAnyObjective = allHeroes.some(h => hasObjectiveControl(h));
       if (!hasAnyObjective) {
-        warnings.push('Tim lemah dalam objective control (Turtle/Lord).');
+        warnings.push('⚠️ Tim lemah dalam objective control (Turtle/Lord).');
       }
     }
 
-    // No errors for missing lanes, just show info
+    // Determine validity: NO ERRORS = valid
+    const isValid = errors.length === 0;
+
     return {
-      isValid: true, // Always valid, even without lanes
+      isValid,
       errors,
       warnings,
-      heroesWithLanes: heroesWithLanes.length
+      heroesWithLanes: heroesWithLanes.length,
+      mismatchCount,
     };
   };
 
@@ -210,7 +250,7 @@ export default function DraftPickSimulator() {
               Sistem otomatis assign 5 heroes ke lanes berikut:
             </p>
             <div className="grid grid-cols-5 gap-2 text-xs">
-              {LANE_ASSIGNMENTS.map(lane => (
+              {lanes.map(lane => (
                 <div key={lane.id} className="bg-blue-800/50 rounded p-2 text-center">
                   <div className="text-lg mb-1">{lane.icon}</div>
                   <div className="text-blue-200">{lane.label}</div>
@@ -257,7 +297,7 @@ export default function DraftPickSimulator() {
             <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
               {draftResult.draft.options.map((hero, idx) => {
                 const heroLanes = hero.lanes || [];
-                const assignedLane = LANE_ASSIGNMENTS[idx];
+                const assignedLane = lanes[idx];
                 const hasNoLanes = heroLanes.length === 0;
                 const isLaneMatch = heroLanes.some(lane => lane.lane_name === assignedLane.lane);
                 

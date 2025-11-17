@@ -1,13 +1,6 @@
 import { useState, useEffect } from 'react';
 import HeroAutocomplete from './HeroAutocomplete';
-
-const DRAFT_POSITIONS = [
-  { id: 1, label: 'Gold Lane', lane: 'Gold Lane', icon: '💰' },
-  { id: 2, label: 'Exp Lane', lane: 'Exp Lane', icon: '⚔️' },
-  { id: 3, label: 'Mid Lane', lane: 'Mid Lane', icon: '🎯' },
-  { id: 4, label: 'Jungling', lane: 'Jungling', icon: '🌳' },
-  { id: 5, label: 'Roaming', lane: 'Roaming', icon: '🛡️' },
-];
+import { fetchLanes, getDefaultLanes } from '../lib/laneConstants';
 
 export default function ManualDraftPick() {
   const [draftPicks, setDraftPicks] = useState(['', '', '', '', '']);
@@ -18,6 +11,8 @@ export default function ManualDraftPick() {
   const [allHeroesWithLanes, setAllHeroesWithLanes] = useState([]);
   const [heroCombos, setHeroCombos] = useState([]);
   const [heroCompatibility, setHeroCompatibility] = useState({}); // map hero_name(lower) -> compatibility
+  const [draftRules, setDraftRules] = useState(null); // CSV rules from draft-rules.csv
+  const [lanes, setLanes] = useState(getDefaultLanes()); // Dynamic lanes from DB (replaces DRAFT_POSITIONS)
 
   // Load all heroes with lanes data on mount
   useEffect(() => {
@@ -60,6 +55,44 @@ export default function ManualDraftPick() {
       }
     };
     loadCombos();
+  }, []);
+
+  // Load draft rules from CSV (Phase 1: Hybrid approach)
+  useEffect(() => {
+    const loadDraftRules = async () => {
+      try {
+        const response = await fetch('/api/draft-rules');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.data) {
+            setDraftRules(data.data);
+            console.log('Loaded draft rules from CSV:', {
+              roleCompatibility: Object.keys(data.data.roleCompatibility).length,
+              heroPriority: Object.keys(data.data.heroPriority).length,
+              synergyRules: data.data.synergyRules.length
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Error loading draft rules from CSV:', error);
+      }
+    };
+    loadDraftRules();
+  }, []);
+
+  // Load lanes from database (data-driven, not hardcoded)
+  useEffect(() => {
+    async function loadLanes() {
+      try {
+        const fetchedLanes = await fetchLanes();
+        setLanes(fetchedLanes);
+        console.log('Loaded lanes from DB:', fetchedLanes.map(l => l.lane).join(', '));
+      } catch (error) {
+        console.error('Error loading lanes:', error);
+        // Keep default lanes as fallback
+      }
+    }
+    loadLanes();
   }, []);
 
   // Load hero compatibility data for picked heroes (from /api/heroes/[name]/info)
@@ -215,7 +248,7 @@ export default function ManualDraftPick() {
 
   // Get recommended heroes for a specific lane based on already picked heroes
   const getRecommendedHeroesForLane = (laneIndex) => {
-    const targetLane = DRAFT_POSITIONS[laneIndex].lane;
+    const targetLane = lanes[laneIndex].lane;
     const pickedHeroNames = draftPicks.filter((p, idx) => idx !== laneIndex && p && p.trim());
     const pickedHeroes = heroDetails.filter(h => pickedHeroNames.includes(h.hero_name));
 
@@ -407,6 +440,26 @@ export default function ManualDraftPick() {
           score += 25;
         }
 
+        // Score 9: CSV Synergy Rules (Phase 1: Hybrid approach)
+        // Check synergy from draft-rules.csv for picked heroes
+        if (draftRules && draftRules.synergyRules && pickedHeroes.length > 0) {
+          pickedHeroes.forEach(pickedHero => {
+            if (!pickedHero || !pickedHero.hero_name) return;
+            
+            const synergy = draftRules.synergyRules.find(rule => 
+              (rule.selectedHero.toLowerCase() === pickedHero.hero_name.toLowerCase() && 
+               rule.partnerHero.toLowerCase() === hero.hero_name.toLowerCase()) ||
+              (rule.selectedHero.toLowerCase() === hero.hero_name.toLowerCase() && 
+               rule.partnerHero.toLowerCase() === pickedHero.hero_name.toLowerCase())
+            );
+            
+            if (synergy && synergy.bonus) {
+              // Normalize CSV synergy bonus: +1-3 → +15-45 (align with Manual scale)
+              score += synergy.bonus * 15;
+            }
+          });
+        }
+
         return { ...hero, score, combo, compatMatches };
       })
       .sort((a, b) => b.score - a.score); // Sort by score descending
@@ -509,8 +562,8 @@ export default function ManualDraftPick() {
     const usedLanes = new Set();
     let allLanesFilled = draftPicks.filter(p => p && p.trim()).length === 5;
 
-    // Loop through DRAFT_POSITIONS to maintain correct index mapping
-    DRAFT_POSITIONS.forEach((position, idx) => {
+    // Loop through lanes to maintain correct index mapping
+    lanes.forEach((position, idx) => {
       const heroName = draftPicks[idx];
       if (!heroName || !heroName.trim()) return; // Skip empty slots
       
@@ -546,7 +599,7 @@ export default function ManualDraftPick() {
 
     // CRITICAL: Check if team has tank/tanky hero
     if (allLanesFilled) {
-      const allPickedHeroes = DRAFT_POSITIONS.map((position, idx) => {
+      const allPickedHeroes = lanes.map((position, idx) => {
         const heroName = draftPicks[idx];
         if (!heroName || !heroName.trim()) return null;
         return heroDetails.find(h => h.hero_name.toLowerCase() === heroName.toLowerCase());
@@ -668,7 +721,7 @@ export default function ManualDraftPick() {
           <div className="space-y-4">
             <h2 className="text-xl font-semibold mb-4">Select 5 Heroes by Lane</h2>
             <div className="grid grid-cols-1 gap-4">
-              {DRAFT_POSITIONS.map((position, idx) => {
+              {lanes.map((position, idx) => {
                 const recommendedHeroes = getRecommendedHeroesForLane(idx);
                 const hasRecommendations = recommendedHeroes.length > 0 && !draftPicks[idx];
                 const pickedHeroNames = draftPicks.filter((p, i) => i !== idx && p && p.trim());
@@ -790,7 +843,7 @@ export default function ManualDraftPick() {
           <div className="space-y-4">
             <h2 className="text-xl font-semibold mb-4">Enemy Draft (View Only)</h2>
             <div className="grid grid-cols-1 gap-4">
-              {DRAFT_POSITIONS.map((position, idx) => {
+              {lanes.map((position, idx) => {
                 const enemyName = enemyDraftPicks[idx];
                 const enemyHero = enemyName
                   ? allHeroesWithLanes.find(h => h.hero_name && h.hero_name.toLowerCase() === enemyName.toLowerCase())
@@ -871,7 +924,7 @@ export default function ManualDraftPick() {
                   .filter(name => name && name.trim())
                   .map(name => name.toLowerCase());
 
-                return DRAFT_POSITIONS.map((position, idx) => {
+                return lanes.map((position, idx) => {
                   // Find hero for this position from draftPicks (maintain correct index!)
                   const heroName = draftPicks[idx];
                   if (!heroName || !heroName.trim()) return null; // Skip empty slots
