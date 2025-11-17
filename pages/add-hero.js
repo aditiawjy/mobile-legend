@@ -149,9 +149,17 @@ export default function AddHeroPage() {
         if (!uniqueAttackReliances.includes('Burst/Magic Damage')) {
           uniqueAttackReliances.push('Burst/Magic Damage')
         }
+        // Ensure Initiator/Magic Damage is always available as an Attack Reliance option (optional)
+        if (!uniqueAttackReliances.includes('Initiator/Magic Damage')) {
+          uniqueAttackReliances.push('Initiator/Magic Damage')
+        }
         // Ensure Burst/Charge is always available as an Attack Reliance option
         if (!uniqueAttackReliances.includes('Burst/Charge')) {
           uniqueAttackReliances.push('Burst/Charge')
+        }
+        // Ensure Burst/Support is always available as an Attack Reliance option (optional)
+        if (!uniqueAttackReliances.includes('Burst/Support')) {
+          uniqueAttackReliances.push('Burst/Support')
         }
         // Ensure Push/Damage is always available as an Attack Reliance option
         if (!uniqueAttackReliances.includes('Push/Damage')) {
