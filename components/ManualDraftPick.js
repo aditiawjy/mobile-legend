@@ -1,6 +1,30 @@
 import { useState, useEffect } from 'react';
 import HeroAutocomplete from './HeroAutocomplete';
-import { fetchLanes, getDefaultLanes } from '../lib/laneConstants';
+import { fetchLanes, getDefaultLanes, LANE_ICONS } from '../lib/laneConstants';
+
+const ROLE_ICONS = {
+  Tank: '🛡️',
+  Fighter: '⚔️',
+  Mage: '✨',
+  Marksman: '🎯',
+  Assassin: '🗡️',
+  Support: '💊',
+};
+
+const getRoleIcon = (role) => {
+  if (!role) return '';
+  const key = role.split('/')[0].trim();
+  return ROLE_ICONS[key] || '';
+};
+
+const getDamageTypeIcon = (damageType) => {
+  if (!damageType) return '';
+  const dt = damageType.toLowerCase();
+  if (dt.includes('physical')) return '⚔️';
+  if (dt.includes('magic')) return '✨';
+  if (dt.includes('mixed')) return '⚡';
+  return '🔹';
+};
 
 export default function ManualDraftPick() {
   const [draftPicks, setDraftPicks] = useState(['', '', '', '', '']);
@@ -13,6 +37,13 @@ export default function ManualDraftPick() {
   const [heroCompatibility, setHeroCompatibility] = useState({}); // map hero_name(lower) -> compatibility
   const [draftRules, setDraftRules] = useState(null); // CSV rules from draft-rules.csv
   const [lanes, setLanes] = useState(getDefaultLanes()); // Dynamic lanes from DB (replaces DRAFT_POSITIONS)
+  const [heroSearch, setHeroSearch] = useState('');
+  const [roleFilter, setRoleFilter] = useState('');
+  const [damageTypeFilter, setDamageTypeFilter] = useState('');
+  const [attackRelianceFilter, setAttackRelianceFilter] = useState('');
+  const [laneFilter, setLaneFilter] = useState('');
+   const [heroListMode, setHeroListMode] = useState('all');
+  const [selectedHeroForDetails, setSelectedHeroForDetails] = useState(null);
 
   // Load all heroes with lanes data on mount
   useEffect(() => {
@@ -553,6 +584,218 @@ export default function ManualDraftPick() {
 
   const hasAnyPick = draftPicks.some(pick => pick && pick.trim());
 
+  const uniqueRoles = Array.from(
+    new Set(
+      allHeroesWithLanes
+        .map(h => (h.role ? h.role.split('/')[0].trim() : ''))
+        .filter(Boolean)
+    )
+  ).sort();
+
+  const uniqueDamageTypes = Array.from(
+    new Set(
+      allHeroesWithLanes
+        .map(h => h.damage_type || h.damageType || '')
+        .filter(Boolean)
+    )
+  ).sort();
+
+  const uniqueAttackReliance = Array.from(
+    new Set(
+      allHeroesWithLanes
+        .map(h => h.attack_reliance || h.attackReliance || '')
+        .filter(Boolean)
+    )
+  ).sort();
+
+  const uniqueLanes = Array.from(
+    new Set(
+      allHeroesWithLanes
+        .flatMap(h => (Array.isArray(h.lanes) ? h.lanes.map(l => l.lane_name) : []))
+        .filter(Boolean)
+    )
+  ).sort();
+
+  const filteredHeroes = allHeroesWithLanes.filter(hero => {
+    const name = hero.hero_name || hero.name || '';
+    const role = hero.role || '';
+    const damageType = hero.damage_type || hero.damageType || '';
+    const attackRel = hero.attack_reliance || hero.attackReliance || '';
+    const lanesList = Array.isArray(hero.lanes) ? hero.lanes.map(l => l.lane_name) : [];
+
+    if (heroSearch && !name.toLowerCase().includes(heroSearch.toLowerCase())) {
+      return false;
+    }
+    if (roleFilter && !role.toLowerCase().startsWith(roleFilter.toLowerCase())) {
+      return false;
+    }
+    if (damageTypeFilter && !damageType.toLowerCase().includes(damageTypeFilter.toLowerCase())) {
+      return false;
+    }
+    if (attackRelianceFilter && !attackRel.toLowerCase().includes(attackRelianceFilter.toLowerCase())) {
+      return false;
+    }
+    if (laneFilter && !lanesList.some(l => l.toLowerCase() === laneFilter.toLowerCase())) {
+      return false;
+    }
+
+    return true;
+  });
+
+  const enemyPickedNames = enemyDraftPicks
+    .filter(name => name && name.trim())
+    .map(name => name.toLowerCase());
+
+  const counterMetaByHeroName = {};
+
+  if (enemyPickedNames.length > 0 && allHeroesWithLanes.length > 0) {
+    enemyPickedNames.forEach(enemyNameLower => {
+      const enemyHero = allHeroesWithLanes.find(h => {
+        const name = h.hero_name || h.name || '';
+        return name.toLowerCase() === enemyNameLower;
+      });
+      if (!enemyHero || !Array.isArray(enemyHero.counters)) return;
+
+      enemyHero.counters.forEach(c => {
+        const candidateNameRaw = (c.enemy || '').trim();
+        if (!candidateNameRaw) return;
+        const candidateHero = allHeroesWithLanes.find(h => {
+          const name = h.hero_name || h.name || '';
+          return name.toLowerCase() === candidateNameRaw.toLowerCase();
+        });
+        if (!candidateHero) return;
+
+        const key = (candidateHero.hero_name || candidateHero.name || '').toLowerCase();
+        if (!key) return;
+
+        if (!counterMetaByHeroName[key]) {
+          counterMetaByHeroName[key] = {
+            hero: candidateHero,
+            score: 0,
+            entries: [],
+          };
+        }
+        counterMetaByHeroName[key].score += 1;
+
+        const enemyLabel = enemyHero.hero_name || enemyHero.name || '';
+        if (c.reason && c.reason.trim()) {
+          counterMetaByHeroName[key].entries.push(`Vs ${enemyLabel}: ${c.reason.trim()}`);
+        } else {
+          counterMetaByHeroName[key].entries.push(`Vs ${enemyLabel}`);
+        }
+      });
+    });
+  }
+
+  const synergyMetaByHeroName = {};
+
+  if (heroDetails.length > 0 && allHeroesWithLanes.length > 0) {
+    const pickedNamesLower = heroDetails
+      .map(h => (h.hero_name || '').toLowerCase())
+      .filter(Boolean);
+
+    allHeroesWithLanes.forEach(hero => {
+      const name = hero.hero_name || hero.name || '';
+      const key = name.toLowerCase();
+      if (!key) return;
+      if (pickedNamesLower.includes(key)) return;
+
+      let score = 0;
+      const tags = [];
+      const tooltipLines = [];
+
+      heroDetails.forEach(selHero => {
+        if (!selHero || !selHero.hero_name) return;
+        const selName = selHero.hero_name;
+        const selKey = selName.toLowerCase();
+
+        if (heroCombos && heroCombos.length > 0) {
+          const combo = heroCombos.find(c =>
+            (c.hero1 && c.hero1.toLowerCase() === selKey && c.hero2 && c.hero2.toLowerCase() === key) ||
+            (c.hero2 && c.hero2.toLowerCase() === selKey && c.hero1 && c.hero1.toLowerCase() === key)
+          );
+          if (combo) {
+            const bonus = Math.floor((combo.synergyScore - 50) / 1.5);
+            if (bonus > 0) {
+              score += bonus;
+              if (!tags.includes('Combo')) tags.push('Combo');
+              const lineBase = `Combo ${selName} + ${name}`;
+              if (combo.description && combo.description.trim()) {
+                tooltipLines.push(`${lineBase}: ${combo.description.trim()}`);
+              } else {
+                tooltipLines.push(lineBase);
+              }
+            }
+          }
+        }
+
+        const compat = heroCompatibility[selKey];
+        if (compat) {
+          const target = key;
+          const pushCompat = (partner, reason) => {
+            if (!partner) return;
+            if (partner.toLowerCase() === target) {
+              score += 25;
+              if (!tags.includes('Compat')) tags.push('Compat');
+              const base = `Synergy ${selName} → ${name}`;
+              if (reason && reason.trim()) {
+                tooltipLines.push(`${base}: ${reason.trim()}`);
+              } else {
+                tooltipLines.push(base);
+              }
+            }
+          };
+
+          pushCompat(compat.partner_hero1, compat.synergy_reason1);
+          pushCompat(compat.partner_hero2, compat.synergy_reason2);
+          pushCompat(compat.partner_hero3, compat.synergy_reason3);
+          pushCompat(compat.partner_hero4, compat.synergy_reason4);
+        }
+      });
+
+      if (score > 0) {
+        synergyMetaByHeroName[key] = {
+          hero,
+          score,
+          tags,
+          tooltip: tooltipLines.join('\n'),
+        };
+      }
+    });
+  }
+
+  let displayHeroes = filteredHeroes;
+
+  if (heroListMode === 'counter') {
+    displayHeroes = filteredHeroes
+      .filter(hero => {
+        const name = hero.hero_name || hero.name || '';
+        const key = name.toLowerCase();
+        return !!counterMetaByHeroName[key];
+      })
+      .sort((a, b) => {
+        const aKey = (a.hero_name || a.name || '').toLowerCase();
+        const bKey = (b.hero_name || b.name || '').toLowerCase();
+        const aScore = counterMetaByHeroName[aKey]?.score || 0;
+        const bScore = counterMetaByHeroName[bKey]?.score || 0;
+        return bScore - aScore;
+      });
+  } else if (heroListMode === 'synergy') {
+    displayHeroes = filteredHeroes
+      .filter(hero => {
+        const name = hero.hero_name || hero.name || '';
+        const key = name.toLowerCase();
+        return !!synergyMetaByHeroName[key];
+      })
+      .sort((a, b) => {
+        const aKey = (a.hero_name || a.name || '').toLowerCase();
+        const bKey = (b.hero_name || b.name || '').toLowerCase();
+        const aScore = synergyMetaByHeroName[aKey]?.score || 0;
+        const bScore = synergyMetaByHeroName[bKey]?.score || 0;
+        return bScore - aScore;
+      });
+  }
+
   // Validate lanes - relaxed validation
   const laneValidation = () => {
     if (heroDetails.length === 0) return { isValid: true, errors: [], warnings: [] };
@@ -638,8 +881,13 @@ export default function ManualDraftPick() {
 
   return (
     <div className="w-full mx-auto p-6 bg-gray-900 text-white rounded-lg">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Manual Draft Pick</h1>
+      <div className="flex flex-col gap-4 mb-6 md:flex-row md:items-center md:justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Manual Draft Pick</h1>
+          <p className="mt-1 text-sm text-gray-400">
+            Cari hero dengan cepat lalu filter berdasarkan Role, Damage Type, Attack Reliance, dan Lane.
+          </p>
+        </div>
         {hasAnyPick && (
           <button
             onClick={handleClearAll}
@@ -648,6 +896,301 @@ export default function ManualDraftPick() {
             Clear All
           </button>
         )}
+      </div>
+
+      <div className="mb-6 rounded-lg bg-gray-800/80 p-4 border border-gray-700">
+        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div className="md:w-1/3">
+            <label className="block mb-1 text-xs font-semibold text-gray-400">Search Hero</label>
+            <input
+              type="text"
+              value={heroSearch}
+              onChange={(e) => setHeroSearch(e.target.value)}
+              placeholder="Ketik nama hero..."
+              className="w-full px-3 py-2 text-sm text-white bg-gray-900 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              autoFocus
+            />
+          </div>
+          <div className="grid flex-1 grid-cols-2 gap-3 md:grid-cols-4">
+            <div>
+              <label className="block mb-1 text-xs font-semibold text-gray-400">Role</label>
+              <select
+                value={roleFilter}
+                onChange={(e) => setRoleFilter(e.target.value)}
+                className="w-full px-3 py-2 text-sm text-white bg-gray-900 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="">All Roles</option>
+                {uniqueRoles.map(role => (
+                  <option key={role} value={role}>{role}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block mb-1 text-xs font-semibold text-gray-400">Damage Type</label>
+              <select
+                value={damageTypeFilter}
+                onChange={(e) => setDamageTypeFilter(e.target.value)}
+                className="w-full px-3 py-2 text-sm text-white bg-gray-900 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="">All Types</option>
+                {uniqueDamageTypes.map(dt => (
+                  <option key={dt} value={dt}>{dt}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block mb-1 text-xs font-semibold text-gray-400">Attack Reliance</label>
+              <select
+                value={attackRelianceFilter}
+                onChange={(e) => setAttackRelianceFilter(e.target.value)}
+                className="w-full px-3 py-2 text-sm text-white bg-gray-900 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="">All Types</option>
+                {uniqueAttackReliance.map(ar => (
+                  <option key={ar} value={ar}>{ar}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block mb-1 text-xs font-semibold text-gray-400">Lane</label>
+              <select
+                value={laneFilter}
+                onChange={(e) => setLaneFilter(e.target.value)}
+                className="w-full px-3 py-2 text-sm text-white bg-gray-900 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="">All Lanes</option>
+                {uniqueLanes.map(lane => (
+                  <option key={lane} value={lane}>{lane}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </div>
+        <div className="mt-3 flex gap-2 text-xs border-b border-gray-700">
+          <button
+            type="button"
+            onClick={() => setHeroListMode('all')}
+            className={`px-3 py-1 rounded-t-md border-b-2 ${
+              heroListMode === 'all'
+                ? 'border-blue-500 text-blue-300 bg-gray-900'
+                : 'border-transparent text-gray-400 hover:text-gray-200 hover:bg-gray-900/60'
+            }`}
+          >
+            Semua
+          </button>
+          <button
+            type="button"
+            onClick={() => setHeroListMode('counter')}
+            className={`px-3 py-1 rounded-t-md border-b-2 ${
+              heroListMode === 'counter'
+                ? 'border-red-500 text-red-300 bg-gray-900'
+                : 'border-transparent text-gray-400 hover:text-gray-200 hover:bg-gray-900/60'
+            }`}
+          >
+            Counter Musuh
+          </button>
+          <button
+            type="button"
+            onClick={() => setHeroListMode('synergy')}
+            className={`px-3 py-1 rounded-t-md border-b-2 ${
+              heroListMode === 'synergy'
+                ? 'border-purple-500 text-purple-300 bg-gray-900'
+                : 'border-transparent text-gray-400 hover:text-gray-200 hover:bg-gray-900/60'
+            }`}
+          >
+            Synergy Tim
+          </button>
+        </div>
+
+        <div className="mt-4 flex flex-col gap-4 lg:flex-row">
+          <div className="lg:w-2/3">
+            <p className="mb-2 text-xs text-gray-400">
+              Hasil: <span className="font-semibold text-gray-200">{displayHeroes.length}</span> hero
+            </p>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+              {displayHeroes.slice(0, 40).map(hero => {
+                const primaryRole = hero.role ? hero.role.split('/')[0].trim() : 'Unknown';
+                const damageType = hero.damage_type || hero.damageType || 'Unknown';
+                const attackRel = hero.attack_reliance || hero.attackReliance || 'Unknown';
+                const primaryLane = Array.isArray(hero.lanes)
+                  ? (hero.lanes.find(l => l.priority === 1)?.lane_name || hero.lanes[0]?.lane_name)
+                  : undefined;
+                const isSelected = selectedHeroForDetails &&
+                  ((selectedHeroForDetails.hero_name || selectedHeroForDetails.name) === (hero.hero_name || hero.name));
+
+                const name = hero.hero_name || hero.name || '';
+                const key = name.toLowerCase();
+                const counterMeta = counterMetaByHeroName[key];
+                const synergyMeta = synergyMetaByHeroName[key];
+
+                const tooltipLines = [];
+                if (counterMeta && Array.isArray(counterMeta.entries) && counterMeta.entries.length > 0) {
+                  tooltipLines.push(...counterMeta.entries);
+                }
+                if (synergyMeta && synergyMeta.tooltip) {
+                  tooltipLines.push(synergyMeta.tooltip);
+                }
+                const tooltip = tooltipLines.length > 0 ? tooltipLines.join('\n') : undefined;
+
+                const counterLabel = counterMeta && counterMeta.entries && counterMeta.entries.length > 0
+                  ? counterMeta.entries[0]
+                  : null;
+
+                const roleIcon = getRoleIcon(primaryRole);
+                const damageIcon = getDamageTypeIcon(damageType);
+
+                return (
+                  <div
+                    key={hero.hero_name || hero.name}
+                    onClick={() => setSelectedHeroForDetails(hero)}
+                    title={tooltip}
+                    className={`p-3 text-xs transition-colors border rounded-lg cursor-pointer ${
+                      isSelected
+                        ? 'bg-blue-900/60 border-blue-500'
+                        : 'bg-gray-900/80 border-gray-700 hover:border-blue-500 hover:bg-gray-800'
+                    }`}
+                  >
+                    <p className="mb-1 text-sm font-semibold text-white truncate">
+                      {hero.hero_name || hero.name}
+                    </p>
+                    <p className="mb-1 text-[11px] text-blue-300 truncate flex items-center gap-1">
+                      {roleIcon && <span>{roleIcon}</span>}
+                      <span>{primaryRole}</span>
+                    </p>
+                    <p className="text-[11px] text-gray-400 truncate flex items-center gap-1">
+                      <span>{damageIcon}</span>
+                      <span>{damageType} • {attackRel}</span>
+                    </p>
+                    {primaryLane && (
+                      <div className="mt-1 flex items-center gap-1 text-[11px] text-emerald-300 truncate">
+                        <span>{LANE_ICONS[primaryLane] || '🔵'}</span>
+                        <span>{primaryLane}</span>
+                      </div>
+                    )}
+                    {(counterMeta || synergyMeta) && (
+                      <div className="mt-1 flex flex-wrap gap-1 text-[10px]">
+                        {counterMeta && (
+                          <span className="px-1.5 py-0.5 rounded-full bg-red-700/60 text-red-100">
+                            {counterLabel || 'Counter Musuh'}
+                          </span>
+                        )}
+                        {synergyMeta && (
+                          <span className="px-1.5 py-0.5 rounded-full bg-purple-700/60 text-purple-100">
+                            Synergy Tim
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+              {displayHeroes.length === 0 && (
+                <div className="col-span-2 text-xs text-center text-gray-500 sm:col-span-3 lg:col-span-4 xl:col-span-5">
+                  Tidak ada hero yang cocok dengan filter.
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="lg:w-1/3">
+            <div className="h-full p-3 border border-gray-700 rounded-lg bg-gray-900/80">
+              {selectedHeroForDetails ? (() => {
+                const hero = selectedHeroForDetails;
+                const name = hero.hero_name || hero.name || '';
+                const primaryRole = hero.role ? hero.role.split('/')[0].trim() : 'Unknown';
+                const damageType = hero.damage_type || hero.damageType || 'Unknown';
+                const attackRel = hero.attack_reliance || hero.attackReliance || 'Unknown';
+                const lanesList = Array.isArray(hero.lanes) ? hero.lanes : [];
+                const primaryLane = lanesList.length > 0
+                  ? (lanesList.find(l => l.priority === 1)?.lane_name || lanesList[0]?.lane_name)
+                  : undefined;
+                const counters = Array.isArray(hero.counters) ? hero.counters : [];
+
+                return (
+                  <>
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="text-sm font-semibold text-white truncate">
+                        {name}
+                      </h3>
+                      {primaryLane && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-700/30 text-[11px] text-emerald-200">
+                          <span>{LANE_ICONS[primaryLane] || '🔵'}</span>
+                          <span>{primaryLane}</span>
+                        </span>
+                      )}
+                    </div>
+                    <p className="mb-1 text-[11px] text-blue-300 truncate">
+                      {primaryRole}
+                    </p>
+                    <p className="mb-3 text-[11px] text-gray-400 truncate">
+                      {damageType} • {attackRel}
+                    </p>
+
+                    {lanesList.length > 0 && (
+                      <div className="mb-3">
+                        <p className="mb-1 text-[11px] text-gray-400">Lane rekomendasi</p>
+                        <div className="flex flex-wrap gap-1">
+                          {lanesList.map(lane => (
+                            <span
+                              key={`${lane.lane_name}-${lane.priority}`}
+                              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] ${
+                                lane.priority === 1
+                                  ? 'bg-emerald-700 text-emerald-50'
+                                  : 'bg-gray-800 text-gray-200'
+                              }`}
+                            >
+                              <span>{LANE_ICONS[lane.lane_name] || '🔵'}</span>
+                              <span>{lane.lane_name}</span>
+                              {lane.priority === 1 && (
+                                <span className="ml-1 text-[9px] text-emerald-200">PRIMARY</span>
+                              )}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="mb-3">
+                      <p className="mb-1 text-[11px] text-gray-400">Level kesulitan</p>
+                      <p className="text-[12px] text-gray-200">
+                        Belum diatur (menggunakan data/rules terpisah jika tersedia).
+                      </p>
+                    </div>
+
+                    <div className="mb-3">
+                      <p className="mb-1 text-[11px] text-gray-400">Kelebihan / karakter hero</p>
+                      <div className="max-h-40 overflow-y-auto text-[12px] text-gray-200 whitespace-pre-line">
+                        {hero.note && hero.note.trim()
+                          ? hero.note
+                          : 'Belum ada catatan hero di kolom Note (heroes.csv / tabel heroes).'}
+                      </div>
+                    </div>
+
+                    {counters.length > 0 && (
+                      <div className="mb-1">
+                        <p className="mb-1 text-[11px] text-gray-400">Lemah vs (berdasarkan hero_counter)</p>
+                        <ul className="space-y-0.5 text-[12px] text-red-200">
+                          {counters.slice(0, 5).map((c, idx) => (
+                            <li key={idx}>
+                              <span className="font-semibold">{c.enemy}</span>
+                              {c.reason && c.reason.trim() && (
+                                <span>{` - ${c.reason}`}</span>
+                              )}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </>
+                );
+              })() : (
+                <div className="flex items-center justify-center h-full text-[12px] text-gray-500 text-center">
+                  Klik salah satu hero di daftar untuk melihat detail (Note, lane rekomendasi, dan data counter).
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Validation Summary */}
