@@ -70,6 +70,25 @@ Cooldown : 7s at all levels >> 7-5s
 
 [Skill 2 Adjustments] Nerf
 Crescent Moon Damage : 20 (+35% Total Physical Atatck)(+35% Total Magic power) >> 20 (+35% Total Magic power)"
+"Harley","03-11-2025","38","Enhanced his mobility and the controls of his Ultimate.
+
+[Skill 2 Adjustments] Buff
+Cooldown : 11-8s >> 8-6s
+New Effect : Returning to the hat's location with Skill 2 no longer cancels the Movement Speed boost.
+
+[Skill 3 Adjustments] Buff
+New Effect : No longer blocked by enemy hero units.
+Foreswing : 0.4 >> 0.33s
+Slow Effect : Slow enemy heroes by 40% for 1.5s >> Slow enemy heroes by 40% for 1.5s. decaying to 15% after 1.5s."
+"Martis","03-11-2025","38","Increased Martis's damage in the mid-to-late game.
+
+[Passive Adjustments] Buff
+Extra Attack at Full Stacks : 6 * Hero Level >> 8 * Hero Level
+
+[Skill 3 Adjustments] Buff
+Damage : 800-1000(+100% Total Physical Attack) >> 700-1100(+120% Total Physical Attack)
+Improved the visibility of the target indicator for his Ultimate.
+New Effect : Sky Piercer's damage will contribute to the activation of indicator effects on the targer."
 "Xavier","03-11-2025","38","Xavier relies on continuously hitting enemies with Skills 1 and 2 to enhance and enter the Transcendence state for stronger damage output. This doesn't align with our design expectations. Therefore, we've increased the width of all skills, changed Stage I to a permanent passive, and removed the original Stage II effect, allowing Xavier to enter to Transcendence state more quickly. To balance this chane, we've reduced the duration of Skill 2's immobilization.
 
 [Passive Adjustments] Adjust
