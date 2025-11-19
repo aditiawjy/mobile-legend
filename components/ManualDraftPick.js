@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import HeroAutocomplete from './HeroAutocomplete';
 import { fetchLanes, getDefaultLanes, LANE_ICONS } from '../lib/laneConstants';
 
@@ -44,6 +44,9 @@ export default function ManualDraftPick() {
   const [laneFilter, setLaneFilter] = useState('');
    const [heroListMode, setHeroListMode] = useState('all');
   const [selectedHeroForDetails, setSelectedHeroForDetails] = useState(null);
+  const [activeSlot, setActiveSlot] = useState({ side: 'our', index: 0 });
+  const [hoveredHero, setHoveredHero] = useState(null);
+  const searchInputRef = useRef(null);
 
   // Load all heroes with lanes data on mount
   useEffect(() => {
@@ -587,7 +590,13 @@ export default function ManualDraftPick() {
   const uniqueRoles = Array.from(
     new Set(
       allHeroesWithLanes
-        .map(h => (h.role ? h.role.split('/')[0].trim() : ''))
+        .flatMap(h => {
+          if (!h.role) return [];
+          return h.role.split('/').map(r => {
+            const role = r.trim();
+            return role.charAt(0).toUpperCase() + role.slice(1).toLowerCase();
+          });
+        })
         .filter(Boolean)
     )
   ).sort();
@@ -595,7 +604,10 @@ export default function ManualDraftPick() {
   const uniqueDamageTypes = Array.from(
     new Set(
       allHeroesWithLanes
-        .map(h => h.damage_type || h.damageType || '')
+        .map(h => {
+          const dt = h.damage_type || h.damageType || '';
+          return dt.trim();
+        })
         .filter(Boolean)
     )
   ).sort();
@@ -603,7 +615,10 @@ export default function ManualDraftPick() {
   const uniqueAttackReliance = Array.from(
     new Set(
       allHeroesWithLanes
-        .map(h => h.attack_reliance || h.attackReliance || '')
+        .map(h => {
+          const ar = h.attack_reliance || h.attackReliance || '';
+          return ar.trim();
+        })
         .filter(Boolean)
     )
   ).sort();
@@ -626,8 +641,12 @@ export default function ManualDraftPick() {
     if (heroSearch && !name.toLowerCase().includes(heroSearch.toLowerCase())) {
       return false;
     }
-    if (roleFilter && !role.toLowerCase().startsWith(roleFilter.toLowerCase())) {
-      return false;
+    if (roleFilter) {
+      // Normalize roles for comparison
+      const heroRoles = role.split('/').map(r => r.trim().toLowerCase());
+      if (!heroRoles.some(r => r === roleFilter.toLowerCase())) {
+        return false;
+      }
     }
     if (damageTypeFilter && !damageType.toLowerCase().includes(damageTypeFilter.toLowerCase())) {
       return false;
@@ -794,6 +813,79 @@ export default function ManualDraftPick() {
         const bScore = synergyMetaByHeroName[bKey]?.score || 0;
         return bScore - aScore;
       });
+  } else if (heroListMode === 'recommended') {
+    const pickedHeroes = heroDetails;
+    const hasTank = pickedHeroes.some(h => isTankOrTanky(h));
+    
+    // Identify active slot and side
+    const targetSide = activeSlot?.side || 'our';
+    const targetLaneIndex = activeSlot?.index;
+    const targetLaneName = (targetSide === 'our' && typeof targetLaneIndex === 'number') 
+      ? lanes[targetLaneIndex]?.lane 
+      : null;
+
+    // Identify empty lanes
+    const emptyLaneNames = lanes
+       .filter((l, idx) => !draftPicks[idx] || !draftPicks[idx].trim())
+       .map(l => l.lane);
+
+    displayHeroes = filteredHeroes
+      .map(hero => {
+        let score = 0;
+        const name = hero.hero_name || hero.name || '';
+        const key = name.toLowerCase();
+
+        // 1. Counter Score (Weight: 15 per counter point)
+        const counter = counterMetaByHeroName[key];
+        if (counter) score += counter.score * 15;
+
+        // 2. Synergy Score (Weight: 1 per synergy point)
+        const synergy = synergyMetaByHeroName[key];
+        if (synergy) score += synergy.score;
+
+        // 3. Tank Need (Weight: 50 - Huge Priority)
+        // Only apply if we are picking for our team
+        if (targetSide === 'our' && !hasTank && isTankOrTanky(hero)) {
+            score += 50;
+        }
+        
+        // 4. Lane Need / Active Slot Match (Weight: 40 for Active, 20 for Generic Empty)
+        if (targetSide === 'our' && hero.lanes) {
+             // If we have an active slot, prioritize hero for that slot
+             if (targetLaneName) {
+                const activeLaneMatch = hero.lanes.find(l => l.lane_name === targetLaneName);
+                if (activeLaneMatch) {
+                   score += activeLaneMatch.priority === 1 ? 60 : 30; // Primary lane gets huge boost
+                }
+             } 
+             // Otherwise check if it fills ANY empty lane (fallback)
+             else if (emptyLaneNames.length > 0) {
+                 const primaryLane = hero.lanes.find(l => l.priority === 1)?.lane_name;
+                 if (primaryLane && emptyLaneNames.includes(primaryLane)) {
+                     score += 20;
+                 }
+             }
+        }
+        
+        // 5. Team Composition Balance (Basic)
+        if (targetSide === 'our' && composition) {
+             const dt = hero.damage_type?.toLowerCase() || '';
+             const teamPhysical = composition.damageTypes?.physical || 0;
+             const teamMagic = composition.damageTypes?.magic || 0;
+             
+             // If team lacks magic, boost magic heroes
+             if (teamPhysical > teamMagic + 2 && (dt.includes('magic') || dt.includes('mixed'))) {
+                 score += 25;
+             }
+             // If team lacks physical, boost physical heroes
+             if (teamMagic > teamPhysical + 2 && (dt.includes('physical') || dt.includes('mixed'))) {
+                 score += 25;
+             }
+        }
+
+        return { ...hero, _recScore: score };
+      })
+      .sort((a, b) => b._recScore - a._recScore);
   }
 
   // Validate lanes - relaxed validation
@@ -880,51 +972,229 @@ export default function ManualDraftPick() {
   const validation = laneValidation();
 
   return (
-    <div className="w-full mx-auto p-6 bg-gray-900 text-white rounded-lg">
-      <div className="flex flex-col gap-4 mb-6 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Manual Draft Pick</h1>
-          <p className="mt-1 text-sm text-gray-400">
-            Cari hero dengan cepat lalu filter berdasarkan Role, Damage Type, Attack Reliance, dan Lane.
-          </p>
+    <div className="w-full mx-auto bg-gray-900 text-white rounded-lg">
+      {/* Sticky Draft Board */}
+      <div className="sticky top-0 z-40 bg-gray-900/95 backdrop-blur border-b border-gray-700 p-4 shadow-xl">
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-2xl font-bold">Manual Draft Pick</h1>
+          <div className="flex gap-2">
+             {hasAnyPick && (
+              <button
+                onClick={handleClearAll}
+                className="px-3 py-1 bg-red-600 hover:bg-red-700 rounded text-xs font-semibold transition-colors"
+              >
+                Clear All
+              </button>
+            )}
+          </div>
         </div>
-        {hasAnyPick && (
-          <button
-            onClick={handleClearAll}
-            className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg text-sm font-semibold transition-colors"
-          >
-            Clear All
-          </button>
-        )}
+
+        <div className="flex flex-col gap-3">
+          {/* Our Team */}
+          <div className="flex gap-2 overflow-x-auto pb-2">
+            {lanes.map((position, idx) => {
+              const isActive = activeSlot?.side === 'our' && activeSlot?.index === idx;
+              const heroName = draftPicks[idx];
+
+              // Real-time Synergy Feedback
+              const hasSynergyWithHovered = hoveredHero && heroName && (() => {
+                  const key1 = hoveredHero.hero_name.toLowerCase();
+                  const key2 = heroName.toLowerCase();
+                  // Check DB combo
+                  const combo = heroCombos.find(c => 
+                      (c.hero1.toLowerCase() === key1 && c.hero2.toLowerCase() === key2) ||
+                      (c.hero2.toLowerCase() === key1 && c.hero1.toLowerCase() === key2)
+                  );
+                  if (combo) return true;
+
+                  // Check Compatibility
+                  const compat = heroCompatibility[key2];
+                  if (compat) {
+                      if (compat.partner_hero1?.toLowerCase() === key1 ||
+                          compat.partner_hero2?.toLowerCase() === key1 ||
+                          compat.partner_hero3?.toLowerCase() === key1 ||
+                          compat.partner_hero4?.toLowerCase() === key1) return true;
+                  }
+                  return false;
+              })();
+
+              const hasCompatWithHovered = hoveredHero && heroName && (() => {
+                  const key1 = hoveredHero.hero_name.toLowerCase();
+                  const key2 = heroName.toLowerCase();
+                  const compat = heroCompatibility[key2];
+                  if (compat) {
+                      if (compat.partner_hero1?.toLowerCase() === key1 ||
+                          compat.partner_hero2?.toLowerCase() === key1 ||
+                          compat.partner_hero3?.toLowerCase() === key1 ||
+                          compat.partner_hero4?.toLowerCase() === key1) return true;
+                  }
+                  return false;
+              })();
+
+              return (
+                <div 
+                  key={`our-${idx}`}
+                  onClick={() => {
+                    setActiveSlot({ side: 'our', index: idx });
+                    // Focus search input immediately for speed
+                    if (searchInputRef.current) searchInputRef.current.focus();
+                  }}
+                  className={`flex-1 min-w-[100px] h-24 relative cursor-pointer rounded-lg border-2 transition-all ${
+                    hasSynergyWithHovered 
+                      ? 'border-green-400 bg-green-900/40 shadow-[0_0_15px_rgba(74,222,128,0.5)] scale-105 z-10'
+                      : isActive 
+                        ? 'border-yellow-400 bg-gray-800 shadow-[0_0_15px_rgba(250,204,21,0.3)]' 
+                        : heroName 
+                          ? 'border-blue-500 bg-blue-900/40'
+                          : 'border-gray-700 bg-gray-800/50 hover:border-gray-500'
+                  }`}
+                >
+                  {hasSynergyWithHovered && (
+                     <div className="absolute -top-2 -right-2 bg-green-500 text-white text-[10px] px-1.5 py-0.5 rounded-full shadow-lg animate-bounce z-20">
+                       {hasCompatWithHovered ? '🤝 Partner!' : '✨ Synergy!'}
+                     </div>
+                  )}
+                  <div className="absolute top-1 left-2 text-xl opacity-50">{position.icon}</div>
+                  <div className="absolute top-1 right-2 text-[10px] uppercase tracking-wider opacity-70">{position.lane}</div>
+                  
+                  <div className="absolute inset-0 flex flex-col items-center justify-center pt-4">
+                    {heroName ? (
+                      <>
+                         <div className="font-bold text-sm text-center px-1 leading-tight">{heroName}</div>
+                         <button 
+                           onClick={(e) => { e.stopPropagation(); handlePickChange(idx, ''); }}
+                           className="absolute top-1 right-1 w-4 h-4 flex items-center justify-center bg-red-500/20 hover:bg-red-500 text-red-200 rounded-full text-[10px]"
+                         >✕</button>
+                      </>
+                    ) : (
+                      <div className="text-2xl text-gray-600 font-light">+</div>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+
+          {/* Enemy Team */}
+          <div className="flex gap-2 overflow-x-auto pb-2">
+            {lanes.map((position, idx) => {
+              const isActive = activeSlot?.side === 'enemy' && activeSlot?.index === idx;
+              const heroName = enemyDraftPicks[idx];
+
+              // Real-time Counter Feedback (Warning)
+              const isThreatToHovered = hoveredHero && heroName && (() => {
+                 // Check if existing enemy hero (heroName) is a counter to hovered hero
+                 // Using counterMetaByHeroName logic (which is pre-calculated for hoveredHero vs ENTIRE enemy team, but here we need specific 1v1)
+                 
+                 // Check if hoveredHero is weak against heroName
+                 // hoveredHero.counters contains list of enemies that counter hoveredHero
+                 if (hoveredHero.counters && Array.isArray(hoveredHero.counters)) {
+                     return hoveredHero.counters.some(c => c.enemy?.toLowerCase() === heroName.toLowerCase());
+                 }
+                 return false;
+              })();
+
+              return (
+                <div 
+                  key={`enemy-${idx}`}
+                  onClick={() => {
+                    setActiveSlot({ side: 'enemy', index: idx });
+                    // Focus search input immediately for speed
+                    if (searchInputRef.current) searchInputRef.current.focus();
+                  }}
+                  className={`flex-1 min-w-[100px] h-16 relative cursor-pointer rounded-lg border-2 transition-all ${
+                    isThreatToHovered
+                      ? 'border-red-500 bg-red-900/60 shadow-[0_0_15px_rgba(239,68,68,0.6)] scale-105 z-10'
+                      : isActive 
+                        ? 'border-yellow-400 bg-gray-800 shadow-[0_0_15px_rgba(250,204,21,0.3)]' 
+                        : heroName 
+                          ? 'border-red-500 bg-red-900/40'
+                          : 'border-gray-700 bg-gray-800/30 hover:border-gray-500'
+                  }`}
+                >
+                  {isThreatToHovered && (
+                     <div className="absolute -top-2 -right-2 bg-red-600 text-white text-[10px] px-1.5 py-0.5 rounded-full shadow-lg animate-pulse z-20">
+                       ⚠️ Threat!
+                     </div>
+                  )}
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    {heroName ? (
+                      <>
+                         <div className="font-bold text-xs text-center px-1 leading-tight">{heroName}</div>
+                         <button 
+                           onClick={(e) => { e.stopPropagation(); handleEnemyPickChange(idx, ''); }}
+                           className="absolute top-1 right-1 w-3 h-3 flex items-center justify-center bg-red-500/20 hover:bg-red-500 text-red-200 rounded-full text-[8px]"
+                         >✕</button>
+                      </>
+                    ) : (
+                      <div className="flex items-center gap-1 opacity-50">
+                         <span className="text-sm">{position.icon}</span>
+                         <span className="text-[10px]">Enemy</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
       </div>
+      
+      <div className="p-6 pt-2">
 
       <div className="mb-6 rounded-lg bg-gray-800/80 p-4 border border-gray-700">
-        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-          <div className="md:w-1/3">
-            <label className="block mb-1 text-xs font-semibold text-gray-400">Search Hero</label>
-            <input
-              type="text"
-              value={heroSearch}
-              onChange={(e) => setHeroSearch(e.target.value)}
-              placeholder="Ketik nama hero..."
-              className="w-full px-3 py-2 text-sm text-white bg-gray-900 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              autoFocus
-            />
-          </div>
-          <div className="grid flex-1 grid-cols-2 gap-3 md:grid-cols-4">
-            <div>
-              <label className="block mb-1 text-xs font-semibold text-gray-400">Role</label>
-              <select
-                value={roleFilter}
-                onChange={(e) => setRoleFilter(e.target.value)}
-                className="w-full px-3 py-2 text-sm text-white bg-gray-900 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="">All Roles</option>
-                {uniqueRoles.map(role => (
-                  <option key={role} value={role}>{role}</option>
-                ))}
-              </select>
+        <div className="flex flex-col gap-4">
+          {/* Top Row: Search & Role Filters */}
+          <div className="flex flex-col gap-4 md:flex-row md:items-center">
+            <div className="md:w-1/4">
+              <label className="block mb-1 text-xs font-semibold text-gray-400">Search Hero</label>
+              <div className="relative">
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  value={heroSearch}
+                  onChange={(e) => setHeroSearch(e.target.value)}
+                  placeholder="Ketik nama hero..."
+                  className="w-full pl-9 pr-3 py-2 text-sm text-white bg-gray-900 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  autoFocus
+                />
+                <span className="absolute left-3 top-2.5 text-gray-500 text-xs">🔍</span>
+              </div>
             </div>
+            
+            <div className="flex-1 overflow-x-auto pb-1">
+              <label className="block mb-1 text-xs font-semibold text-gray-400">Quick Role Filters</label>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setRoleFilter('')}
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap border ${
+                    roleFilter === ''
+                      ? 'bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-500/20'
+                      : 'bg-gray-800 border-gray-600 text-gray-300 hover:bg-gray-700'
+                  }`}
+                >
+                  All Roles
+                </button>
+                {uniqueRoles.map(role => (
+                  <button
+                    key={role}
+                    onClick={() => setRoleFilter(role === roleFilter ? '' : role)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap border flex items-center gap-1.5 ${
+                      roleFilter === role
+                        ? 'bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-500/20'
+                        : 'bg-gray-800 border-gray-600 text-gray-300 hover:bg-gray-700'
+                    }`}
+                  >
+                    <span>{getRoleIcon(role)}</span>
+                    <span>{role}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom Row: Other Filters */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2 border-t border-gray-700/50">
             <div>
               <label className="block mb-1 text-xs font-semibold text-gray-400">Damage Type</label>
               <select
@@ -966,39 +1236,54 @@ export default function ManualDraftPick() {
             </div>
           </div>
         </div>
-        <div className="mt-3 flex gap-2 text-xs border-b border-gray-700">
+        
+        <div className="mt-4 flex gap-2 text-xs border-b border-gray-700 overflow-x-auto">
           <button
             type="button"
             onClick={() => setHeroListMode('all')}
-            className={`px-3 py-1 rounded-t-md border-b-2 ${
+            className={`px-4 py-2 rounded-t-md border-b-2 whitespace-nowrap transition-colors ${
               heroListMode === 'all'
-                ? 'border-blue-500 text-blue-300 bg-gray-900'
-                : 'border-transparent text-gray-400 hover:text-gray-200 hover:bg-gray-900/60'
+                ? 'border-blue-500 text-blue-300 bg-gray-800 font-semibold'
+                : 'border-transparent text-gray-400 hover:text-gray-200 hover:bg-gray-800/50'
             }`}
           >
-            Semua
+            Semua Hero
+          </button>
+          <button
+            type="button"
+            onClick={() => setHeroListMode('recommended')}
+            className={`px-4 py-2 rounded-t-md border-b-2 whitespace-nowrap transition-colors flex items-center gap-1.5 ${
+              heroListMode === 'recommended'
+                ? 'border-emerald-500 text-emerald-300 bg-gray-800 font-semibold'
+                : 'border-transparent text-gray-400 hover:text-gray-200 hover:bg-gray-800/50'
+            }`}
+          >
+            <span>💡</span>
+            <span>Recommended</span>
           </button>
           <button
             type="button"
             onClick={() => setHeroListMode('counter')}
-            className={`px-3 py-1 rounded-t-md border-b-2 ${
+            className={`px-4 py-2 rounded-t-md border-b-2 whitespace-nowrap transition-colors flex items-center gap-1.5 ${
               heroListMode === 'counter'
-                ? 'border-red-500 text-red-300 bg-gray-900'
-                : 'border-transparent text-gray-400 hover:text-gray-200 hover:bg-gray-900/60'
+                ? 'border-red-500 text-red-300 bg-gray-800 font-semibold'
+                : 'border-transparent text-gray-400 hover:text-gray-200 hover:bg-gray-800/50'
             }`}
           >
-            Counter Musuh
+            <span>⚔️</span>
+            <span>Counter Musuh</span>
           </button>
           <button
             type="button"
             onClick={() => setHeroListMode('synergy')}
-            className={`px-3 py-1 rounded-t-md border-b-2 ${
+            className={`px-4 py-2 rounded-t-md border-b-2 whitespace-nowrap transition-colors flex items-center gap-1.5 ${
               heroListMode === 'synergy'
-                ? 'border-purple-500 text-purple-300 bg-gray-900'
-                : 'border-transparent text-gray-400 hover:text-gray-200 hover:bg-gray-900/60'
+                ? 'border-purple-500 text-purple-300 bg-gray-800 font-semibold'
+                : 'border-transparent text-gray-400 hover:text-gray-200 hover:bg-gray-800/50'
             }`}
           >
-            Synergy Tim
+            <span>🤝</span>
+            <span>Synergy Tim</span>
           </button>
         </div>
 
@@ -1039,17 +1324,58 @@ export default function ManualDraftPick() {
                 const roleIcon = getRoleIcon(primaryRole);
                 const damageIcon = getDamageTypeIcon(damageType);
 
+                // Check if picked
+                const pickedInOurTeam = draftPicks.some(p => p && p.toLowerCase() === key);
+                const pickedInEnemyTeam = enemyDraftPicks.some(p => p && p.toLowerCase() === key);
+
                 return (
                   <div
                     key={hero.hero_name || hero.name}
-                    onClick={() => setSelectedHeroForDetails(hero)}
+                    onMouseEnter={() => setHoveredHero(hero)}
+                    onMouseLeave={() => setHoveredHero(null)}
+                    onClick={() => {
+                      if (pickedInOurTeam || pickedInEnemyTeam) return; // Prevent picking already picked hero
+                      
+                      if (activeSlot) {
+                        const heroName = hero.hero_name || hero.name;
+                        // Clear search after pick
+                        setHeroSearch('');
+                        if (searchInputRef.current) searchInputRef.current.focus();
+
+                        if (activeSlot.side === 'our') {
+                          handlePickChange(activeSlot.index, heroName);
+                          const nextIdx = activeSlot.index < 4 ? activeSlot.index + 1 : 4;
+                          if (activeSlot.index < 4) setActiveSlot({ side: 'our', index: nextIdx });
+                        } else {
+                          handleEnemyPickChange(activeSlot.index, heroName);
+                          const nextIdx = activeSlot.index < 4 ? activeSlot.index + 1 : 4;
+                          if (activeSlot.index < 4) setActiveSlot({ side: 'enemy', index: nextIdx });
+                        }
+                      }
+                      setSelectedHeroForDetails(hero);
+                    }}
                     title={tooltip}
-                    className={`p-3 text-xs transition-colors border rounded-lg cursor-pointer ${
-                      isSelected
+                    className={`relative p-3 text-xs transition-colors border rounded-lg cursor-pointer overflow-hidden ${
+                      pickedInOurTeam
+                        ? 'bg-blue-900/40 border-blue-500 opacity-60'
+                        : pickedInEnemyTeam
+                        ? 'bg-red-900/40 border-red-500 opacity-60'
+                        : isSelected
                         ? 'bg-blue-900/60 border-blue-500'
                         : 'bg-gray-900/80 border-gray-700 hover:border-blue-500 hover:bg-gray-800'
                     }`}
                   >
+                    {pickedInEnemyTeam && (
+                      <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
+                        <span className="text-red-500 text-4xl font-bold opacity-50">✕</span>
+                      </div>
+                    )}
+                    {pickedInOurTeam && (
+                      <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
+                        <span className="text-blue-500 text-4xl font-bold opacity-30">✓</span>
+                      </div>
+                    )}
+
                     <p className="mb-1 text-sm font-semibold text-white truncate">
                       {hero.hero_name || hero.name}
                     </p>
@@ -1067,8 +1393,13 @@ export default function ManualDraftPick() {
                         <span>{primaryLane}</span>
                       </div>
                     )}
-                    {(counterMeta || synergyMeta) && (
+                    {(counterMeta || synergyMeta || (heroListMode === 'recommended' && hero._recScore > 0)) && (
                       <div className="mt-1 flex flex-wrap gap-1 text-[10px]">
+                        {heroListMode === 'recommended' && hero._recScore > 0 && (
+                          <span className="px-1.5 py-0.5 rounded-full bg-emerald-700/60 text-emerald-100 font-semibold border border-emerald-500/50">
+                            ⭐ {hero._recScore}
+                          </span>
+                        )}
                         {counterMeta && (
                           <span className="px-1.5 py-0.5 rounded-full bg-red-700/60 text-red-100">
                             {counterLabel || 'Counter Musuh'}
@@ -1169,8 +1500,8 @@ export default function ManualDraftPick() {
                     {counters.length > 0 && (
                       <div className="mb-1">
                         <p className="mb-1 text-[11px] text-gray-400">Lemah vs (berdasarkan hero_counter)</p>
-                        <ul className="space-y-0.5 text-[12px] text-red-200">
-                          {counters.slice(0, 5).map((c, idx) => (
+                        <ul className="space-y-0.5 text-[12px] text-red-200 max-h-60 overflow-y-auto pr-1 custom-scrollbar">
+                          {counters.map((c, idx) => (
                             <li key={idx}>
                               <span className="font-semibold">{c.enemy}</span>
                               {c.reason && c.reason.trim() && (
@@ -1257,194 +1588,7 @@ export default function ManualDraftPick() {
         </div>
       </div>
 
-      {/* Draft Pick Inputs */}
-      <div className="mb-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Our Team Draft */}
-          <div className="space-y-4">
-            <h2 className="text-xl font-semibold mb-4">Select 5 Heroes by Lane</h2>
-            <div className="grid grid-cols-1 gap-4">
-              {lanes.map((position, idx) => {
-                const recommendedHeroes = getRecommendedHeroesForLane(idx);
-                const hasRecommendations = recommendedHeroes.length > 0 && !draftPicks[idx];
-                const pickedHeroNames = draftPicks.filter((p, i) => i !== idx && p && p.trim());
 
-                return (
-                  <div key={position.id} className="space-y-2">
-                    <div className="flex items-center gap-4">
-                      <div className="flex-shrink-0 w-32">
-                        <div className="flex items-center gap-2">
-                          <span className="text-2xl">{position.icon}</span>
-                          <div>
-                            <span className="text-lg font-bold text-blue-400 block">{position.label}</span>
-                            <p className="text-xs text-gray-500">{position.lane}</p>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex-1">
-                        <HeroAutocomplete
-                          value={draftPicks[idx]}
-                          onChange={(value) => handlePickChange(idx, value)}
-                          placeholder={`Select hero for ${position.label}...`}
-                          position={position.label}
-                        />
-                      </div>
-                    </div>
-
-                    {/* Recommendations */}
-                    {hasRecommendations && (
-                      <div className="ml-36 bg-gray-800 border border-blue-600/30 rounded-lg p-3">
-                        <p className="text-xs text-blue-300 mb-2 font-semibold flex items-center gap-1">
-                          <span>💡</span>
-                          <span>Smart Picks for {position.lane}</span>
-                          {pickedHeroNames.length > 0 && (
-                            <span className="text-gray-400">
-                              (synergizes with {pickedHeroNames.length === 1 
-                                ? pickedHeroNames[0] 
-                                : pickedHeroNames.length === 2 
-                                  ? `${pickedHeroNames[0]} & ${pickedHeroNames[1]}`
-                                  : `${pickedHeroNames[0]}, ${pickedHeroNames[1]} & ${pickedHeroNames.length - 2} more`}
-                              )
-                            </span>
-                          )}
-                        </p>
-                        <div className="flex flex-wrap gap-2">
-                          {recommendedHeroes.map(hero => {
-                            const isPrimary = hero.lanes.find(l => l.lane_name === position.lane)?.priority === 1;
-                            const heroRole = hero.role?.split('/')[0];
-                            const damageType = hero.damage_type?.toLowerCase().includes('physical') ? '⚔️' : 
-                                              hero.damage_type?.toLowerCase().includes('magic') ? '✨' : '⚡';
-                            const attackRel = hero.attack_reliance?.toLowerCase().includes('basic') ? '👊' : 
-                                             hero.attack_reliance?.toLowerCase().includes('skill') ? '🎯' : '⚖️';
-                            
-                            // Check for Roaming-Mid synergy bonus (only for Mid Lane)
-                            let synergyBonus = '';
-                            if (idx === 2 && draftPicks[4]) { // Mid Lane with Roaming picked
-                              const roamingHero = heroDetails.find(h => 
-                                h.hero_name.toLowerCase() === draftPicks[4].toLowerCase()
-                              );
-                              if (roamingHero) {
-                                const roamPlaystyle = getRoamingPlaystyle(roamingHero);
-                                const roamHasCC = hasCC(roamingHero);
-                                const midHasCC = hasCC(hero);
-                                const midHasBurst = hasBurst(hero);
-                                const midHasArea = hasAreaDamage(hero);
-                                
-                                if (!roamHasCC && midHasCC) synergyBonus = '🎯CC'; // Mid provides CC
-                                else if (roamPlaystyle === 'pick-off' && midHasBurst) synergyBonus = '💥Burst';
-                                else if (roamPlaystyle === 'team-fight' && midHasArea) synergyBonus = '🌊AoE';
-                              }
-                            }
-                            
-                            // Check if hero is tank/tanky (CRITICAL for team)
-                            const heroIsTank = isTankOrTanky(hero);
-                            const teamHasTank = heroDetails.some(h => 
-                              pickedHeroNames.includes(h.hero_name) && isTankOrTanky(h)
-                            );
-                            
-                            // Check if hero has combo with picked heroes
-                            const heroCombo = hero.combo;
-                            const hasCompatibility = hero.compatMatches && hero.compatMatches.length > 0;
-                            
-                            return (
-                              <button
-                                key={hero.hero_name}
-                                onClick={() => handlePickChange(idx, hero.hero_name)}
-                                className={`px-3 py-1.5 rounded text-xs text-white transition-colors flex items-center gap-1.5 ${
-                                  heroCombo 
-                                    ? 'bg-purple-700 hover:bg-purple-600 border border-purple-500'
-                                    : heroIsTank && !teamHasTank 
-                                      ? 'bg-red-700 hover:bg-red-600 border border-red-500' 
-                                      : hasCompatibility
-                                        ? 'bg-green-700 hover:bg-green-600 border border-green-500'
-                                        : 'bg-gray-700 hover:bg-blue-600'
-                                }`}
-                                title={`${hero.hero_name} - ${heroRole}\nDamage: ${hero.damage_type}\nAttack: ${hero.attack_reliance}\nScore: ${hero.score || 0}${synergyBonus ? `\n✨ Synergy: ${synergyBonus}` : ''}${heroIsTank && !teamHasTank ? '\n🛡️ TANK NEEDED!' : ''}${heroCombo ? `\n🔥 COMBO: ${heroCombo.comboType} with ${heroCombo.partnerHero}\n📝 ${heroCombo.description}` : ''}${hasCompatibility ? `\n🤝 COMPAT: ` + hero.compatMatches.map(m => `${m.from} (slot ${m.slot})`).join(', ') : ''}`}
-                              >
-                                <span>{hero.hero_name}</span>
-                                {isPrimary && <span className="text-yellow-400">★</span>}
-                                {heroCombo && <span className="text-orange-300 text-[9px]">🔥{heroCombo.comboType}</span>}
-                                {heroIsTank && !teamHasTank && !heroCombo && <span className="text-red-200 text-[9px]">🛡️TANK</span>}
-                                {hasCompatibility && !heroCombo && <span className="text-green-200 text-[9px]">🤝Compat</span>}
-                                {synergyBonus && !heroCombo && <span className="text-green-400 text-[9px]">{synergyBonus}</span>}
-                                <span className="text-gray-400 text-[10px] flex items-center gap-0.5">
-                                  {damageType}{attackRel}
-                                </span>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Enemy Draft (View Only) */}
-          <div className="space-y-4">
-            <h2 className="text-xl font-semibold mb-4">Enemy Draft (View Only)</h2>
-            <div className="grid grid-cols-1 gap-4">
-              {lanes.map((position, idx) => {
-                const enemyName = enemyDraftPicks[idx];
-                const enemyHero = enemyName
-                  ? allHeroesWithLanes.find(h => h.hero_name && h.hero_name.toLowerCase() === enemyName.toLowerCase())
-                  : null;
-                const enemyCounters = enemyHero && Array.isArray(enemyHero.counters)
-                  ? enemyHero.counters
-                  : [];
-
-                return (
-                  <div key={position.id} className="space-y-2">
-                    <div className="flex items-center gap-4">
-                      <div className="flex-shrink-0 w-32">
-                        <div className="flex items-center gap-2">
-                          <span className="text-2xl">{position.icon}</span>
-                          <div>
-                            <span className="text-lg font-bold text-red-400 block">{position.label}</span>
-                            <p className="text-xs text-gray-500">Enemy {position.lane}</p>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex-1">
-                        <HeroAutocomplete
-                          value={enemyDraftPicks[idx]}
-                          onChange={(value) => handleEnemyPickChange(idx, value)}
-                          placeholder={`Enemy hero for ${position.label}...`}
-                          position={`Enemy ${position.label}`}
-                        />
-                      </div>
-                    </div>
-
-                    {/* Suggested counters for this enemy hero (from hero_counter) */}
-                    {enemyName && enemyCounters.length > 0 && (
-                      <div className="ml-36 bg-gray-800 border border-red-600/40 rounded-lg p-3 text-xs text-red-200">
-                        <p className="font-semibold mb-1 flex items-center gap-1">
-                          <span>⚔️</span>
-                          <span>
-                            Counters for <span className="font-bold">{enemyName}</span> (based on hero_counter):
-                          </span>
-                        </p>
-                        <ul className="space-y-0.5">
-                          {enemyCounters.map((c, i) => (
-                            <li key={i}>
-                              <span className="font-semibold">{c.enemy}</span>
-                              {c.reason && c.reason.trim() && (
-                                <span>{` - ${c.reason}`}</span>
-                              )}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      </div>
 
       {loading && (
         <div className="text-center py-8">
@@ -1826,5 +1970,6 @@ export default function ManualDraftPick() {
         </div>
       )}
     </div>
+  </div>
   );
 }
