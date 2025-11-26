@@ -32,6 +32,15 @@ const navigation = [
     ),
   },
   {
+    name: 'Manual Draft',
+    href: '/draft-pick-manual',
+    icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+      </svg>
+    ),
+  },
+  {
     name: 'Items',
     href: '/items',
     icon: (
@@ -87,10 +96,16 @@ export default function Sidebar({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   const isActive = (href) => {
-    if (href === '/') {
-      return router.pathname === '/'
+    // Special case for Heroes (/?showAll=true)
+    if (href === '/?showAll=true') {
+      return router.pathname === '/' && router.query.showAll === 'true'
     }
-    return router.pathname.startsWith(href)
+    // Special case for Dashboard (/ without showAll)
+    if (href === '/') {
+      return router.pathname === '/' && router.query.showAll !== 'true'
+    }
+    // For other routes, check if pathname starts with href
+    return router.pathname.startsWith(href.split('?')[0]) && router.pathname !== '/'
   }
 
   const NavItem = ({ item }) => (

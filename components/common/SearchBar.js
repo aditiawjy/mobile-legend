@@ -41,9 +41,8 @@ export default function SearchBar({ onSearch, placeholder = "Cari hero..." }) {
         if (response.ok) {
           const data = await response.json()
           setSuggestions(Array.isArray(data) ? data : [])
-          // Open dropdown if we have results OR if we are loading (to show spinner) 
-          // but here we set isOpen based on data
-          setIsOpen(data.length > 0)
+          // Always open dropdown when we have query or role filter
+          setIsOpen(true)
         }
       } catch (error) {
         console.error('Search error:', error)
@@ -58,7 +57,7 @@ export default function SearchBar({ onSearch, placeholder = "Cari hero..." }) {
     if (selectedRole && query.length === 0) {
       fetchSuggestions()
     } else {
-      const timeoutId = setTimeout(fetchSuggestions, 300)
+      const timeoutId = setTimeout(fetchSuggestions, 200)
       return () => clearTimeout(timeoutId)
     }
     

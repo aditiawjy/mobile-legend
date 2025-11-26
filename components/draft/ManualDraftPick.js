@@ -949,9 +949,9 @@ export default function ManualDraftPick() {
   const validation = laneValidation();
 
   return (
-    <div className="w-full mx-auto bg-gray-900 text-white rounded-lg">
+    <div className="w-full mx-auto bg-white text-gray-900 rounded-xl shadow-sm border border-gray-200">
       {/* Sticky Draft Board */}
-      <div className="sticky top-0 z-40 bg-gray-900/95 backdrop-blur border-b border-gray-700 p-4 shadow-xl">
+      <div className="sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-gray-200 p-4 shadow-sm">
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-2xl font-bold">Manual Draft Pick</h1>
           <div className="flex gap-2">
@@ -1018,12 +1018,12 @@ export default function ManualDraftPick() {
                   }}
                   className={`flex-1 min-w-[100px] h-24 relative cursor-pointer rounded-lg border-2 transition-all ${
                     hasSynergyWithHovered 
-                      ? 'border-green-400 bg-green-900/40 shadow-[0_0_15px_rgba(74,222,128,0.5)] scale-105 z-10'
+                      ? 'border-green-500 bg-green-50 shadow-[0_0_15px_rgba(74,222,128,0.3)] scale-105 z-10'
                       : isActive 
-                        ? 'border-yellow-400 bg-gray-800 shadow-[0_0_15px_rgba(250,204,21,0.3)]' 
+                        ? 'border-sky-500 bg-sky-50 shadow-[0_0_15px_rgba(14,165,233,0.3)]' 
                         : heroName 
-                          ? 'border-blue-500 bg-blue-900/40'
-                          : 'border-gray-700 bg-gray-800/50 hover:border-gray-500'
+                          ? 'border-blue-400 bg-blue-50'
+                          : 'border-gray-200 bg-gray-50 hover:border-gray-300'
                   }`}
                 >
                   {hasSynergyWithHovered && (
@@ -1031,20 +1031,20 @@ export default function ManualDraftPick() {
                        {hasCompatWithHovered ? '🤝 Partner!' : '✨ Synergy!'}
                      </div>
                   )}
-                  <div className="absolute top-1 left-2 text-xl opacity-50">{position.icon}</div>
-                  <div className="absolute top-1 right-2 text-[10px] uppercase tracking-wider opacity-70">{position.lane}</div>
+                  <div className="absolute top-1 left-2 text-xl opacity-60">{position.icon}</div>
+                  <div className="absolute top-1 right-2 text-[10px] uppercase tracking-wider text-gray-500">{position.lane}</div>
                   
                   <div className="absolute inset-0 flex flex-col items-center justify-center pt-4">
                     {heroName ? (
                       <>
-                         <div className="font-bold text-sm text-center px-1 leading-tight">{heroName}</div>
+                         <div className="font-bold text-sm text-center px-1 leading-tight text-gray-800">{heroName}</div>
                          <button 
                            onClick={(e) => { e.stopPropagation(); handlePickChange(idx, ''); }}
-                           className="absolute top-1 right-1 w-4 h-4 flex items-center justify-center bg-red-500/20 hover:bg-red-500 text-red-200 rounded-full text-[10px]"
+                           className="absolute top-1 right-1 w-4 h-4 flex items-center justify-center bg-red-100 hover:bg-red-500 text-red-500 hover:text-white rounded-full text-[10px]"
                          >✕</button>
                       </>
                     ) : (
-                      <div className="text-2xl text-gray-600 font-light">+</div>
+                      <div className="text-2xl text-gray-300 font-light">+</div>
                     )}
                   </div>
                 </div>
@@ -1081,12 +1081,12 @@ export default function ManualDraftPick() {
                   }}
                   className={`flex-1 min-w-[100px] h-16 relative cursor-pointer rounded-lg border-2 transition-all ${
                     isThreatToHovered
-                      ? 'border-red-500 bg-red-900/60 shadow-[0_0_15px_rgba(239,68,68,0.6)] scale-105 z-10'
+                      ? 'border-red-500 bg-red-50 shadow-[0_0_15px_rgba(239,68,68,0.3)] scale-105 z-10'
                       : isActive 
-                        ? 'border-yellow-400 bg-gray-800 shadow-[0_0_15px_rgba(250,204,21,0.3)]' 
+                        ? 'border-sky-500 bg-sky-50 shadow-[0_0_15px_rgba(14,165,233,0.3)]' 
                         : heroName 
-                          ? 'border-red-500 bg-red-900/40'
-                          : 'border-gray-700 bg-gray-800/30 hover:border-gray-500'
+                          ? 'border-red-400 bg-red-50'
+                          : 'border-gray-200 bg-gray-50 hover:border-gray-300'
                   }`}
                 >
                   {isThreatToHovered && (
@@ -1097,14 +1097,14 @@ export default function ManualDraftPick() {
                   <div className="absolute inset-0 flex flex-col items-center justify-center">
                     {heroName ? (
                       <>
-                         <div className="font-bold text-xs text-center px-1 leading-tight">{heroName}</div>
+                         <div className="font-bold text-xs text-center px-1 leading-tight text-gray-800">{heroName}</div>
                          <button 
                            onClick={(e) => { e.stopPropagation(); handleEnemyPickChange(idx, ''); }}
-                           className="absolute top-1 right-1 w-3 h-3 flex items-center justify-center bg-red-500/20 hover:bg-red-500 text-red-200 rounded-full text-[8px]"
+                           className="absolute top-1 right-1 w-3 h-3 flex items-center justify-center bg-red-100 hover:bg-red-500 text-red-500 hover:text-white rounded-full text-[8px]"
                          >✕</button>
                       </>
                     ) : (
-                      <div className="flex items-center gap-1 opacity-50">
+                      <div className="flex items-center gap-1 text-gray-400">
                          <span className="text-sm">{position.icon}</span>
                          <span className="text-[10px]">Enemy</span>
                       </div>
@@ -1119,12 +1119,12 @@ export default function ManualDraftPick() {
       
       <div className="p-6 pt-2">
 
-      <div className="mb-6 rounded-lg bg-gray-800/80 p-4 border border-gray-700">
+      <div className="mb-6 rounded-lg bg-gray-50 p-4 border border-gray-200">
         <div className="flex flex-col gap-4">
           {/* Top Row: Search & Role Filters */}
           <div className="flex flex-col gap-4 md:flex-row md:items-center">
             <div className="md:w-1/4">
-              <label className="block mb-1 text-xs font-semibold text-gray-400">Search Hero</label>
+              <label className="block mb-1 text-xs font-semibold text-gray-600">Search Hero</label>
               <div className="relative">
                 <input
                   ref={searchInputRef}
@@ -1132,22 +1132,22 @@ export default function ManualDraftPick() {
                   value={heroSearch}
                   onChange={(e) => setHeroSearch(e.target.value)}
                   placeholder="Ketik nama hero..."
-                  className="w-full pl-9 pr-3 py-2 text-sm text-white bg-gray-900 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full pl-9 pr-3 py-2 text-sm text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent"
                   autoFocus
                 />
-                <span className="absolute left-3 top-2.5 text-gray-500 text-xs">🔍</span>
+                <span className="absolute left-3 top-2.5 text-gray-400 text-xs">🔍</span>
               </div>
             </div>
             
             <div className="flex-1 overflow-x-auto pb-1">
-              <label className="block mb-1 text-xs font-semibold text-gray-400">Quick Role Filters</label>
+              <label className="block mb-1 text-xs font-semibold text-gray-600">Quick Role Filters</label>
               <div className="flex gap-2">
                 <button
                   onClick={() => setRoleFilter('')}
                   className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap border ${
                     roleFilter === ''
-                      ? 'bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-500/20'
-                      : 'bg-gray-800 border-gray-600 text-gray-300 hover:bg-gray-700'
+                      ? 'bg-sky-500 border-sky-500 text-white shadow-lg shadow-sky-500/20'
+                      : 'bg-white border-gray-300 text-gray-600 hover:bg-gray-100'
                   }`}
                 >
                   All Roles
@@ -1158,8 +1158,8 @@ export default function ManualDraftPick() {
                     onClick={() => setRoleFilter(role === roleFilter ? '' : role)}
                     className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap border flex items-center gap-1.5 ${
                       roleFilter === role
-                        ? 'bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-500/20'
-                        : 'bg-gray-800 border-gray-600 text-gray-300 hover:bg-gray-700'
+                        ? 'bg-sky-500 border-sky-500 text-white shadow-lg shadow-sky-500/20'
+                        : 'bg-white border-gray-300 text-gray-600 hover:bg-gray-100'
                     }`}
                   >
                     <span>{getRoleIcon(role)}</span>
@@ -1171,13 +1171,13 @@ export default function ManualDraftPick() {
           </div>
 
           {/* Bottom Row: Other Filters */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2 border-t border-gray-700/50">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2 border-t border-gray-200">
             <div>
-              <label className="block mb-1 text-xs font-semibold text-gray-400">Damage Type</label>
+              <label className="block mb-1 text-xs font-semibold text-gray-600">Damage Type</label>
               <select
                 value={damageTypeFilter}
                 onChange={(e) => setDamageTypeFilter(e.target.value)}
-                className="w-full px-3 py-2 text-sm text-white bg-gray-900 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 text-sm text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent"
               >
                 <option value="">All Types</option>
                 {uniqueDamageTypes.map(dt => (
@@ -1186,11 +1186,11 @@ export default function ManualDraftPick() {
               </select>
             </div>
             <div>
-              <label className="block mb-1 text-xs font-semibold text-gray-400">Attack Reliance</label>
+              <label className="block mb-1 text-xs font-semibold text-gray-600">Attack Reliance</label>
               <select
                 value={attackRelianceFilter}
                 onChange={(e) => setAttackRelianceFilter(e.target.value)}
-                className="w-full px-3 py-2 text-sm text-white bg-gray-900 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 text-sm text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent"
               >
                 <option value="">All Types</option>
                 {uniqueAttackReliance.map(ar => (
@@ -1199,11 +1199,11 @@ export default function ManualDraftPick() {
               </select>
             </div>
             <div>
-              <label className="block mb-1 text-xs font-semibold text-gray-400">Lane</label>
+              <label className="block mb-1 text-xs font-semibold text-gray-600">Lane</label>
               <select
                 value={laneFilter}
                 onChange={(e) => setLaneFilter(e.target.value)}
-                className="w-full px-3 py-2 text-sm text-white bg-gray-900 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 text-sm text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent"
               >
                 <option value="">All Lanes</option>
                 {uniqueLanes.map(lane => (
@@ -1214,14 +1214,14 @@ export default function ManualDraftPick() {
           </div>
         </div>
         
-        <div className="mt-4 flex gap-2 text-xs border-b border-gray-700 overflow-x-auto">
+        <div className="mt-4 flex gap-2 text-xs border-b border-gray-200 overflow-x-auto">
           <button
             type="button"
             onClick={() => setHeroListMode('all')}
             className={`px-4 py-2 rounded-t-md border-b-2 whitespace-nowrap transition-colors ${
               heroListMode === 'all'
-                ? 'border-blue-500 text-blue-300 bg-gray-800 font-semibold'
-                : 'border-transparent text-gray-400 hover:text-gray-200 hover:bg-gray-800/50'
+                ? 'border-sky-500 text-sky-600 bg-sky-50 font-semibold'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-100'
             }`}
           >
             Semua Hero
@@ -1231,8 +1231,8 @@ export default function ManualDraftPick() {
             onClick={() => setHeroListMode('recommended')}
             className={`px-4 py-2 rounded-t-md border-b-2 whitespace-nowrap transition-colors flex items-center gap-1.5 ${
               heroListMode === 'recommended'
-                ? 'border-emerald-500 text-emerald-300 bg-gray-800 font-semibold'
-                : 'border-transparent text-gray-400 hover:text-gray-200 hover:bg-gray-800/50'
+                ? 'border-emerald-500 text-emerald-600 bg-emerald-50 font-semibold'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-100'
             }`}
           >
             <span>💡</span>
@@ -1243,8 +1243,8 @@ export default function ManualDraftPick() {
             onClick={() => setHeroListMode('counter')}
             className={`px-4 py-2 rounded-t-md border-b-2 whitespace-nowrap transition-colors flex items-center gap-1.5 ${
               heroListMode === 'counter'
-                ? 'border-red-500 text-red-300 bg-gray-800 font-semibold'
-                : 'border-transparent text-gray-400 hover:text-gray-200 hover:bg-gray-800/50'
+                ? 'border-red-500 text-red-600 bg-red-50 font-semibold'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-100'
             }`}
           >
             <span>⚔️</span>
@@ -1255,8 +1255,8 @@ export default function ManualDraftPick() {
             onClick={() => setHeroListMode('synergy')}
             className={`px-4 py-2 rounded-t-md border-b-2 whitespace-nowrap transition-colors flex items-center gap-1.5 ${
               heroListMode === 'synergy'
-                ? 'border-purple-500 text-purple-300 bg-gray-800 font-semibold'
-                : 'border-transparent text-gray-400 hover:text-gray-200 hover:bg-gray-800/50'
+                ? 'border-purple-500 text-purple-600 bg-purple-50 font-semibold'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-100'
             }`}
           >
             <span>🤝</span>
@@ -1266,8 +1266,8 @@ export default function ManualDraftPick() {
 
         <div className="mt-4 flex flex-col gap-4 lg:flex-row">
           <div className="lg:w-2/3">
-            <p className="mb-2 text-xs text-gray-400">
-              Hasil: <span className="font-semibold text-gray-200">{displayHeroes.length}</span> hero
+            <p className="mb-2 text-xs text-gray-500">
+              Hasil: <span className="font-semibold text-gray-700">{displayHeroes.length}</span> hero
             </p>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
               {displayHeroes.slice(0, 40).map(hero => {
@@ -1334,12 +1334,12 @@ export default function ManualDraftPick() {
                     title={tooltip}
                     className={`relative p-3 text-xs transition-colors border rounded-lg cursor-pointer overflow-hidden ${
                       pickedInOurTeam
-                        ? 'bg-blue-900/40 border-blue-500 opacity-60'
+                        ? 'bg-blue-50 border-blue-400 opacity-60'
                         : pickedInEnemyTeam
-                        ? 'bg-red-900/40 border-red-500 opacity-60'
+                        ? 'bg-red-50 border-red-400 opacity-60'
                         : isSelected
-                        ? 'bg-blue-900/60 border-blue-500'
-                        : 'bg-gray-900/80 border-gray-700 hover:border-blue-500 hover:bg-gray-800'
+                        ? 'bg-sky-50 border-sky-500'
+                        : 'bg-white border-gray-200 hover:border-sky-400 hover:bg-gray-50 shadow-sm'
                     }`}
                   >
                     {pickedInEnemyTeam && (
@@ -1353,19 +1353,19 @@ export default function ManualDraftPick() {
                       </div>
                     )}
 
-                    <p className="mb-1 text-sm font-semibold text-white truncate">
+                    <p className="mb-1 text-sm font-semibold text-gray-800 truncate">
                       {hero.hero_name || hero.name}
                     </p>
-                    <p className="mb-1 text-[11px] text-blue-300 truncate flex items-center gap-1">
+                    <p className="mb-1 text-[11px] text-sky-600 truncate flex items-center gap-1">
                       {roleIcon && <span>{roleIcon}</span>}
                       <span>{primaryRole}</span>
                     </p>
-                    <p className="text-[11px] text-gray-400 truncate flex items-center gap-1">
+                    <p className="text-[11px] text-gray-500 truncate flex items-center gap-1">
                       <span>{damageIcon}</span>
                       <span>{damageType} • {attackRel}</span>
                     </p>
                     {primaryLane && (
-                      <div className="mt-1 flex items-center gap-1 text-[11px] text-emerald-300 truncate">
+                      <div className="mt-1 flex items-center gap-1 text-[11px] text-emerald-600 truncate">
                         <span>{LANE_ICONS[primaryLane] || '🔵'}</span>
                         <span>{primaryLane}</span>
                       </div>
@@ -1373,17 +1373,17 @@ export default function ManualDraftPick() {
                     {(counterMeta || synergyMeta || (heroListMode === 'recommended' && hero._recScore > 0)) && (
                       <div className="mt-1 flex flex-wrap gap-1 text-[10px]">
                         {heroListMode === 'recommended' && hero._recScore > 0 && (
-                          <span className="px-1.5 py-0.5 rounded-full bg-emerald-700/60 text-emerald-100 font-semibold border border-emerald-500/50">
+                          <span className="px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-semibold border border-emerald-300">
                             ⭐ {hero._recScore}
                           </span>
                         )}
                         {counterMeta && (
-                          <span className="px-1.5 py-0.5 rounded-full bg-red-700/60 text-red-100">
+                          <span className="px-1.5 py-0.5 rounded-full bg-red-100 text-red-700">
                             {counterLabel || 'Counter Musuh'}
                           </span>
                         )}
                         {synergyMeta && (
-                          <span className="px-1.5 py-0.5 rounded-full bg-purple-700/60 text-purple-100">
+                          <span className="px-1.5 py-0.5 rounded-full bg-purple-100 text-purple-700">
                             Synergy Tim
                           </span>
                         )}
@@ -1401,7 +1401,7 @@ export default function ManualDraftPick() {
           </div>
 
           <div className="lg:w-1/3">
-            <div className="h-full p-3 border border-gray-700 rounded-lg bg-gray-900/80">
+            <div className="h-full p-3 border border-gray-200 rounded-lg bg-white shadow-sm">
               {selectedHeroForDetails ? (() => {
                 const hero = selectedHeroForDetails;
                 const name = hero.hero_name || hero.name || '';
@@ -1417,40 +1417,40 @@ export default function ManualDraftPick() {
                 return (
                   <>
                     <div className="flex items-center justify-between mb-2">
-                      <h3 className="text-sm font-semibold text-white truncate">
+                      <h3 className="text-sm font-semibold text-gray-800 truncate">
                         {name}
                       </h3>
                       {primaryLane && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-700/30 text-[11px] text-emerald-200">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-[11px] text-emerald-700">
                           <span>{LANE_ICONS[primaryLane] || '🔵'}</span>
                           <span>{primaryLane}</span>
                         </span>
                       )}
                     </div>
-                    <p className="mb-1 text-[11px] text-blue-300 truncate">
+                    <p className="mb-1 text-[11px] text-sky-600 truncate">
                       {primaryRole}
                     </p>
-                    <p className="mb-3 text-[11px] text-gray-400 truncate">
+                    <p className="mb-3 text-[11px] text-gray-500 truncate">
                       {damageType} • {attackRel}
                     </p>
 
                     {lanesList.length > 0 && (
                       <div className="mb-3">
-                        <p className="mb-1 text-[11px] text-gray-400">Lane rekomendasi</p>
+                        <p className="mb-1 text-[11px] text-gray-500">Lane rekomendasi</p>
                         <div className="flex flex-wrap gap-1">
                           {lanesList.map(lane => (
                             <span
                               key={`${lane.lane_name}-${lane.priority}`}
                               className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] ${
                                 lane.priority === 1
-                                  ? 'bg-emerald-700 text-emerald-50'
-                                  : 'bg-gray-800 text-gray-200'
+                                  ? 'bg-emerald-500 text-white'
+                                  : 'bg-gray-100 text-gray-700'
                               }`}
                             >
                               <span>{LANE_ICONS[lane.lane_name] || '🔵'}</span>
                               <span>{lane.lane_name}</span>
                               {lane.priority === 1 && (
-                                <span className="ml-1 text-[9px] text-emerald-200">PRIMARY</span>
+                                <span className="ml-1 text-[9px] text-emerald-100">PRIMARY</span>
                               )}
                             </span>
                           ))}
@@ -1459,15 +1459,15 @@ export default function ManualDraftPick() {
                     )}
 
                     <div className="mb-3">
-                      <p className="mb-1 text-[11px] text-gray-400">Level kesulitan</p>
-                      <p className="text-[12px] text-gray-200">
+                      <p className="mb-1 text-[11px] text-gray-500">Level kesulitan</p>
+                      <p className="text-[12px] text-gray-700">
                         Belum diatur (menggunakan data/rules terpisah jika tersedia).
                       </p>
                     </div>
 
                     <div className="mb-3">
-                      <p className="mb-1 text-[11px] text-gray-400">Kelebihan / karakter hero</p>
-                      <div className="max-h-40 overflow-y-auto text-[12px] text-gray-200 whitespace-pre-line">
+                      <p className="mb-1 text-[11px] text-gray-500">Kelebihan / karakter hero</p>
+                      <div className="max-h-40 overflow-y-auto text-[12px] text-gray-700 whitespace-pre-line">
                         {hero.note && hero.note.trim()
                           ? hero.note
                           : 'Belum ada catatan hero di kolom Note (heroes.csv / tabel heroes).'}
@@ -1476,8 +1476,8 @@ export default function ManualDraftPick() {
 
                     {counters.length > 0 && (
                       <div className="mb-1">
-                        <p className="mb-1 text-[11px] text-gray-400">Lemah vs (berdasarkan hero_counter)</p>
-                        <ul className="space-y-0.5 text-[12px] text-red-200 max-h-60 overflow-y-auto pr-1 custom-scrollbar">
+                        <p className="mb-1 text-[11px] text-gray-500">Lemah vs (berdasarkan hero_counter)</p>
+                        <ul className="space-y-0.5 text-[12px] text-red-600 max-h-60 overflow-y-auto pr-1 custom-scrollbar">
                           {counters.map((c, idx) => (
                             <li key={idx}>
                               <span className="font-semibold">{c.enemy}</span>
@@ -1492,7 +1492,7 @@ export default function ManualDraftPick() {
                   </>
                 );
               })() : (
-                <div className="flex items-center justify-center h-full text-[12px] text-gray-500 text-center">
+                <div className="flex items-center justify-center h-full text-[12px] text-gray-400 text-center">
                   Klik salah satu hero di daftar untuk melihat detail (Note, lane rekomendasi, dan data counter).
                 </div>
               )}
@@ -1506,11 +1506,11 @@ export default function ManualDraftPick() {
         <div className="mb-6">
           {/* Errors */}
           {validation.errors.length > 0 && (
-            <div className="bg-red-900/50 border-2 border-red-500 rounded-lg p-4 mb-3">
-              <h3 className="text-lg font-bold text-red-300 mb-2 flex items-center gap-2">
+            <div className="bg-red-50 border-2 border-red-400 rounded-lg p-4 mb-3">
+              <h3 className="text-lg font-bold text-red-700 mb-2 flex items-center gap-2">
                 <span>❌</span> Draft Tidak Valid
               </h3>
-              <ul className="text-sm text-red-200 space-y-1">
+              <ul className="text-sm text-red-600 space-y-1">
                 {validation.errors.map((error, idx) => (
                   <li key={idx}>• {error}</li>
                 ))}
@@ -1520,11 +1520,11 @@ export default function ManualDraftPick() {
 
           {/* Warnings */}
           {validation.warnings.length > 0 && (
-            <div className="bg-yellow-900/50 border-2 border-yellow-500 rounded-lg p-4 mb-3">
-              <h3 className="text-lg font-bold text-yellow-300 mb-2 flex items-center gap-2">
+            <div className="bg-yellow-50 border-2 border-yellow-400 rounded-lg p-4 mb-3">
+              <h3 className="text-lg font-bold text-yellow-700 mb-2 flex items-center gap-2">
                 <span>⚠️</span> Peringatan
               </h3>
-              <ul className="text-sm text-yellow-200 space-y-1">
+              <ul className="text-sm text-yellow-700 space-y-1">
                 {validation.warnings.map((warning, idx) => (
                   <li key={idx}>• {warning}</li>
                 ))}
@@ -1534,11 +1534,11 @@ export default function ManualDraftPick() {
 
           {/* Success */}
           {validation.isValid && validation.warnings.length === 0 && (
-            <div className="bg-green-900/50 border-2 border-green-500 rounded-lg p-4">
-              <h3 className="text-lg font-bold text-green-300 mb-2 flex items-center gap-2">
+            <div className="bg-green-50 border-2 border-green-400 rounded-lg p-4">
+              <h3 className="text-lg font-bold text-green-700 mb-2 flex items-center gap-2">
                 <span>✅</span> Draft Valid!
               </h3>
-              <p className="text-sm text-green-200">
+              <p className="text-sm text-green-600">
                 Semua lanes terisi dengan benar dan tidak ada duplikat. Tim siap bertanding! 🎉
               </p>
             </div>
@@ -1547,20 +1547,20 @@ export default function ManualDraftPick() {
       )}
 
       {/* Requirements Info */}
-      <div className="mb-6 bg-blue-900/30 border-2 border-blue-500 rounded-lg p-4">
-        <h3 className="text-lg font-bold text-blue-300 mb-2 flex items-center gap-2">
+      <div className="mb-6 bg-sky-50 border-2 border-sky-300 rounded-lg p-4">
+        <h3 className="text-lg font-bold text-sky-700 mb-2 flex items-center gap-2">
           <span>ℹ️</span> Requirements Draft Pick
         </h3>
-        <ul className="text-sm text-blue-200 space-y-1">
+        <ul className="text-sm text-sky-700 space-y-1">
           <li>✓ Pilih 5 heroes (satu untuk setiap lane: Gold, Exp, Mid, Jungling, Roaming)</li>
           <li>✓ Setiap hero harus memiliki data lanes yang sudah dikonfigurasi</li>
           <li>✓ Hero sebaiknya cocok dengan lane yang ditugaskan (akan ada warning jika tidak cocok)</li>
           <li>✓ Tidak boleh ada duplicate primary lanes</li>
           <li>⚠️ Hero tanpa data lanes akan menyebabkan draft invalid</li>
         </ul>
-        <div className="mt-3 pt-3 border-t border-blue-700">
-          <p className="text-xs text-blue-300">
-            💡 Konfigurasi lanes hero di: <a href="/edit-hero-info" className="underline hover:text-blue-100">Edit Hero Info & Lanes</a>
+        <div className="mt-3 pt-3 border-t border-sky-200">
+          <p className="text-xs text-sky-600">
+            💡 Konfigurasi lanes hero di: <a href="/edit-hero-info" className="underline hover:text-sky-800">Edit Hero Info & Lanes</a>
           </p>
         </div>
       </div>
@@ -1569,8 +1569,8 @@ export default function ManualDraftPick() {
 
       {loading && (
         <div className="text-center py-8">
-          <div className="inline-block w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-gray-400 mt-3">Loading hero details...</p>
+          <div className="inline-block w-8 h-8 border-4 border-sky-500 border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-gray-500 mt-3">Loading hero details...</p>
         </div>
       )}
 
@@ -1612,17 +1612,17 @@ export default function ManualDraftPick() {
                       key={hero.hero_name}
                       className={`rounded-lg p-4 border-2 transition-all ${
                         hasNoLanes
-                          ? 'bg-gray-800 border-gray-700 hover:shadow-lg hover:shadow-gray-500/50'
+                          ? 'bg-gray-50 border-gray-300 hover:shadow-lg'
                           : isLaneMatch
-                          ? 'bg-gray-800 border-blue-500 hover:shadow-lg hover:shadow-blue-500/50'
-                          : 'bg-yellow-900/30 border-yellow-500'
+                          ? 'bg-white border-sky-400 hover:shadow-lg shadow-sm'
+                          : 'bg-yellow-50 border-yellow-400'
                       }`}
                     >
                       <div className="text-center">
                         <div className="text-2xl mb-2">{position.icon}</div>
-                        <p className="font-bold text-lg mb-1">{hero.hero_name}</p>
-                        <p className="text-xs text-blue-400 mb-2">{position.lane}</p>
-                        <p className="text-sm text-gray-400 mb-2">
+                        <p className="font-bold text-lg mb-1 text-gray-800">{hero.hero_name}</p>
+                        <p className="text-xs text-sky-600 mb-2">{position.lane}</p>
+                        <p className="text-sm text-gray-500 mb-2">
                           {hero.role || 'Unknown Role'}
                         </p>
                         
@@ -1637,8 +1637,8 @@ export default function ManualDraftPick() {
                                     key={lIdx}
                                     className={`px-2 py-1 rounded ${
                                       lane.lane_name === position.lane
-                                        ? 'bg-green-700 text-white'
-                                        : 'bg-gray-700 text-gray-300'
+                                        ? 'bg-green-500 text-white'
+                                        : 'bg-gray-100 text-gray-700'
                                     }`}
                                   >
                                     {lane.lane_name}

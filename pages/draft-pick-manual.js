@@ -1,9 +1,12 @@
 import ManualDraftPick from '../components/draft/ManualDraftPick';
+import AppLayout from '../components/common/AppLayout';
 
 export default function ManualDraftPickPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-black p-8">
-      <ManualDraftPick />
-    </div>
+    <AppLayout>
+      <div className="min-h-screen bg-gray-50 p-6">
+        <ManualDraftPick />
+      </div>
+    </AppLayout>
   );
 }
