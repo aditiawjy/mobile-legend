@@ -6,6 +6,8 @@ import { ROLE_ICONS, getRoleIcon, getDamageTypeIcon } from './draftConstants';
 export default function ManualDraftPick() {
   const [draftPicks, setDraftPicks] = useState(['', '', '', '', '']);
   const [enemyDraftPicks, setEnemyDraftPicks] = useState(['', '', '', '', '']);
+  const [ourBans, setOurBans] = useState(['', '', '', '']);
+  const [enemyBans, setEnemyBans] = useState(['', '', '', '']);
   const [heroDetails, setHeroDetails] = useState([]);
   const [loading, setLoading] = useState(false);
   const [composition, setComposition] = useState(null);
@@ -19,11 +21,16 @@ export default function ManualDraftPick() {
   const [damageTypeFilter, setDamageTypeFilter] = useState('');
   const [attackRelianceFilter, setAttackRelianceFilter] = useState('');
   const [laneFilter, setLaneFilter] = useState('');
-   const [heroListMode, setHeroListMode] = useState('all');
+  const [heroListMode, setHeroListMode] = useState('all');
   const [selectedHeroForDetails, setSelectedHeroForDetails] = useState(null);
-  const [activeSlot, setActiveSlot] = useState({ side: 'our', index: 0 });
+  const [activeSlot, setActiveSlot] = useState({ side: 'our', index: 0, type: 'pick' }); // type: 'pick' or 'ban'
   const [hoveredHero, setHoveredHero] = useState(null);
   const searchInputRef = useRef(null);
+
+  // Get all banned hero names (lowercase)
+  const allBannedHeroes = [...ourBans, ...enemyBans]
+    .filter(name => name && name.trim())
+    .map(name => name.toLowerCase());
 
   // Load all heroes with lanes data on mount
   useEffect(() => {
@@ -558,11 +565,30 @@ export default function ManualDraftPick() {
   const handleClearAll = () => {
     setDraftPicks(['', '', '', '', '']);
     setEnemyDraftPicks(['', '', '', '', '']);
+    setOurBans(['', '', '', '']);
+    setEnemyBans(['', '', '', '']);
     setHeroDetails([]);
     setComposition(null);
   };
 
+  const handleBanChange = (side, index, heroName) => {
+    if (side === 'our') {
+      setOurBans(prev => {
+        const newBans = [...prev];
+        newBans[index] = heroName;
+        return newBans;
+      });
+    } else {
+      setEnemyBans(prev => {
+        const newBans = [...prev];
+        newBans[index] = heroName;
+        return newBans;
+      });
+    }
+  };
+
   const hasAnyPick = draftPicks.some(pick => pick && pick.trim());
+  const hasAnyBan = [...ourBans, ...enemyBans].some(ban => ban && ban.trim());
 
   const uniqueRoles = Array.from(
     new Set(
@@ -614,6 +640,11 @@ export default function ManualDraftPick() {
     const damageType = hero.damage_type || hero.damageType || '';
     const attackRel = hero.attack_reliance || hero.attackReliance || '';
     const lanesList = Array.isArray(hero.lanes) ? hero.lanes.map(l => l.lane_name) : [];
+
+    // Filter out banned heroes
+    if (allBannedHeroes.includes(name.toLowerCase())) {
+      return false;
+    }
 
     if (heroSearch && !name.toLowerCase().includes(heroSearch.toLowerCase())) {
       return false;
@@ -953,12 +984,30 @@ export default function ManualDraftPick() {
       {/* Sticky Draft Board */}
       <div className="sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-gray-200 p-4 shadow-sm">
         <div className="flex items-center justify-between mb-4">
-          <h1 className="text-2xl font-bold">Manual Draft Pick</h1>
+          <div className="flex items-center gap-4">
+            <h1 className="text-2xl font-bold">Draft Pick</h1>
+            {/* Progress Indicator */}
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 rounded-full">
+              <div className="flex gap-1">
+                {[0,1,2,3,4].map(i => (
+                  <div 
+                    key={i} 
+                    className={`w-2.5 h-2.5 rounded-full transition-all ${
+                      draftPicks[i] ? 'bg-sky-500' : 'bg-gray-300'
+                    }`} 
+                  />
+                ))}
+              </div>
+              <span className="text-xs font-medium text-gray-600">
+                {draftPicks.filter(p => p && p.trim()).length}/5
+              </span>
+            </div>
+          </div>
           <div className="flex gap-2">
-             {hasAnyPick && (
+             {(hasAnyPick || hasAnyBan) && (
               <button
                 onClick={handleClearAll}
-                className="px-3 py-1 bg-red-600 hover:bg-red-700 rounded text-xs font-semibold transition-colors"
+                className="px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white rounded-lg text-xs font-semibold transition-colors"
               >
                 Clear All
               </button>
@@ -966,11 +1015,126 @@ export default function ManualDraftPick() {
           </div>
         </div>
 
-        <div className="flex flex-col gap-3">
+        {/* Ban Phase */}
+        <div className="mb-4 p-3 bg-gray-100 rounded-lg border border-gray-200">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-lg">🚫</span>
+            <span className="text-sm font-semibold text-gray-700">BAN PHASE</span>
+            <span className="text-xs text-gray-500">(4 bans each team)</span>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            {/* Our Bans */}
+            <div>
+              <div className="flex items-center gap-1 mb-2">
+                <div className="w-2 h-2 rounded-full bg-sky-500"></div>
+                <span className="text-xs font-medium text-sky-700">Your Bans</span>
+              </div>
+              <div className="flex gap-1.5">
+                {[0,1,2,3].map(idx => {
+                  const isActive = activeSlot?.type === 'ban' && activeSlot?.side === 'our' && activeSlot?.index === idx;
+                  const banName = ourBans[idx];
+                  return (
+                    <div
+                      key={`our-ban-${idx}`}
+                      onClick={() => {
+                        setActiveSlot({ side: 'our', index: idx, type: 'ban' });
+                        if (searchInputRef.current) searchInputRef.current.focus();
+                      }}
+                      className={`flex-1 h-14 relative cursor-pointer rounded-lg border-2 transition-all ${
+                        isActive
+                          ? 'border-sky-500 bg-sky-50 shadow-md'
+                          : banName
+                          ? 'border-gray-400 bg-gray-200'
+                          : 'border-dashed border-gray-300 bg-gray-50 hover:border-gray-400'
+                      }`}
+                    >
+                      <div className="absolute inset-0 flex flex-col items-center justify-center">
+                        {banName ? (
+                          <>
+                            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-gray-500 to-gray-700 flex items-center justify-center mb-0.5 relative">
+                              <span className="text-white font-bold text-[10px]">{banName.charAt(0).toUpperCase()}</span>
+                              <div className="absolute inset-0 flex items-center justify-center">
+                                <span className="text-red-500 text-lg font-bold">✕</span>
+                              </div>
+                            </div>
+                            <span className="text-[9px] text-gray-600 truncate w-full text-center px-1">{banName}</span>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); handleBanChange('our', idx, ''); }}
+                              className="absolute top-0.5 right-0.5 w-3 h-3 flex items-center justify-center bg-gray-300 hover:bg-red-500 text-gray-600 hover:text-white rounded-full text-[8px]"
+                            >✕</button>
+                          </>
+                        ) : (
+                          <span className="text-gray-400 text-xs">+</span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+            {/* Enemy Bans */}
+            <div>
+              <div className="flex items-center gap-1 mb-2">
+                <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                <span className="text-xs font-medium text-red-600">Enemy Bans</span>
+              </div>
+              <div className="flex gap-1.5">
+                {[0,1,2,3].map(idx => {
+                  const isActive = activeSlot?.type === 'ban' && activeSlot?.side === 'enemy' && activeSlot?.index === idx;
+                  const banName = enemyBans[idx];
+                  return (
+                    <div
+                      key={`enemy-ban-${idx}`}
+                      onClick={() => {
+                        setActiveSlot({ side: 'enemy', index: idx, type: 'ban' });
+                        if (searchInputRef.current) searchInputRef.current.focus();
+                      }}
+                      className={`flex-1 h-14 relative cursor-pointer rounded-lg border-2 transition-all ${
+                        isActive
+                          ? 'border-sky-500 bg-sky-50 shadow-md'
+                          : banName
+                          ? 'border-red-300 bg-red-100'
+                          : 'border-dashed border-gray-300 bg-gray-50 hover:border-gray-400'
+                      }`}
+                    >
+                      <div className="absolute inset-0 flex flex-col items-center justify-center">
+                        {banName ? (
+                          <>
+                            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-red-400 to-red-600 flex items-center justify-center mb-0.5 relative">
+                              <span className="text-white font-bold text-[10px]">{banName.charAt(0).toUpperCase()}</span>
+                              <div className="absolute inset-0 flex items-center justify-center">
+                                <span className="text-white text-lg font-bold">✕</span>
+                              </div>
+                            </div>
+                            <span className="text-[9px] text-gray-600 truncate w-full text-center px-1">{banName}</span>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); handleBanChange('enemy', idx, ''); }}
+                              className="absolute top-0.5 right-0.5 w-3 h-3 flex items-center justify-center bg-red-200 hover:bg-red-500 text-red-600 hover:text-white rounded-full text-[8px]"
+                            >✕</button>
+                          </>
+                        ) : (
+                          <span className="text-gray-400 text-xs">+</span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-4">
           {/* Our Team */}
-          <div className="flex gap-2 overflow-x-auto pb-2">
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-3 h-3 rounded-full bg-sky-500"></div>
+              <span className="text-sm font-semibold text-sky-700">YOUR TEAM</span>
+              <span className="text-xs text-gray-400">(Pick Phase)</span>
+            </div>
+            <div className="flex gap-2 overflow-x-auto pb-2">
             {lanes.map((position, idx) => {
-              const isActive = activeSlot?.side === 'our' && activeSlot?.index === idx;
+              const isActive = activeSlot?.type === 'pick' && activeSlot?.side === 'our' && activeSlot?.index === idx;
               const heroName = draftPicks[idx];
 
               // Real-time Synergy Feedback
@@ -1012,7 +1176,7 @@ export default function ManualDraftPick() {
                 <div 
                   key={`our-${idx}`}
                   onClick={() => {
-                    setActiveSlot({ side: 'our', index: idx });
+                    setActiveSlot({ side: 'our', index: idx, type: 'pick' });
                     // Focus search input immediately for speed
                     if (searchInputRef.current) searchInputRef.current.focus();
                   }}
@@ -1034,28 +1198,44 @@ export default function ManualDraftPick() {
                   <div className="absolute top-1 left-2 text-xl opacity-60">{position.icon}</div>
                   <div className="absolute top-1 right-2 text-[10px] uppercase tracking-wider text-gray-500">{position.lane}</div>
                   
-                  <div className="absolute inset-0 flex flex-col items-center justify-center pt-4">
+                  <div className="absolute inset-0 flex flex-col items-center justify-center pt-2">
                     {heroName ? (
                       <>
-                         <div className="font-bold text-sm text-center px-1 leading-tight text-gray-800">{heroName}</div>
+                         {/* Hero Avatar */}
+                         <div className="w-10 h-10 rounded-full bg-gradient-to-br from-sky-400 to-blue-600 flex items-center justify-center mb-1 shadow-md">
+                           <span className="text-white font-bold text-sm">{heroName.charAt(0).toUpperCase()}</span>
+                         </div>
+                         <div className="font-semibold text-xs text-center px-1 leading-tight text-gray-800 truncate w-full">{heroName}</div>
                          <button 
                            onClick={(e) => { e.stopPropagation(); handlePickChange(idx, ''); }}
                            className="absolute top-1 right-1 w-4 h-4 flex items-center justify-center bg-red-100 hover:bg-red-500 text-red-500 hover:text-white rounded-full text-[10px]"
                          >✕</button>
                       </>
                     ) : (
-                      <div className="text-2xl text-gray-300 font-light">+</div>
+                      <div className="flex flex-col items-center">
+                        <div className="w-10 h-10 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center mb-1">
+                          <span className="text-xl text-gray-300">+</span>
+                        </div>
+                        <span className="text-[10px] text-gray-400">Click to pick</span>
+                      </div>
                     )}
                   </div>
                 </div>
               )
             })}
+            </div>
           </div>
 
           {/* Enemy Team */}
-          <div className="flex gap-2 overflow-x-auto pb-2">
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-3 h-3 rounded-full bg-red-500"></div>
+              <span className="text-sm font-semibold text-red-600">ENEMY TEAM</span>
+              <span className="text-xs text-gray-400">(optional - untuk counter pick)</span>
+            </div>
+            <div className="flex gap-2 overflow-x-auto pb-2">
             {lanes.map((position, idx) => {
-              const isActive = activeSlot?.side === 'enemy' && activeSlot?.index === idx;
+              const isActive = activeSlot?.type === 'pick' && activeSlot?.side === 'enemy' && activeSlot?.index === idx;
               const heroName = enemyDraftPicks[idx];
 
               // Real-time Counter Feedback (Warning)
@@ -1075,11 +1255,11 @@ export default function ManualDraftPick() {
                 <div 
                   key={`enemy-${idx}`}
                   onClick={() => {
-                    setActiveSlot({ side: 'enemy', index: idx });
+                    setActiveSlot({ side: 'enemy', index: idx, type: 'pick' });
                     // Focus search input immediately for speed
                     if (searchInputRef.current) searchInputRef.current.focus();
                   }}
-                  className={`flex-1 min-w-[100px] h-16 relative cursor-pointer rounded-lg border-2 transition-all ${
+                  className={`flex-1 min-w-[100px] h-20 relative cursor-pointer rounded-lg border-2 transition-all ${
                     isThreatToHovered
                       ? 'border-red-500 bg-red-50 shadow-[0_0_15px_rgba(239,68,68,0.3)] scale-105 z-10'
                       : isActive 
@@ -1094,25 +1274,32 @@ export default function ManualDraftPick() {
                        ⚠️ Threat!
                      </div>
                   )}
-                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <div className="absolute inset-0 flex flex-col items-center justify-center py-1">
                     {heroName ? (
                       <>
-                         <div className="font-bold text-xs text-center px-1 leading-tight text-gray-800">{heroName}</div>
+                         {/* Enemy Hero Avatar */}
+                         <div className="w-8 h-8 rounded-full bg-gradient-to-br from-red-400 to-red-600 flex items-center justify-center mb-1 shadow-md">
+                           <span className="text-white font-bold text-xs">{heroName.charAt(0).toUpperCase()}</span>
+                         </div>
+                         <div className="font-semibold text-[10px] text-center px-1 leading-tight text-gray-800 truncate w-full">{heroName}</div>
                          <button 
                            onClick={(e) => { e.stopPropagation(); handleEnemyPickChange(idx, ''); }}
                            className="absolute top-1 right-1 w-3 h-3 flex items-center justify-center bg-red-100 hover:bg-red-500 text-red-500 hover:text-white rounded-full text-[8px]"
                          >✕</button>
                       </>
                     ) : (
-                      <div className="flex items-center gap-1 text-gray-400">
-                         <span className="text-sm">{position.icon}</span>
-                         <span className="text-[10px]">Enemy</span>
+                      <div className="flex flex-col items-center">
+                         <div className="w-8 h-8 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center mb-1">
+                           <span className="text-gray-300">{position.icon}</span>
+                         </div>
+                         <span className="text-[10px] text-gray-400">Enemy</span>
                       </div>
                     )}
                   </div>
                 </div>
               )
             })}
+            </div>
           </div>
         </div>
       </div>
@@ -1270,7 +1457,7 @@ export default function ManualDraftPick() {
               Hasil: <span className="font-semibold text-gray-700">{displayHeroes.length}</span> hero
             </p>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-              {displayHeroes.slice(0, 40).map(hero => {
+              {displayHeroes.map(hero => {
                 const primaryRole = hero.role ? hero.role.split('/')[0].trim() : 'Unknown';
                 const damageType = hero.damage_type || hero.damageType || 'Unknown';
                 const attackRel = hero.attack_reliance || hero.attackReliance || 'Unknown';
@@ -1301,9 +1488,10 @@ export default function ManualDraftPick() {
                 const roleIcon = getRoleIcon(primaryRole);
                 const damageIcon = getDamageTypeIcon(damageType);
 
-                // Check if picked
+                // Check if picked or banned
                 const pickedInOurTeam = draftPicks.some(p => p && p.toLowerCase() === key);
                 const pickedInEnemyTeam = enemyDraftPicks.some(p => p && p.toLowerCase() === key);
+                const isBanned = allBannedHeroes.includes(key);
 
                 return (
                   <div
@@ -1311,22 +1499,37 @@ export default function ManualDraftPick() {
                     onMouseEnter={() => setHoveredHero(hero)}
                     onMouseLeave={() => setHoveredHero(null)}
                     onClick={() => {
-                      if (pickedInOurTeam || pickedInEnemyTeam) return; // Prevent picking already picked hero
+                      if (pickedInOurTeam || pickedInEnemyTeam || isBanned) return; // Prevent picking already picked/banned hero
                       
                       if (activeSlot) {
                         const heroName = hero.hero_name || hero.name;
-                        // Clear search after pick
+                        // Clear search after pick/ban
                         setHeroSearch('');
                         if (searchInputRef.current) searchInputRef.current.focus();
 
-                        if (activeSlot.side === 'our') {
-                          handlePickChange(activeSlot.index, heroName);
-                          const nextIdx = activeSlot.index < 4 ? activeSlot.index + 1 : 4;
-                          if (activeSlot.index < 4) setActiveSlot({ side: 'our', index: nextIdx });
+                        if (activeSlot.type === 'ban') {
+                          // Handle ban
+                          handleBanChange(activeSlot.side, activeSlot.index, heroName);
+                          // Auto-advance to next empty ban slot
+                          const currentBans = activeSlot.side === 'our' ? ourBans : enemyBans;
+                          const nextIdx = currentBans.findIndex((b, i) => i > activeSlot.index && !b);
+                          if (nextIdx !== -1) {
+                            setActiveSlot({ side: activeSlot.side, index: nextIdx, type: 'ban' });
+                          } else {
+                            // If all bans filled, switch to pick phase
+                            setActiveSlot({ side: 'our', index: 0, type: 'pick' });
+                          }
                         } else {
-                          handleEnemyPickChange(activeSlot.index, heroName);
-                          const nextIdx = activeSlot.index < 4 ? activeSlot.index + 1 : 4;
-                          if (activeSlot.index < 4) setActiveSlot({ side: 'enemy', index: nextIdx });
+                          // Handle pick
+                          if (activeSlot.side === 'our') {
+                            handlePickChange(activeSlot.index, heroName);
+                            const nextIdx = activeSlot.index < 4 ? activeSlot.index + 1 : 4;
+                            if (activeSlot.index < 4) setActiveSlot({ side: 'our', index: nextIdx, type: 'pick' });
+                          } else {
+                            handleEnemyPickChange(activeSlot.index, heroName);
+                            const nextIdx = activeSlot.index < 4 ? activeSlot.index + 1 : 4;
+                            if (activeSlot.index < 4) setActiveSlot({ side: 'enemy', index: nextIdx, type: 'pick' });
+                          }
                         }
                       }
                       setSelectedHeroForDetails(hero);
@@ -1696,8 +1899,8 @@ export default function ManualDraftPick() {
           </div>
 
           {/* Compatibility Summary */}
-          <div className="mb-8 bg-green-900/20 border border-green-600 rounded-lg p-4">
-            <h3 className="text-lg font-semibold text-green-300 mb-2 flex items-center gap-2">
+          <div className="mb-8 bg-green-50 border border-green-300 rounded-lg p-4">
+            <h3 className="text-lg font-semibold text-green-700 mb-2 flex items-center gap-2">
               <span>🤝</span>
               <span>Hero Compatibility Summary</span>
             </h3>
@@ -1734,14 +1937,14 @@ export default function ManualDraftPick() {
 
               if (activeCompat.length === 0) {
                 return (
-                  <p className="text-xs text-green-200">
+                  <p className="text-xs text-green-600">
                     Belum ada pasangan hero dalam draft ini yang cocok dengan data hero_compatibility di database.
                   </p>
                 );
               }
 
               return (
-                <ul className="space-y-2 text-xs text-green-100">
+                <ul className="space-y-2 text-xs text-green-700">
                   {activeCompat.map((entry, idx) => (
                     <li key={idx}>
                       <span className="font-semibold">{entry.hero}</span>
@@ -1759,9 +1962,9 @@ export default function ManualDraftPick() {
           </div>
 
           {/* Counter vs Enemy Draft Summary */}
-          <div className="mb-8 bg-red-900/20 border border-red-600 rounded-lg p-4">
-            <h3 className="text-lg font-semibold text-red-300 mb-2 flex items-center gap-2">
-              <span>\ud83d\udee1</span>
+          <div className="mb-8 bg-red-50 border border-red-300 rounded-lg p-4">
+            <h3 className="text-lg font-semibold text-red-700 mb-2 flex items-center gap-2">
+              <span>🛡️</span>
               <span>Counter vs Enemy Draft</span>
             </h3>
             {(() => {
@@ -1771,7 +1974,7 @@ export default function ManualDraftPick() {
 
               if (enemyPicked.length === 0) {
                 return (
-                  <p className="text-xs text-red-200">
+                  <p className="text-xs text-red-600">
                     Isi enemy draft di panel kanan untuk melihat apakah ada hero kamu yang tercounter keras oleh draft musuh.
                   </p>
                 );
@@ -1795,7 +1998,7 @@ export default function ManualDraftPick() {
 
               if (threatEntries.length === 0) {
                 return (
-                  <p className="text-xs text-green-200">
+                  <p className="text-xs text-green-600">
                     Tidak ada hard counter yang tercatat di database untuk draft musuh saat ini. Kamu masih aman secara match-up murni.
                   </p>
                 );
@@ -1803,14 +2006,14 @@ export default function ManualDraftPick() {
 
               return (
                 <>
-                  <p className="text-xs text-red-200 mb-2">
+                  <p className="text-xs text-red-600 mb-2">
                     {threatEntries.length}/{heroDetails.length} hero kamu memiliki hard counter di enemy draft (berdasarkan tabel hero_counter).
                   </p>
-                  <ul className="space-y-1 text-xs text-red-100">
+                  <ul className="space-y-1 text-xs text-red-700">
                     {threatEntries.map((entry, idx) => (
                       <li key={idx}>
                         <span className="font-semibold">{entry.hero}</span>
-                        <span className="mx-1">\u2190</span>
+                        <span className="mx-1">←</span>
                         <span>
                           {entry.counters
                             .map(c => {
@@ -1832,24 +2035,24 @@ export default function ManualDraftPick() {
 
           {/* Team Composition Analysis */}
           {composition && (
-            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-              <h3 className="text-xl font-bold mb-4">Team Composition Analysis</h3>
+            <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+              <h3 className="text-xl font-bold mb-4 text-gray-800">Team Composition Analysis</h3>
               
               {/* Lanes Status */}
-              <div className="mb-4 p-3 bg-gray-700 rounded-lg">
-                <h4 className="text-sm font-semibold text-gray-300 mb-2">Lanes Configuration Status</h4>
+              <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                <h4 className="text-sm font-semibold text-gray-700 mb-2">Lanes Configuration Status</h4>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-400">Heroes with lanes data:</span>
+                  <span className="text-sm text-gray-600">Heroes with lanes data:</span>
                   <span className={`text-lg font-bold ${
                     heroDetails.filter(h => h.lanes && h.lanes.length > 0).length === 5
-                      ? 'text-green-400'
-                      : 'text-red-400'
+                      ? 'text-green-600'
+                      : 'text-red-600'
                   }`}>
                     {heroDetails.filter(h => h.lanes && h.lanes.length > 0).length} / 5
                   </span>
                 </div>
                 {heroDetails.filter(h => !h.lanes || h.lanes.length === 0).length > 0 && (
-                  <div className="mt-2 text-xs text-red-300">
+                  <div className="mt-2 text-xs text-red-600">
                     ⚠️ {heroDetails.filter(h => !h.lanes || h.lanes.length === 0).map(h => h.hero_name).join(', ')} belum punya data lanes
                   </div>
                 )}
@@ -1859,14 +2062,14 @@ export default function ManualDraftPick() {
                 {/* Balance Status */}
                 <div className={`p-4 rounded-lg text-center ${
                   composition.isBalanced
-                    ? 'bg-green-900 border-2 border-green-500'
-                    : 'bg-yellow-900 border-2 border-yellow-500'
+                    ? 'bg-green-50 border-2 border-green-400'
+                    : 'bg-yellow-50 border-2 border-yellow-400'
                 }`}>
-                  <p className="text-sm text-gray-300 mb-2">Team Balance</p>
-                  <p className="text-2xl font-bold">
+                  <p className="text-sm text-gray-600 mb-2">Team Balance</p>
+                  <p className={`text-2xl font-bold ${composition.isBalanced ? 'text-green-600' : 'text-yellow-600'}`}>
                     {composition.isBalanced ? '✓ Balanced' : '⚠ Unbalanced'}
                   </p>
-                  <p className="text-xs text-gray-400 mt-2">
+                  <p className="text-xs text-gray-500 mt-2">
                     {composition.isBalanced 
                       ? '3+ different roles' 
                       : 'Need more role diversity'}
@@ -1874,20 +2077,20 @@ export default function ManualDraftPick() {
                 </div>
 
                 {/* Role Distribution */}
-                <div className="p-4 bg-gray-700 border border-gray-600 rounded-lg">
-                  <p className="text-sm text-gray-300 mb-3 font-semibold">Role Distribution</p>
+                <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                  <p className="text-sm text-gray-700 mb-3 font-semibold">Role Distribution</p>
                   <div className="space-y-2">
                     {Object.entries(composition.roleDistribution).map(([role, count]) => (
                       <div key={role} className="flex justify-between items-center">
-                        <span className="text-sm text-gray-400">{role}</span>
+                        <span className="text-sm text-gray-600">{role}</span>
                         <div className="flex items-center gap-2">
-                          <div className="w-16 bg-gray-800 rounded-full h-2">
+                          <div className="w-16 bg-gray-200 rounded-full h-2">
                             <div 
                               className="bg-blue-500 h-2 rounded-full" 
                               style={{ width: `${(count / composition.total) * 100}%` }}
                             />
                           </div>
-                          <span className="font-semibold text-sm w-6 text-right">{count}</span>
+                          <span className="font-semibold text-sm w-6 text-right text-gray-700">{count}</span>
                         </div>
                       </div>
                     ))}
@@ -1895,29 +2098,29 @@ export default function ManualDraftPick() {
                 </div>
 
                 {/* Damage Type Distribution */}
-                <div className="p-4 bg-gray-700 border border-gray-600 rounded-lg">
-                  <p className="text-sm text-gray-300 mb-3 font-semibold">Damage Types</p>
+                <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                  <p className="text-sm text-gray-700 mb-3 font-semibold">Damage Types</p>
                   <div className="space-y-3">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-red-400">Physical</span>
-                      <span className="font-bold text-lg">{composition.damageTypes.physical}</span>
+                      <span className="text-sm text-red-600">Physical</span>
+                      <span className="font-bold text-lg text-gray-800">{composition.damageTypes.physical}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-purple-400">Magic</span>
-                      <span className="font-bold text-lg">{composition.damageTypes.magic}</span>
+                      <span className="text-sm text-purple-600">Magic</span>
+                      <span className="font-bold text-lg text-gray-800">{composition.damageTypes.magic}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-yellow-400">Mixed</span>
-                      <span className="font-bold text-lg">{composition.damageTypes.mixed}</span>
+                      <span className="text-sm text-yellow-600">Mixed</span>
+                      <span className="font-bold text-lg text-gray-800">{composition.damageTypes.mixed}</span>
                     </div>
                   </div>
                 </div>
               </div>
 
               {/* Recommendations */}
-              <div className="mt-6 p-4 bg-blue-900/30 border border-blue-700 rounded-lg">
-                <p className="text-sm font-semibold text-blue-300 mb-2">💡 Recommendations:</p>
-                <ul className="text-sm text-gray-300 space-y-1">
+              <div className="mt-6 p-4 bg-sky-50 border border-sky-200 rounded-lg">
+                <p className="text-sm font-semibold text-sky-700 mb-2">💡 Recommendations:</p>
+                <ul className="text-sm text-gray-700 space-y-1">
                   {!composition.isBalanced && (
                     <li>• Add more role diversity for better team balance</li>
                   )}
@@ -1941,9 +2144,12 @@ export default function ManualDraftPick() {
       )}
 
       {!hasAnyPick && !loading && (
-        <div className="text-center py-12 text-gray-500">
-          <p className="text-lg">Start typing hero names to build your draft team</p>
-          <p className="text-sm mt-2">You can pick up to 5 heroes</p>
+        <div className="text-center py-12">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
+            <span className="text-2xl">🎮</span>
+          </div>
+          <p className="text-lg text-gray-700 font-medium">Start Building Your Draft</p>
+          <p className="text-sm text-gray-500 mt-2">Click on a slot above and search for heroes to build your team</p>
         </div>
       )}
     </div>
