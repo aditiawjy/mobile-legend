@@ -1700,6 +1700,95 @@ export default function ManualDraftPick() {
                 </div>
               )}
             </div>
+
+            {/* Real-time Composition Analysis */}
+            {heroDetails.length > 0 && (
+              <div className="mt-3 p-3 border border-gray-200 rounded-lg bg-gradient-to-br from-sky-50 to-indigo-50">
+                <h4 className="text-xs font-bold text-gray-700 mb-2 flex items-center gap-1">
+                  <span>📊</span> Team Composition
+                </h4>
+                
+                {/* Role Balance */}
+                <div className="mb-2">
+                  <p className="text-[10px] text-gray-500 mb-1">Role Balance</p>
+                  <div className="flex flex-wrap gap-1">
+                    {['Tank', 'Fighter', 'Assassin', 'Mage', 'Marksman', 'Support'].map(role => {
+                      const hasRole = heroDetails.some(h => h.role?.toLowerCase().includes(role.toLowerCase()));
+                      return (
+                        <span key={role} className={`text-[9px] px-1.5 py-0.5 rounded ${hasRole ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>
+                          {hasRole ? '✓' : '○'} {role}
+                        </span>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Damage Balance */}
+                <div className="mb-2">
+                  <p className="text-[10px] text-gray-500 mb-1">Damage Balance</p>
+                  <div className="flex gap-2">
+                    <div className="flex-1">
+                      <div className="flex justify-between text-[9px] mb-0.5">
+                        <span>Physical</span>
+                        <span className="font-bold">{composition?.damageTypes?.physical || 0}</span>
+                      </div>
+                      <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                        <div className="h-full bg-orange-500 transition-all" style={{ width: `${Math.min(100, ((composition?.damageTypes?.physical || 0) / 5) * 100)}%` }}></div>
+                      </div>
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex justify-between text-[9px] mb-0.5">
+                        <span>Magic</span>
+                        <span className="font-bold">{composition?.damageTypes?.magic || 0}</span>
+                      </div>
+                      <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                        <div className="h-full bg-purple-500 transition-all" style={{ width: `${Math.min(100, ((composition?.damageTypes?.magic || 0) / 5) * 100)}%` }}></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Lane Coverage */}
+                <div className="mb-2">
+                  <p className="text-[10px] text-gray-500 mb-1">Lane Coverage</p>
+                  <div className="flex flex-wrap gap-1">
+                    {lanes.map((lane, idx) => {
+                      const filled = draftPicks[idx] && draftPicks[idx].trim();
+                      return (
+                        <span key={lane.lane} className={`text-[9px] px-1.5 py-0.5 rounded ${filled ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-500'}`}>
+                          {filled ? '✓' : '✗'} {lane.lane}
+                        </span>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Team Traits */}
+                <div>
+                  <p className="text-[10px] text-gray-500 mb-1">Team Traits</p>
+                  <div className="flex flex-wrap gap-1">
+                    {heroDetails.some(h => isTankOrTanky(h)) && (
+                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-700">🛡️ Has Tank</span>
+                    )}
+                    {heroDetails.some(h => hasCC(h)) && (
+                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-700">⚡ Has CC</span>
+                    )}
+                    {heroDetails.some(h => hasBurst(h)) && (
+                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-red-100 text-red-700">💥 Has Burst</span>
+                    )}
+                    {heroDetails.some(h => hasObjectiveControl(h)) && (
+                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-700">🎯 Obj Control</span>
+                    )}
+                    {!heroDetails.some(h => isTankOrTanky(h)) && (
+                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-red-100 text-red-600">⚠️ No Tank</span>
+                    )}
+                    {!heroDetails.some(h => hasCC(h)) && (
+                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-yellow-100 text-yellow-700">⚠️ No CC</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
