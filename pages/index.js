@@ -32,6 +32,7 @@ export default function Home() {
   const [allHeroesQuery, setAllHeroesQuery] = useState('')
   const [csvUpdating, setCsvUpdating] = useState(false)
   const [csvMessage, setCsvMessage] = useState('')
+  const [roleDistribution, setRoleDistribution] = useState([])
   const dropdownRef = useRef(null)
   const inputRef = useRef(null)
 
@@ -75,6 +76,32 @@ export default function Home() {
       }
     }
     fetchStats()
+  }, [])
+
+  // Fetch role distribution for dashboard widget
+  useEffect(() => {
+    const fetchRoleDistribution = async () => {
+      try {
+        const response = await fetch('/api/heroes')
+        if (response.ok) {
+          const heroes = await response.json()
+          // Calculate role distribution
+          const roleCounts = {}
+          heroes.forEach(hero => {
+            const primaryRole = hero.role?.split('/')[0].trim() || 'Unknown'
+            roleCounts[primaryRole] = (roleCounts[primaryRole] || 0) + 1
+          })
+          // Convert to array and sort by count
+          const distribution = Object.entries(roleCounts)
+            .map(([role, count]) => ({ role, count }))
+            .sort((a, b) => b.count - a.count)
+          setRoleDistribution(distribution)
+        }
+      } catch (error) {
+        console.error('Error fetching role distribution:', error)
+      }
+    }
+    fetchRoleDistribution()
   }, [])
 
   useEffect(() => {
@@ -351,7 +378,7 @@ export default function Home() {
                     </div>
                   </div>
                 ) : (
-                  <DashboardOverview stats={stats} />
+                  <DashboardOverview stats={stats} roleDistribution={roleDistribution} />
                 )}
               </div>
 
@@ -372,14 +399,36 @@ export default function Home() {
                     </div>
                   ) : heroAdjustments.length > 0 ? (
                     <div className="space-y-3">
-                      {heroAdjustments.map((adj, idx) => (
-                        <div key={idx} className="flex items-start justify-between p-4 bg-gradient-to-r from-orange-50 to-amber-50 rounded-lg border border-orange-200 hover:shadow-md transition-shadow">
+                      {heroAdjustments.map((adj, idx) => {
+                        // Detect buff/nerf from description keywords
+                        const desc = (adj.description || '').toLowerCase()
+                        const buffKeywords = ['buff', 'increased', 'improved', 'enhanced', 'added', 'bonus', 'faster', 'stronger', 'higher', 'more damage', 'reduced cooldown', 'lower mana']
+                        const nerfKeywords = ['nerf', 'decreased', 'reduced', 'lowered', 'removed', 'slower', 'weaker', 'less damage', 'increased cooldown', 'higher mana cost']
+                        const isBuff = buffKeywords.some(k => desc.includes(k))
+                        const isNerf = nerfKeywords.some(k => desc.includes(k))
+                        const adjustmentType = isBuff && isNerf ? 'mixed' : isBuff ? 'buff' : isNerf ? 'nerf' : 'adjust'
+                        
+                        const typeStyles = {
+                          buff: { bg: 'from-green-50 to-emerald-50', border: 'border-green-200', badge: 'bg-green-500 text-white', icon: '↑' },
+                          nerf: { bg: 'from-red-50 to-rose-50', border: 'border-red-200', badge: 'bg-red-500 text-white', icon: '↓' },
+                          mixed: { bg: 'from-yellow-50 to-amber-50', border: 'border-yellow-200', badge: 'bg-yellow-500 text-white', icon: '↕' },
+                          adjust: { bg: 'from-orange-50 to-amber-50', border: 'border-orange-200', badge: 'bg-orange-500 text-white', icon: '~' },
+                        }
+                        const style = typeStyles[adjustmentType]
+                        
+                        return (
+                        <div key={idx} className={`flex items-start justify-between p-4 bg-gradient-to-r ${style.bg} rounded-lg border ${style.border} hover:shadow-md transition-shadow`}>
                           <div className="flex-1">
                             <div className="flex items-center gap-3 mb-2">
-                              <a href={`/hero/${encodeURIComponent(adj.hero_name)}`} className="font-semibold text-lg text-orange-700 hover:text-orange-900 transition-colors">
+                              <a href={`/hero/${encodeURIComponent(adj.hero_name)}`} className="font-semibold text-lg text-gray-800 hover:text-gray-900 transition-colors">
                                 {adj.hero_name}
                               </a>
-                              <span className="text-xs px-2 py-1 rounded-full bg-orange-200 text-orange-800">
+                              {/* Buff/Nerf Badge */}
+                              <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${style.badge} flex items-center gap-1`}>
+                                <span>{style.icon}</span>
+                                {adjustmentType === 'buff' ? 'BUFF' : adjustmentType === 'nerf' ? 'NERF' : adjustmentType === 'mixed' ? 'ADJUST' : 'UPDATE'}
+                              </span>
+                              <span className="text-xs px-2 py-1 rounded-full bg-gray-200 text-gray-700">
                                 {adj.season || 'Latest'}
                               </span>
                             </div>
@@ -397,12 +446,13 @@ export default function Home() {
                           </div>
                           <a
                             href={`/hero/${encodeURIComponent(adj.hero_name)}`}
-                            className="ml-4 px-3 py-1.5 text-sm bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors whitespace-nowrap"
+                            className={`ml-4 px-3 py-1.5 text-sm ${adjustmentType === 'buff' ? 'bg-green-500 hover:bg-green-600' : adjustmentType === 'nerf' ? 'bg-red-500 hover:bg-red-600' : 'bg-orange-500 hover:bg-orange-600'} text-white rounded-lg transition-colors whitespace-nowrap`}
                           >
                             View Hero
                           </a>
                         </div>
-                      ))}
+                      )})}
+                      
                     </div>
                   ) : (
                     <div className="text-center py-8 text-gray-500">
