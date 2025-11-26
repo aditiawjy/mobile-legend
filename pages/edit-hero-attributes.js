@@ -112,7 +112,7 @@ export default function EditHeroAttributesPage() {
     switch (e.key) {
       case 'ArrowDown': e.preventDefault(); setActiveIndex((i) => (i + 1) % suggestions.length); break
       case 'ArrowUp': e.preventDefault(); setActiveIndex((i) => (i - 1 + suggestions.length) % suggestions.length); break
-      case 'Enter': if (activeIndex >= 0) { e.preventDefault(); onSelectHero(suggestions[activeIndex]) } break
+      case 'Enter': if (activeIndex >= 0) { e.preventDefault(); onSelectHero(suggestions[activeIndex].hero_name) } break
       case 'Escape': setSuggestions([]); break
     }
   }
@@ -197,13 +197,13 @@ export default function EditHeroAttributesPage() {
                   ref={dropdownRef}
                   className="absolute z-10 mt-2 w-full bg-white border border-gray-200 rounded-xl shadow-lg max-h-72 overflow-auto"
                 >
-                  {suggestions.map((nameOpt, i) => (
+                  {suggestions.map((item, i) => (
                     <div
-                      key={nameOpt + i}
+                      key={item.hero_name + i}
                       className={`cursor-pointer px-4 py-2 text-sm text-gray-700 ${i === 0 ? 'rounded-t-xl' : ''} ${i === suggestions.length - 1 ? 'rounded-b-xl' : ''} ${i === activeIndex ? 'bg-gray-100' : ''}`}
-                      onMouseDown={(e) => { e.preventDefault(); onSelectHero(nameOpt) }}
+                      onMouseDown={(e) => { e.preventDefault(); onSelectHero(item.hero_name) }}
                     >
-                      {nameOpt}
+                      {item.hero_name}
                     </div>
                   ))}
                 </div>

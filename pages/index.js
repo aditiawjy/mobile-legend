@@ -5,6 +5,7 @@ import SearchBar from '../components/common/SearchBar'
 import HeroCard from '../components/hero/HeroCard'
 import DashboardOverview from '../components/common/DashboardOverview'
 import AppLayout from '../components/common/AppLayout'
+import QuickActions from '../components/QuickActions'
 
 // Backend origin for opening full PHP pages (not proxied via Next.js)
 // You can override this in .env.local as NEXT_PUBLIC_BACKEND_ORIGIN
@@ -324,317 +325,106 @@ export default function Home() {
               </p>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
-              {!showAllHeroes && (
-                <>
-                  <a href="/edit-hero-info" className="text-sm inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-blue-300 text-blue-700 bg-blue-50 hover:bg-blue-100 font-medium">Edit Hero Info & Lanes</a>
-                  <a href="/items" className="text-sm inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-gray-200 text-gray-700 bg-white hover:bg-gray-100">Items</a>
-                  <a href="/damage-composition" className="text-sm inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-purple-200 text-purple-700 bg-purple-50 hover:bg-purple-100">Analysis</a>
-                  
-                  {/* CSV Update Button */}
-                  <button
-                    onClick={handleUpdateCSV}
-                    disabled={csvUpdating}
-                    title="Update Heroes CSV"
-                    className="text-sm inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-green-600 text-white bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                    </svg>
-                    <span>{csvUpdating ? 'Updating...' : 'CSV Heroes'}</span>
-                  </button>
-                  {csvMessage && (
-                    <span className="text-xs text-green-700 bg-green-100 px-2 py-1 rounded">
-                      {csvMessage}
-                    </span>
-                  )}
-                  
-                  <a href="/edit-matches" className="text-sm inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-gray-200 text-gray-700 bg-white hover:bg-gray-100">Matches</a>
-                  <a href="/edit-teams" className="text-sm inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-gray-200 text-gray-700 bg-white hover:bg-gray-100">Teams</a>
-                </>
-              )}
               <a href="/" className="text-sm inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-gray-200 text-gray-700 bg-white hover:bg-gray-100">
                 {showAllHeroes ? 'Dashboard' : 'Home'}
               </a>
             </div>
           </header>
 
-          {!showAllHeroes && (
-            <div className="mb-12">
-              {statsLoading ? (
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                  <div className="flex items-center justify-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sky-600"></div>
-                    <span className="ml-2 text-gray-600">Memuat statistik...</span>
-                  </div>
-                </div>
-              ) : (
-                <DashboardOverview stats={stats} />
-              )}
-            </div>
-          )}
-
-          {/* CSV Export Section */}
-          {!showAllHeroes && (
-            <div className="mb-8">
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                  <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                  </svg>
-                  Manage Heroes
-                </h2>
-                <p className="text-sm text-gray-600 mb-4">Edit hero information, lanes, skills, and attributes</p>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
-                  <a
-                    href="/edit-hero-info"
-                    className="p-4 bg-blue-50 border border-blue-200 rounded-lg hover:shadow-md transition-shadow"
-                  >
-                    <h3 className="font-semibold text-blue-900 mb-1">Hero Info & Lanes</h3>
-                    <p className="text-xs text-blue-700 mb-2">Edit hero details and lane assignments</p>
-                    <span className="inline-flex items-center gap-1 text-xs text-blue-600 font-medium">
-                      Edit
-                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </span>
-                  </a>
-
-                  <a
-                    href="/edit-skills"
-                    className="p-4 bg-purple-50 border border-purple-200 rounded-lg hover:shadow-md transition-shadow"
-                  >
-                    <h3 className="font-semibold text-purple-900 mb-1">Hero Skills</h3>
-                    <p className="text-xs text-purple-700 mb-2">Edit hero skills and descriptions</p>
-                    <span className="inline-flex items-center gap-1 text-xs text-purple-600 font-medium">
-                      Edit
-                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </span>
-                  </a>
-
-                  <a
-                    href="/edit-hero-attributes"
-                    className="p-4 bg-green-50 border border-green-200 rounded-lg hover:shadow-md transition-shadow"
-                  >
-                    <h3 className="font-semibold text-green-900 mb-1">Hero Attributes</h3>
-                    <p className="text-xs text-green-700 mb-2">Edit hero stats and attributes</p>
-                    <span className="inline-flex items-center gap-1 text-xs text-green-600 font-medium">
-                      Edit
-                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </span>
-                  </a>
-
-                  <a
-                    href="/edit-hero-adjustments"
-                    className="p-4 bg-orange-50 border border-orange-200 rounded-lg hover:shadow-md transition-shadow"
-                  >
-                    <h3 className="font-semibold text-orange-900 mb-1">Hero Adjustments</h3>
-                    <p className="text-xs text-orange-700 mb-2">Edit balance changes and patches</p>
-                    <span className="inline-flex items-center gap-1 text-xs text-orange-600 font-medium">
-                      Edit
-                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </span>
-                  </a>
-
-                  <a
-                    href="/edit-hero-combos"
-                    className="p-4 bg-pink-50 border border-pink-200 rounded-lg hover:shadow-md transition-shadow"
-                  >
-                    <h3 className="font-semibold text-pink-900 mb-1 flex items-center gap-1">
-                      🔥 Hero Combos
-                      <span className="text-[8px] px-1.5 py-0.5 bg-pink-200 text-pink-700 rounded-full font-normal">NEW</span>
-                    </h3>
-                    <p className="text-xs text-pink-700 mb-2">Manage powerful hero combinations</p>
-                    <span className="inline-flex items-center gap-1 text-xs text-pink-600 font-medium">
-                      Manage
-                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </span>
-                  </a>
-                </div>
+          {!showAllHeroes ? (
+            <>
+              {/* 1. Search Bar (Top Priority) */}
+              <div className="mb-8">
+                <SearchBar
+                  onSearch={(heroName) => { if (heroName) onSelect(heroName) }}
+                  placeholder="Cari hero Mobile Legends..."
+                />
               </div>
-            </div>
-          )}
 
-          {!showAllHeroes && (
-            <div className="mb-8">
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                  <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                  CSV Data Export
-                </h2>
-                <p className="text-sm text-gray-600 mb-6">Update CSV files with latest database data</p>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <h3 className="font-semibold text-blue-900 mb-2">Heroes CSV</h3>
-                    <p className="text-xs text-blue-700 mb-3">Export all heroes data to CSV file</p>
-                    <button
-                      onClick={handleUpdateCSV}
-                      disabled={csvUpdating}
-                      className="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                      </svg>
-                      {csvUpdating ? 'Updating...' : 'Update Heroes CSV'}
-                    </button>
-                    <p className="text-xs text-gray-500 mt-2">File: /csv/heroes.csv</p>
-                  </div>
-                  
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                    <h3 className="font-semibold text-green-900 mb-2">Items CSV</h3>
-                    <p className="text-xs text-green-700 mb-3">Export all items data to CSV file</p>
-                    <a
-                      href="/items"
-                      className="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium flex items-center justify-center gap-2 inline-block text-center"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                      </svg>
-                      Go to Items Page
-                    </a>
-                    <p className="text-xs text-gray-500 mt-2">File: /csv/items.csv</p>
-                  </div>
-                  
-                  <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-                    <h3 className="font-semibold text-purple-900 mb-2">Hero Adjustments CSV</h3>
-                    <p className="text-xs text-purple-700 mb-3">Export hero adjustments history to CSV</p>
-                    <button
-                      onClick={handleUpdateAdjustmentsCSV}
-                      disabled={csvUpdating}
-                      className="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                      </svg>
-                      {csvUpdating ? 'Updating...' : 'Update Adjustments CSV'}
-                    </button>
-                    <p className="text-xs text-gray-500 mt-2">File: /csv/hero-adjustments.csv</p>
-                  </div>
-
-                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                    <h3 className="font-semibold text-yellow-900 mb-2">Emblems CSV</h3>
-                    <p className="text-xs text-yellow-700 mb-3">Export all emblems data to CSV file</p>
-                    <button
-                      onClick={handleUpdateEmblemsCSV}
-                      disabled={csvUpdating}
-                      className="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                      </svg>
-                      {csvUpdating ? 'Updating...' : 'Update Emblems CSV'}
-                    </button>
-                    <p className="text-xs text-gray-500 mt-2">File: /csv/emblems.csv</p>
-                  </div>
-
-                  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                    <h3 className="font-semibold text-red-900 mb-2">Battle Spells CSV</h3>
-                    <p className="text-xs text-red-700 mb-3">Export all battle spells to CSV file</p>
-                    <button
-                      onClick={handleUpdateSpellsCSV}
-                      disabled={csvUpdating}
-                      className="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                      </svg>
-                      {csvUpdating ? 'Updating...' : 'Update Spells CSV'}
-                    </button>
-                    <p className="text-xs text-gray-500 mt-2">File: /csv/battle-spells.csv</p>
-                  </div>
-                </div>
-                
-                {csvMessage && (
-                  <div className="mt-4 p-3 bg-green-100 border border-green-300 rounded-lg text-green-800 text-sm">
-                    {csvMessage}
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {!showAllHeroes && (
-            <div className="mb-8">
-              <SearchBar
-                onSearch={(heroName) => { if (heroName) onSelect(heroName) }}
-                placeholder="Cari hero Mobile Legends..."
-              />
-            </div>
-          )}
-
-          {/* Latest Hero Adjustments */}
-          {!showAllHeroes && (
-            <div className="mb-12">
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                  <svg className="w-6 h-6 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
-                  Latest Hero Adjustments
-                </h2>
-
-                {adjustmentsLoading ? (
-                  <div className="flex items-center justify-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
-                    <span className="ml-2 text-gray-600">Memuat adjustments...</span>
-                  </div>
-                ) : heroAdjustments.length > 0 ? (
-                  <div className="space-y-3">
-                    {heroAdjustments.map((adj, idx) => (
-                      <div key={idx} className="flex items-start justify-between p-4 bg-gradient-to-r from-orange-50 to-amber-50 rounded-lg border border-orange-200 hover:shadow-md transition-shadow">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-2">
-                            <a href={`/hero/${encodeURIComponent(adj.hero_name)}`} className="font-semibold text-lg text-orange-700 hover:text-orange-900 transition-colors">
-                              {adj.hero_name}
-                            </a>
-                            <span className="text-xs px-2 py-1 rounded-full bg-orange-200 text-orange-800">
-                              {adj.season || 'Latest'}
-                            </span>
-                          </div>
-                          <p className="text-gray-700 text-sm">{adj.description}</p>
-                          <p className="text-xs text-gray-500 mt-2">
-                            {adj.adjustment_date ? (() => {
-                              try {
-                                const date = new Date(adj.adjustment_date)
-                                return !isNaN(date) ? date.toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' }) : adj.adjustment_date
-                              } catch (e) {
-                                return adj.adjustment_date
-                              }
-                            })() : 'No date'}
-                          </p>
-                        </div>
-                        <a
-                          href={`/hero/${encodeURIComponent(adj.hero_name)}`}
-                          className="ml-4 px-3 py-1.5 text-sm bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors whitespace-nowrap"
-                        >
-                          View Hero
-                        </a>
-                      </div>
-                    ))}
+              {/* 2. Stats Overview */}
+              <div className="mb-12">
+                {statsLoading ? (
+                  <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <div className="flex items-center justify-center py-8">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sky-600"></div>
+                      <span className="ml-2 text-gray-600">Memuat statistik...</span>
+                    </div>
                   </div>
                 ) : (
-                  <div className="text-center py-8 text-gray-500">
-                    <p>Tidak ada adjustments terbaru</p>
-                  </div>
+                  <DashboardOverview stats={stats} />
                 )}
               </div>
-            </div>
-          )}
 
-          {/* Hero detail is now a dedicated page at /hero/[name] */}
+              {/* 3. Latest Hero Adjustments */}
+              <div className="mb-12">
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                  <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                    <svg className="w-6 h-6 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                    Latest Hero Adjustments
+                  </h2>
 
-          {showAllHeroes && (
+                  {adjustmentsLoading ? (
+                    <div className="flex items-center justify-center py-8">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+                      <span className="ml-2 text-gray-600">Memuat adjustments...</span>
+                    </div>
+                  ) : heroAdjustments.length > 0 ? (
+                    <div className="space-y-3">
+                      {heroAdjustments.map((adj, idx) => (
+                        <div key={idx} className="flex items-start justify-between p-4 bg-gradient-to-r from-orange-50 to-amber-50 rounded-lg border border-orange-200 hover:shadow-md transition-shadow">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-2">
+                              <a href={`/hero/${encodeURIComponent(adj.hero_name)}`} className="font-semibold text-lg text-orange-700 hover:text-orange-900 transition-colors">
+                                {adj.hero_name}
+                              </a>
+                              <span className="text-xs px-2 py-1 rounded-full bg-orange-200 text-orange-800">
+                                {adj.season || 'Latest'}
+                              </span>
+                            </div>
+                            <p className="text-gray-700 text-sm">{adj.description}</p>
+                            <p className="text-xs text-gray-500 mt-2">
+                              {adj.adjustment_date ? (() => {
+                                try {
+                                  const date = new Date(adj.adjustment_date)
+                                  return !isNaN(date) ? date.toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' }) : adj.adjustment_date
+                                } catch (e) {
+                                  return adj.adjustment_date
+                                }
+                              })() : 'No date'}
+                            </p>
+                          </div>
+                          <a
+                            href={`/hero/${encodeURIComponent(adj.hero_name)}`}
+                            className="ml-4 px-3 py-1.5 text-sm bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors whitespace-nowrap"
+                          >
+                            View Hero
+                          </a>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-gray-500">
+                      <p>Tidak ada adjustments terbaru</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* 4. Quick Actions (Admin/CSV) */}
+              <div className="mb-8">
+                <QuickActions 
+                   csvUpdating={csvUpdating}
+                   csvMessage={csvMessage}
+                   handleUpdateCSV={handleUpdateCSV}
+                   handleUpdateAdjustmentsCSV={handleUpdateAdjustmentsCSV}
+                   handleUpdateEmblemsCSV={handleUpdateEmblemsCSV}
+                   handleUpdateSpellsCSV={handleUpdateSpellsCSV}
+                />
+              </div>
+            </>
+          ) : (
             <div className="mb-8">
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <div className="flex items-center justify-between mb-6">
