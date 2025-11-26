@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
-import AppLayout from '../components/AppLayout'
+import AppLayout from '../components/common/AppLayout'
 
 export default function EmblemsPage() {
   const [emblems, setEmblems] = useState([])

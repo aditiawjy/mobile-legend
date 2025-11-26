@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import AppLayout from '../components/AppLayout';
-import HeroAutocomplete from '../components/HeroAutocomplete';
+import AppLayout from '../components/common/AppLayout';
+import HeroAutocomplete from '../components/hero/HeroAutocomplete';
 
 export default function EditHeroCombos() {
   const [combos, setCombos] = useState([]);

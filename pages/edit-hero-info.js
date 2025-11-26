@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/router'
-import AppLayout from '../components/AppLayout'
+import AppLayout from '../components/common/AppLayout'
 
 export default function EditHeroInfoPage() {
   const router = useRouter()

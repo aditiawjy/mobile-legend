@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
-import EditNav from '../components/EditNav'
-import SearchBar from '../components/SearchBar'
-import HeroCard from '../components/HeroCard'
-import DashboardOverview from '../components/DashboardOverview'
-import AppLayout from '../components/AppLayout'
+import EditNav from '../components/common/EditNav'
+import SearchBar from '../components/common/SearchBar'
+import HeroCard from '../components/hero/HeroCard'
+import DashboardOverview from '../components/common/DashboardOverview'
+import AppLayout from '../components/common/AppLayout'
 
 // Backend origin for opening full PHP pages (not proxied via Next.js)
 // You can override this in .env.local as NEXT_PUBLIC_BACKEND_ORIGIN

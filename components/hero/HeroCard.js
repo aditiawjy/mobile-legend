@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { colors, shadows, borderRadius, spacing, typography } from '../lib/design-system'
+import { colors, shadows, borderRadius, spacing, typography } from '../../lib/design-system'
 
 export default function HeroCard({ hero, heroAttrs, heroAdjs, onEdit }) {
   const [activeSkillTab, setActiveSkillTab] = useState(0)

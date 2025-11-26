@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
-import AppLayout from '../components/AppLayout'
-import SearchBar from '../components/SearchBar'
-import { useToast } from '../components/Toast'
+import AppLayout from '../components/common/AppLayout'
+import SearchBar from '../components/common/SearchBar'
+import { useToast } from '../components/common/Toast'
 import { colors, shadows, borderRadius, spacing, typography } from '../lib/design-system'
 
 const fields = [

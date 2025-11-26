@@ -1,44 +1,6 @@
 import { useState, useEffect } from 'react';
-import { fetchLanes, getDefaultLanes } from '../lib/laneConstants';
-
-const getPrimaryRole = (roleString) => roleString?.split('/')[0].trim() || roleString;
-
-const hasCC = (hero) => {
-  const ar = hero.attackReliance?.toLowerCase() || '';
-  const note = hero.note?.toLowerCase() || '';
-  const ccKeywords = ['control', 'crowd', 'stun', 'immobilize', 'knock', 'slow', 'suppress', 'pull', 'freeze', 'terrify'];
-  return ccKeywords.some(keyword => ar.includes(keyword) || note.includes(keyword));
-};
-
-const hasBurst = (hero) => {
-  const ar = hero.attackReliance?.toLowerCase() || '';
-  const note = hero.note?.toLowerCase() || '';
-  return ar.includes('burst') || note.includes('burst');
-};
-
-const hasObjectiveControl = (hero) => {
-  const role = hero.role?.toLowerCase() || '';
-  const ar = hero.attackReliance?.toLowerCase() || '';
-  const note = hero.note?.toLowerCase() || '';
-  const junglerKeywords = ['jungle', 'jungling', 'hyper', 'retri', 'retribution'];
-  const objectiveKeywords = ['lord', 'turtle', 'objective', 'secure', 'steal'];
-
-  if (junglerKeywords.some(keyword => ar.includes(keyword) || note.includes(keyword))) {
-    return true;
-  }
-
-  if (objectiveKeywords.some(keyword => note.includes(keyword))) {
-    return true;
-  }
-
-  if (role.includes('assassin') || role.includes('fighter')) {
-    if (objectiveKeywords.some(keyword => ar.includes(keyword))) {
-      return true;
-    }
-  }
-
-  return false;
-};
+import { fetchLanes, getDefaultLanes } from '../../lib/laneConstants';
+import { hasCC, hasBurst, hasObjectiveControl, getPrimaryRole } from '../../lib/teamValidation';
 
 export default function DraftPickSimulator() {
   const [heroes, setHeroes] = useState([]);

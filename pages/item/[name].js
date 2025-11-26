@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
-import AppLayout from '../../components/AppLayout'
-import LazyImage from '../../components/LazyImage'
+import AppLayout from '../../components/common/AppLayout'
+import LazyImage from '../../components/common/LazyImage'
 
 export default function ItemDetailPage() {
   const router = useRouter()

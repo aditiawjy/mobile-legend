@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import AppLayout from '../components/AppLayout'
+import AppLayout from '../components/common/AppLayout'
 
 export default function Matches() {
   const [matches, setMatches] = useState([])

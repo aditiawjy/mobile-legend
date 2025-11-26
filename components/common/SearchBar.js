@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/router'
-import { colors, shadows, borderRadius } from '../lib/design-system'
+import { colors, shadows, borderRadius } from '../../lib/design-system'
 
 export default function SearchBar({ onSearch, placeholder = "Cari hero..." }) {
   const router = useRouter()

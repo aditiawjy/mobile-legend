@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import { useRouter } from 'next/router'
-import AppLayout from '../components/AppLayout'
-import { useToast, toastError } from '../components/Toast'
-import LazyImage from '../components/LazyImage'
+import AppLayout from '../components/common/AppLayout'
+import { useToast, toastError } from '../components/common/Toast'
+import LazyImage from '../components/common/LazyImage'
 
 export default function ItemsHome() {
   const router = useRouter()

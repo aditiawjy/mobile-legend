@@ -4,8 +4,8 @@ import useSWRInfinite from 'swr/infinite'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
 import Link from 'next/link'
-import AppLayout from '../components/AppLayout'
-import LazyImage from '../components/LazyImage'
+import AppLayout from '../components/common/AppLayout'
+import LazyImage from '../components/common/LazyImage'
 
 // SWR fetcher function
 const fetcher = async (url) => {

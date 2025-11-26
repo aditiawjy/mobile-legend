@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/router'
-import AppLayout from '../components/AppLayout'
-import { useToast, toastError, toastWarning, toastSuccess } from '../components/Toast'
-import LazyImage from '../components/LazyImage'
+import AppLayout from '../components/common/AppLayout'
+import { useToast, toastError, toastWarning, toastSuccess } from '../components/common/Toast'
+import LazyImage from '../components/common/LazyImage'
 import { useItemSearch } from '../lib/hooks/useItems'
 
 export default function CompareItemsPage() {

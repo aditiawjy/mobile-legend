@@ -1,5 +1,5 @@
 import "../styles/globals.css"
-import { ToastProvider } from "../components/Toast"
+import { ToastProvider } from "../components/common/Toast"
 import { SWRConfig } from 'swr'
 
 export default function App({ Component, pageProps }) {

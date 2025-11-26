@@ -1,5 +1,5 @@
 import { useState, useEffect, createContext, useContext, useCallback } from 'react'
-import { colors, shadows, borderRadius } from '../lib/design-system'
+import { colors, shadows, borderRadius } from '../../lib/design-system'
 
 const ToastContext = createContext()
 

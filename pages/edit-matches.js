@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import HeroAutocomplete from '../components/HeroAutocomplete'
+import HeroAutocomplete from '../components/hero/HeroAutocomplete'
 
 const emptyForm = {
   match_date: '',

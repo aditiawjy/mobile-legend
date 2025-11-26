@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import AppLayout from '../components/AppLayout'
+import AppLayout from '../components/common/AppLayout'
 
 export default function DebugCSVPage() {
   const [itemsResult, setItemsResult] = useState(null)

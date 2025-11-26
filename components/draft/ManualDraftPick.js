@@ -1,30 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
-import HeroAutocomplete from './HeroAutocomplete';
-import { fetchLanes, getDefaultLanes, LANE_ICONS } from '../lib/laneConstants';
-
-const ROLE_ICONS = {
-  Tank: '🛡️',
-  Fighter: '⚔️',
-  Mage: '✨',
-  Marksman: '🎯',
-  Assassin: '🗡️',
-  Support: '💊',
-};
-
-const getRoleIcon = (role) => {
-  if (!role) return '';
-  const key = role.split('/')[0].trim();
-  return ROLE_ICONS[key] || '';
-};
-
-const getDamageTypeIcon = (damageType) => {
-  if (!damageType) return '';
-  const dt = damageType.toLowerCase();
-  if (dt.includes('physical')) return '⚔️';
-  if (dt.includes('magic')) return '✨';
-  if (dt.includes('mixed')) return '⚡';
-  return '🔹';
-};
+import HeroAutocomplete from '../hero/HeroAutocomplete';
+import { fetchLanes, getDefaultLanes, LANE_ICONS } from '../../lib/laneConstants';
+import { ROLE_ICONS, getRoleIcon, getDamageTypeIcon } from './draftConstants';
 
 export default function ManualDraftPick() {
   const [draftPicks, setDraftPicks] = useState(['', '', '', '', '']);

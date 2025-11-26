@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import AppLayout from '../components/AppLayout'
+import AppLayout from '../components/common/AppLayout'
 
 const emptyForm = { team_name: '', tag: '', region: '' }
 

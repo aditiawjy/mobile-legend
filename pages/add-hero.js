@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
-import AppLayout from '../components/AppLayout'
-import { useToast } from '../components/Toast'
+import AppLayout from '../components/common/AppLayout'
+import { useToast } from '../components/common/Toast'
 
 export default function AddHeroPage() {
   const router = useRouter()

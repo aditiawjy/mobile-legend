@@ -1,4 +1,4 @@
-import ManualDraftPick from '../components/ManualDraftPick';
+import ManualDraftPick from '../components/draft/ManualDraftPick';
 
 export default function DraftPickPage() {
   return (

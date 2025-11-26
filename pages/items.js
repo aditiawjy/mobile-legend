@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
-import AppLayout from '../components/AppLayout'
-import { useToast, toastError } from '../components/Toast'
-import LazyImage from '../components/LazyImage'
-import ItemsFilter from '../components/ItemsFilter'
+import AppLayout from '../components/common/AppLayout'
+import { useToast, toastError } from '../components/common/Toast'
+import LazyImage from '../components/common/LazyImage'
+import ItemsFilter from '../components/items/ItemsFilter'
 import { useItemsInfinite, useItemSearch, useCategories } from '../lib/hooks/useItems'
 
 export default function ItemsHome() {

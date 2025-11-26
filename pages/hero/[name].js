@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
-import AppLayout from '../../components/AppLayout'
-import HeroCard from '../../components/HeroCard'
+import AppLayout from '../../components/common/AppLayout'
+import HeroCard from '../../components/hero/HeroCard'
 
 export default function HeroDetailPage() {
   const router = useRouter()
