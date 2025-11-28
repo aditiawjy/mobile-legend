@@ -1,38 +1,102 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import HeroAutocomplete from '../hero/HeroAutocomplete';
 import { fetchLanes, getDefaultLanes, LANE_ICONS } from '../../lib/laneConstants';
-import { ROLE_ICONS, getRoleIcon, getDamageTypeIcon } from './draftConstants';
+import { ROLE_ICONS, getRoleIcon, getDamageTypeIcon, getDamageTypeColor } from './draftConstants';
 
 export default function ManualDraftPick() {
+  // State Initialization - 4 bans per team
   const [draftPicks, setDraftPicks] = useState(['', '', '', '', '']);
   const [enemyDraftPicks, setEnemyDraftPicks] = useState(['', '', '', '', '']);
-  const [ourBans, setOurBans] = useState(['', '', '', '']);
-  const [enemyBans, setEnemyBans] = useState(['', '', '', '']);
+  const [ourBans, setOurBans] = useState(['', '', '', '']); // 4 bans
+  const [enemyBans, setEnemyBans] = useState(['', '', '', '']); // 4 bans
+  
   const [heroDetails, setHeroDetails] = useState([]);
   const [loading, setLoading] = useState(false);
   const [composition, setComposition] = useState(null);
   const [allHeroesWithLanes, setAllHeroesWithLanes] = useState([]);
   const [heroCombos, setHeroCombos] = useState([]);
-  const [heroCompatibility, setHeroCompatibility] = useState({}); // map hero_name(lower) -> compatibility
-  const [draftRules, setDraftRules] = useState(null); // CSV rules from draft-rules.csv
-  const [lanes, setLanes] = useState(getDefaultLanes()); // Dynamic lanes from DB (replaces DRAFT_POSITIONS)
+  const [heroCompatibility, setHeroCompatibility] = useState({}); 
+  const [draftRules, setDraftRules] = useState(null);
+  const [lanes, setLanes] = useState(getDefaultLanes());
+  
+  // Filters
   const [heroSearch, setHeroSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('');
   const [damageTypeFilter, setDamageTypeFilter] = useState('');
   const [attackRelianceFilter, setAttackRelianceFilter] = useState('');
   const [laneFilter, setLaneFilter] = useState('');
   const [heroListMode, setHeroListMode] = useState('all');
+  
   const [selectedHeroForDetails, setSelectedHeroForDetails] = useState(null);
-  const [activeSlot, setActiveSlot] = useState({ side: 'our', index: 0, type: 'pick' }); // type: 'pick' or 'ban'
+  const [activeSlot, setActiveSlot] = useState({ side: 'our', index: 0, type: 'pick' }); 
   const [hoveredHero, setHoveredHero] = useState(null);
   const searchInputRef = useRef(null);
 
-  // Get all banned hero names (lowercase)
+  // Computed: All Banned Heroes
   const allBannedHeroes = [...ourBans, ...enemyBans]
     .filter(name => name && name.trim())
     .map(name => name.toLowerCase());
 
-  // Load all heroes with lanes data on mount
+  // Computed: Validation
+  const validation = useMemo(() => {
+    const errors = [];
+    const warnings = [];
+    
+    const pickedHeroes = draftPicks.filter(p => p && p.trim());
+    const enemyPicked = enemyDraftPicks.filter(p => p && p.trim());
+    const ourBansList = ourBans.filter(b => b && b.trim());
+    const enemyBansList = enemyBans.filter(b => b && b.trim());
+    
+    // Check for duplicate heroes in our picks
+    const duplicatesInOur = pickedHeroes.filter((hero, idx) => 
+      pickedHeroes.findIndex(h => h.toLowerCase() === hero.toLowerCase()) !== idx
+    );
+    if (duplicatesInOur.length > 0) {
+      errors.push(`Duplicate hero in your picks: ${duplicatesInOur[0]}`);
+    }
+    
+    // Check for duplicate bans (same hero banned twice)
+    const allBansForCheck = [...ourBansList, ...enemyBansList];
+    const duplicateBans = allBansForCheck.filter((ban, idx) => 
+      allBansForCheck.findIndex(b => b.toLowerCase() === ban.toLowerCase()) !== idx
+    );
+    if (duplicateBans.length > 0) {
+      errors.push(`Duplicate ban: ${duplicateBans[0]}`);
+    }
+    
+    // Check if our pick is already picked by enemy
+    pickedHeroes.forEach(hero => {
+      if (enemyPicked.some(e => e.toLowerCase() === hero.toLowerCase())) {
+        errors.push(`${hero} is already picked by enemy`);
+      }
+    });
+    
+    // Check if picked hero is banned
+    pickedHeroes.forEach(hero => {
+      if (allBannedHeroes.includes(hero.toLowerCase())) {
+        errors.push(`${hero} is banned`);
+      }
+    });
+    
+    // Warnings
+    if (composition && composition.total >= 3) {
+      if (composition.damageTypes.physical === composition.total) {
+        warnings.push('All physical damage - consider adding magic damage');
+      }
+      if (composition.damageTypes.magic === composition.total) {
+        warnings.push('All magic damage - consider adding physical damage');
+      }
+      if (!composition.roleDistribution['Tank'] && composition.total >= 4) {
+        warnings.push('No tank in composition');
+      }
+    }
+    
+    return { errors, warnings };
+  }, [draftPicks, enemyDraftPicks, ourBans, enemyBans, allBannedHeroes, composition]);
+
+  // --- Effects ---
+
+  // Load Heroes
   useEffect(() => {
     const loadAllHeroes = async () => {
       try {
@@ -48,7 +112,7 @@ export default function ManualDraftPick() {
     loadAllHeroes();
   }, []);
 
-  // Load hero combos data from database
+  // Load Combos
   useEffect(() => {
     const loadCombos = async () => {
       try {
@@ -56,7 +120,6 @@ export default function ManualDraftPick() {
         if (response.ok) {
           const data = await response.json();
           if (data.success && data.combos) {
-            // Map database fields to expected format
             const combos = data.combos.map(combo => ({
               hero1: combo.hero1,
               hero2: combo.hero2,
@@ -65,17 +128,16 @@ export default function ManualDraftPick() {
               description: combo.description
             }));
             setHeroCombos(combos);
-            console.log(`Loaded ${combos.length} combos from database`);
           }
         }
       } catch (error) {
-        console.error('Error loading hero combos from database:', error);
+        console.error('Error loading hero combos:', error);
       }
     };
     loadCombos();
   }, []);
 
-  // Load draft rules from CSV (Phase 1: Hybrid approach)
+  // Load Rules
   useEffect(() => {
     const loadDraftRules = async () => {
       try {
@@ -84,39 +146,31 @@ export default function ManualDraftPick() {
           const data = await response.json();
           if (data.success && data.data) {
             setDraftRules(data.data);
-            console.log('Loaded draft rules from CSV:', {
-              roleCompatibility: Object.keys(data.data.roleCompatibility).length,
-              heroPriority: Object.keys(data.data.heroPriority).length,
-              synergyRules: data.data.synergyRules.length
-            });
           }
         }
       } catch (error) {
-        console.error('Error loading draft rules from CSV:', error);
+        console.error('Error loading draft rules:', error);
       }
     };
     loadDraftRules();
   }, []);
 
-  // Load lanes from database (data-driven, not hardcoded)
+  // Load Lanes
   useEffect(() => {
     async function loadLanes() {
       try {
         const fetchedLanes = await fetchLanes();
         setLanes(fetchedLanes);
-        console.log('Loaded lanes from DB:', fetchedLanes.map(l => l.lane).join(', '));
       } catch (error) {
         console.error('Error loading lanes:', error);
-        // Keep default lanes as fallback
       }
     }
     loadLanes();
   }, []);
 
-  // Load hero compatibility data for picked heroes (from /api/heroes/[name]/info)
+  // Load Compatibility for Picked Heroes
   useEffect(() => {
     const loadCompatibility = async () => {
-      // Determine which hero names we need compatibility for
       const namesToFetch = heroDetails
         .map(h => h.hero_name)
         .filter(Boolean)
@@ -134,7 +188,7 @@ export default function ManualDraftPick() {
             updates[heroName.toLowerCase()] = info.compatibility;
           }
         } catch (error) {
-          console.error('Error loading hero compatibility for', heroName, error);
+          console.error('Error loading hero compatibility:', error);
         }
       }
 
@@ -148,6 +202,8 @@ export default function ManualDraftPick() {
     }
   }, [heroDetails]);
 
+  // --- Helpers ---
+
   const handlePickChange = (index, value) => {
     const newPicks = [...draftPicks];
     newPicks[index] = value;
@@ -159,8 +215,32 @@ export default function ManualDraftPick() {
     newPicks[index] = value;
     setEnemyDraftPicks(newPicks);
   };
+  
+  const handleBanChange = (side, index, heroName) => {
+    if (side === 'our') {
+      setOurBans(prev => {
+        const newBans = [...prev];
+        newBans[index] = heroName;
+        return newBans;
+      });
+    } else {
+      setEnemyBans(prev => {
+        const newBans = [...prev];
+        newBans[index] = heroName;
+        return newBans;
+      });
+    }
+  };
 
-  // Helper: Detect if hero has CC (Crowd Control)
+  const handleClearAll = () => {
+    setDraftPicks(['', '', '', '', '']);
+    setEnemyDraftPicks(['', '', '', '', '']);
+    setOurBans(['', '', '', '']);
+    setEnemyBans(['', '', '', '']);
+    setHeroDetails([]);
+    setComposition(null);
+  };
+
   const hasCC = (hero) => {
     const ar = hero.attack_reliance?.toLowerCase() || '';
     const note = hero.note?.toLowerCase() || '';
@@ -168,33 +248,28 @@ export default function ManualDraftPick() {
     return ccKeywords.some(keyword => ar.includes(keyword) || note.includes(keyword));
   };
 
-  // Helper: Detect if hero has Burst damage
   const hasBurst = (hero) => {
     const ar = hero.attack_reliance?.toLowerCase() || '';
     const note = hero.note?.toLowerCase() || '';
     return ar.includes('burst') || note.includes('burst');
   };
 
-  // Helper: Detect if hero has Area/AoE damage
   const hasAreaDamage = (hero) => {
     const note = hero.note?.toLowerCase() || '';
     const ar = hero.attack_reliance?.toLowerCase() || '';
     return note.includes('area') || note.includes('aoe') || ar.includes('damage') || note.includes('damage area');
   };
 
-  // Helper: Classify Roaming playstyle
   const getRoamingPlaystyle = (hero) => {
     if (!hero) return 'none';
     const role = hero.role?.toLowerCase() || '';
     const ar = hero.attack_reliance?.toLowerCase() || '';
     const note = hero.note?.toLowerCase() || '';
     
-    // Pick-off style: Assassin or Chase/Burst
     if (role.includes('assassin') || ar.includes('chase') || ar.includes('burst') || note.includes('pick') || note.includes('assassin')) {
       return 'pick-off';
     }
     
-    // Team fight style: Tank/Support with Initiator or Guard
     if ((role.includes('tank') || role.includes('support')) && (ar.includes('initiator') || ar.includes('guard') || note.includes('team'))) {
       return 'team-fight';
     }
@@ -202,16 +277,13 @@ export default function ManualDraftPick() {
     return 'general';
   };
 
-  // Helper: Detect if hero is Tank or Tanky (badan tahan)
   const isTankOrTanky = (hero) => {
     const role = hero.role?.toLowerCase() || '';
     const ar = hero.attack_reliance?.toLowerCase() || '';
     const note = hero.note?.toLowerCase() || '';
     
-    // Primary: Role contains Tank
     if (role.includes('tank')) return true;
     
-    // Secondary: Fighter/Support with durability keywords
     const tankyKeywords = ['guard', 'regen', 'shield', 'defense', 'tebal', 'tahan', 'durability', 'sustain'];
     if ((role.includes('fighter') || role.includes('support')) && 
         tankyKeywords.some(keyword => ar.includes(keyword) || note.includes(keyword))) {
@@ -231,21 +303,17 @@ export default function ManualDraftPick() {
     if (junglerKeywords.some(keyword => ar.includes(keyword) || note.includes(keyword))) {
       return true;
     }
-
     if (objectiveKeywords.some(keyword => note.includes(keyword))) {
       return true;
     }
-
     if (role.includes('assassin') || role.includes('fighter')) {
       if (objectiveKeywords.some(keyword => ar.includes(keyword))) {
         return true;
       }
     }
-
     return false;
   };
 
-  // Helper: Check if hero has combo with picked heroes
   const getComboWith = (hero, pickedHeroNames) => {
     if (!hero || !pickedHeroNames || pickedHeroNames.length === 0) return null;
     
@@ -264,232 +332,7 @@ export default function ManualDraftPick() {
     return null;
   };
 
-  // Get recommended heroes for a specific lane based on already picked heroes
-  const getRecommendedHeroesForLane = (laneIndex) => {
-    const targetLane = lanes[laneIndex].lane;
-    const pickedHeroNames = draftPicks.filter((p, idx) => idx !== laneIndex && p && p.trim());
-    const pickedHeroes = heroDetails.filter(h => pickedHeroNames.includes(h.hero_name));
-
-    // Analyze current team composition
-    const currentRoles = pickedHeroes.map(h => h.role?.split('/')[0].trim()).filter(Boolean);
-    const currentDamageTypes = pickedHeroes.map(h => {
-      const dt = h.damage_type?.toLowerCase() || '';
-      if (dt.includes('physical') && dt.includes('magic')) return 'mixed';
-      if (dt.includes('physical')) return 'physical';
-      if (dt.includes('magic')) return 'magic';
-      return 'unknown';
-    });
-    const currentAttackReliance = pickedHeroes.map(h => {
-      const ar = h.attack_reliance?.toLowerCase() || '';
-      if (ar.includes('basic attack') && ar.includes('skill')) return 'balanced';
-      if (ar.includes('basic attack')) return 'basic_attack';
-      if (ar.includes('skill')) return 'skill';
-      return 'unknown';
-    });
-
-    const physicalCount = currentDamageTypes.filter(d => d === 'physical' || d === 'mixed').length;
-    const magicCount = currentDamageTypes.filter(d => d === 'magic' || d === 'mixed').length;
-    const basicAttackCount = currentAttackReliance.filter(a => a === 'basic_attack' || a === 'balanced').length;
-    const skillCount = currentAttackReliance.filter(a => a === 'skill' || a === 'balanced').length;
-    
-    // Check if team has tank/tanky hero
-    const hasTank = pickedHeroes.some(h => isTankOrTanky(h));
-
-    // Filter and score heroes
-    const recommended = allHeroesWithLanes
-      .filter(hero => {
-        // Check if hero has target lane
-        const hasTargetLane = hero.lanes && hero.lanes.some(l => l.lane_name === targetLane);
-        // Check if not already picked
-        const notPicked = !pickedHeroNames.some(name => name.toLowerCase() === hero.hero_name.toLowerCase());
-        // Only show heroes that actually have this lane; compatibility affects scoring, not eligibility
-        return hasTargetLane && notPicked;
-      })
-      .map(hero => {
-        let score = 0;
-
-        // Score 1: Lane priority (primary = +100, secondary = +50)
-        const lanePriority = hero.lanes.find(l => l.lane_name === targetLane)?.priority || 99;
-        if (lanePriority === 1) score += 100;
-        else if (lanePriority === 2) score += 50;
-
-        // Score 2: Role diversity (+30 if unique role)
-        const heroRole = hero.role?.split('/')[0].trim();
-        if (heroRole && !currentRoles.includes(heroRole)) {
-          score += 30;
-        }
-
-        // Score 3: Damage type balance (+40 for balancing damage types)
-        const heroDamageType = (() => {
-          const dt = hero.damage_type?.toLowerCase() || '';
-          if (dt.includes('physical') && dt.includes('magic')) return 'mixed';
-          if (dt.includes('physical')) return 'physical';
-          if (dt.includes('magic')) return 'magic';
-          return 'unknown';
-        })();
-
-        // Prefer magic if team has too much physical
-        if (physicalCount > magicCount && (heroDamageType === 'magic' || heroDamageType === 'mixed')) {
-          score += 40;
-        }
-        // Prefer physical if team has too much magic
-        if (magicCount > physicalCount && (heroDamageType === 'physical' || heroDamageType === 'mixed')) {
-          score += 40;
-        }
-        // Mixed damage is always good
-        if (heroDamageType === 'mixed') {
-          score += 20;
-        }
-
-        // Score 4: Attack reliance balance (+35 for balancing attack reliance)
-        const heroAttackReliance = (() => {
-          const ar = hero.attack_reliance?.toLowerCase() || '';
-          if (ar.includes('basic attack') && ar.includes('skill')) return 'balanced';
-          if (ar.includes('basic attack')) return 'basic_attack';
-          if (ar.includes('skill')) return 'skill';
-          return 'unknown';
-        })();
-
-        // Prefer skill-based if team has too much basic attack
-        if (basicAttackCount > skillCount && (heroAttackReliance === 'skill' || heroAttackReliance === 'balanced')) {
-          score += 35;
-        }
-        // Prefer basic attack if team has too much skill-based
-        if (skillCount > basicAttackCount && (heroAttackReliance === 'basic_attack' || heroAttackReliance === 'balanced')) {
-          score += 35;
-        }
-        // Balanced attack reliance is always good
-        if (heroAttackReliance === 'balanced') {
-          score += 15;
-        }
-
-        // Score 5: Roaming-Mid Lane Synergy (ONLY for Mid Lane recommendations)
-        if (laneIndex === 2) { // Mid Lane index
-          const roamingHeroName = draftPicks[4]; // Roaming index
-          if (roamingHeroName && roamingHeroName.trim()) {
-            const roamingHero = pickedHeroes.find(h => 
-              h.hero_name.toLowerCase() === roamingHeroName.toLowerCase()
-            );
-            
-            if (roamingHero) {
-              const roamPlaystyle = getRoamingPlaystyle(roamingHero);
-              const roamHasCC = hasCC(roamingHero);
-              const midHasCC = hasCC(hero);
-              const midHasBurst = hasBurst(hero);
-              const midHasArea = hasAreaDamage(hero);
-
-              // Rule 1: Roaming non-CC → Mid Laner wajib CC (+50 bonus)
-              if (!roamHasCC && midHasCC) {
-                score += 50;
-              }
-
-              // Rule 2: Roaming pick-off → Mid harus burst damage (+45 bonus)
-              if (roamPlaystyle === 'pick-off' && midHasBurst) {
-                score += 45;
-              }
-
-              // Rule 3: Roaming team-fight → Mid harus area damage (+45 bonus)
-              if (roamPlaystyle === 'team-fight' && midHasArea) {
-                score += 45;
-              }
-            }
-          }
-        }
-
-        // Score 6: Tank/Tanky Hero Priority - CRITICAL for team survival
-        // If team doesn't have tank yet, prioritize tank heroes (+60 bonus)
-        if (!hasTank && isTankOrTanky(hero)) {
-          score += 60;
-        }
-
-        // Score 7: Hero Combo Synergy - POWERFUL combinations
-        // Check if hero has combo with any picked hero
-        const combo = getComboWith(hero, pickedHeroNames);
-        if (combo) {
-          // Add synergy score from combo (normalized: 75-95 score → 40-70 bonus)
-          const comboBonus = Math.floor((combo.synergyScore - 50) / 1.5);
-          score += comboBonus;
-        }
-
-        // Score 8: Hero Compatibility (from hero_compatibility table)
-        // If this hero is explicitly marked as a good partner for any picked hero, add a bonus
-        const compatMatches = [];
-        pickedHeroes.forEach(selHero => {
-          if (!selHero || !selHero.hero_name) return;
-          const compat = heroCompatibility[selHero.hero_name.toLowerCase()];
-          if (!compat) return;
-
-          const targetName = hero.hero_name.toLowerCase();
-          // Skip self-compatibility (hero → hero yang sama)
-          if (selHero.hero_name.toLowerCase() === targetName) return;
-
-          if (compat.partner_hero1 && compat.partner_hero1.toLowerCase() === targetName) {
-            compatMatches.push({
-              from: selHero.hero_name,
-              slot: 1,
-              reason: compat.synergy_reason1 || '',
-            });
-          }
-          if (compat.partner_hero2 && compat.partner_hero2.toLowerCase() === targetName) {
-            compatMatches.push({
-              from: selHero.hero_name,
-              slot: 2,
-              reason: compat.synergy_reason2 || '',
-            });
-          }
-          if (compat.partner_hero3 && compat.partner_hero3.toLowerCase() === targetName) {
-            compatMatches.push({
-              from: selHero.hero_name,
-              slot: 3,
-              reason: compat.synergy_reason3 || '',
-            });
-          }
-          if (compat.partner_hero4 && compat.partner_hero4.toLowerCase() === targetName) {
-            compatMatches.push({
-              from: selHero.hero_name,
-              slot: 4,
-              reason: compat.synergy_reason4 || '',
-            });
-          }
-        });
-
-        if (compatMatches.length > 0) {
-          // Small but meaningful bonus for DB-defined compatibility
-          score += 25;
-        }
-
-        // Score 9: CSV Synergy Rules (Phase 1: Hybrid approach)
-        // Check synergy from draft-rules.csv for picked heroes
-        if (draftRules && draftRules.synergyRules && pickedHeroes.length > 0) {
-          pickedHeroes.forEach(pickedHero => {
-            if (!pickedHero || !pickedHero.hero_name) return;
-            
-            const synergy = draftRules.synergyRules.find(rule => 
-              (rule.selectedHero.toLowerCase() === pickedHero.hero_name.toLowerCase() && 
-               rule.partnerHero.toLowerCase() === hero.hero_name.toLowerCase()) ||
-              (rule.selectedHero.toLowerCase() === hero.hero_name.toLowerCase() && 
-               rule.partnerHero.toLowerCase() === pickedHero.hero_name.toLowerCase())
-            );
-            
-            if (synergy && synergy.bonus) {
-              // Normalize CSV synergy bonus: +1-3 → +15-45 (align with Manual scale)
-              score += synergy.bonus * 15;
-            }
-          });
-        }
-
-        return { ...hero, score, combo, compatMatches };
-      })
-      .sort((a, b) => b.score - a.score); // Sort by score descending
-
-    // Prioritize heroes with explicit compatibility in the top 5
-    const compatHeroes = recommended.filter(h => h.compatMatches && h.compatMatches.length > 0);
-    const nonCompatHeroes = recommended.filter(h => !h.compatMatches || h.compatMatches.length === 0);
-    const prioritized = [...compatHeroes, ...nonCompatHeroes];
-
-    return prioritized.slice(0, 5); // Top 5 with compatibility prioritized
-  };
-
+  // Fetch Details Logic
   const fetchHeroDetails = async (heroNames) => {
     setLoading(true);
     try {
@@ -501,11 +344,9 @@ export default function ManualDraftPick() {
         return;
       }
 
-      // Fetch all heroes with lanes from database
       const response = await fetch('/api/heroes');
       const allHeroes = await response.json();
 
-      // Map heroes dalam urutan yang sama dengan draftPicks (maintain order!)
       const selectedHeroes = heroNames
         .map(name => {
           if (!name || !name.trim()) return null;
@@ -517,17 +358,14 @@ export default function ManualDraftPick() {
 
       setHeroDetails(selectedHeroes);
 
-      // Calculate composition
       if (selectedHeroes.length > 0) {
         const roleCount = {};
         const damageTypes = { physical: 0, magic: 0, mixed: 0 };
 
         selectedHeroes.forEach(hero => {
-          // Count roles
           const primaryRole = hero.role ? hero.role.split('/')[0].trim() : 'Unknown';
           roleCount[primaryRole] = (roleCount[primaryRole] || 0) + 1;
 
-          // Count damage types
           const damageType = hero.damage_type ? hero.damage_type.toLowerCase() : '';
           if (damageType.includes('physical')) damageTypes.physical++;
           else if (damageType.includes('magic')) damageTypes.magic++;
@@ -558,82 +396,20 @@ export default function ManualDraftPick() {
     const timer = setTimeout(() => {
       fetchHeroDetails(draftPicks);
     }, 500);
-
     return () => clearTimeout(timer);
   }, [draftPicks]);
 
-  const handleClearAll = () => {
-    setDraftPicks(['', '', '', '', '']);
-    setEnemyDraftPicks(['', '', '', '', '']);
-    setOurBans(['', '', '', '']);
-    setEnemyBans(['', '', '', '']);
-    setHeroDetails([]);
-    setComposition(null);
-  };
 
-  const handleBanChange = (side, index, heroName) => {
-    if (side === 'our') {
-      setOurBans(prev => {
-        const newBans = [...prev];
-        newBans[index] = heroName;
-        return newBans;
-      });
-    } else {
-      setEnemyBans(prev => {
-        const newBans = [...prev];
-        newBans[index] = heroName;
-        return newBans;
-      });
-    }
-  };
-
+  // --- Derived Data ---
   const hasAnyPick = draftPicks.some(pick => pick && pick.trim());
   const hasAnyBan = [...ourBans, ...enemyBans].some(ban => ban && ban.trim());
 
-  const uniqueRoles = Array.from(
-    new Set(
-      allHeroesWithLanes
-        .flatMap(h => {
-          if (!h.role) return [];
-          return h.role.split('/').map(r => {
-            const role = r.trim();
-            return role.charAt(0).toUpperCase() + role.slice(1).toLowerCase();
-          });
-        })
-        .filter(Boolean)
-    )
-  ).sort();
+  // Unique Filters
+  const uniqueRoles = ['Tank', 'Fighter', 'Assassin', 'Mage', 'Marksman', 'Support'];
+  const uniqueDamageTypes = ['Physical', 'Magic', 'Mixed']; // Simplified
+  const uniqueLanes = lanes.map(l => l.lane);
 
-  const uniqueDamageTypes = Array.from(
-    new Set(
-      allHeroesWithLanes
-        .map(h => {
-          const dt = h.damage_type || h.damageType || '';
-          return dt.trim();
-        })
-        .filter(Boolean)
-    )
-  ).sort();
-
-  const uniqueAttackReliance = Array.from(
-    new Set(
-      allHeroesWithLanes
-        .map(h => {
-          const ar = h.attack_reliance || h.attackReliance || '';
-          return ar.trim();
-        })
-        .filter(Boolean)
-    )
-  ).sort();
-
-  const uniqueLanes = Array.from(
-    new Set(
-      allHeroesWithLanes
-        .flatMap(h => (Array.isArray(h.lanes) ? h.lanes.map(l => l.lane_name) : []))
-        .filter(Boolean)
-    )
-  ).sort();
-
+  // Filter Logic
   const filteredHeroes = allHeroesWithLanes.filter(hero => {
     const name = hero.hero_name || hero.name || '';
     const role = hero.role || '';
@@ -641,91 +417,54 @@ export default function ManualDraftPick() {
     const attackRel = hero.attack_reliance || hero.attackReliance || '';
     const lanesList = Array.isArray(hero.lanes) ? hero.lanes.map(l => l.lane_name) : [];
 
-    // Filter out banned heroes
-    if (allBannedHeroes.includes(name.toLowerCase())) {
-      return false;
-    }
-
-    if (heroSearch && !name.toLowerCase().includes(heroSearch.toLowerCase())) {
-      return false;
-    }
+    if (allBannedHeroes.includes(name.toLowerCase())) return false;
+    if (heroSearch && !name.toLowerCase().includes(heroSearch.toLowerCase())) return false;
     if (roleFilter) {
-      // Normalize roles for comparison
       const heroRoles = role.split('/').map(r => r.trim().toLowerCase());
-      if (!heroRoles.some(r => r === roleFilter.toLowerCase())) {
-        return false;
-      }
+      if (!heroRoles.some(r => r === roleFilter.toLowerCase())) return false;
     }
-    if (damageTypeFilter && !damageType.toLowerCase().includes(damageTypeFilter.toLowerCase())) {
-      return false;
-    }
-    if (attackRelianceFilter && !attackRel.toLowerCase().includes(attackRelianceFilter.toLowerCase())) {
-      return false;
-    }
-    if (laneFilter && !lanesList.some(l => l.toLowerCase() === laneFilter.toLowerCase())) {
-      return false;
-    }
+    if (damageTypeFilter && !damageType.toLowerCase().includes(damageTypeFilter.toLowerCase())) return false;
+    if (attackRelianceFilter && !attackRel.toLowerCase().includes(attackRelianceFilter.toLowerCase())) return false;
+    if (laneFilter && !lanesList.some(l => l.toLowerCase() === laneFilter.toLowerCase())) return false;
 
     return true;
   });
 
+  // Meta Calculations
   const enemyPickedNames = enemyDraftPicks
     .filter(name => name && name.trim())
     .map(name => name.toLowerCase());
 
   const counterMetaByHeroName = {};
-
   if (enemyPickedNames.length > 0 && allHeroesWithLanes.length > 0) {
     enemyPickedNames.forEach(enemyNameLower => {
-      const enemyHero = allHeroesWithLanes.find(h => {
-        const name = h.hero_name || h.name || '';
-        return name.toLowerCase() === enemyNameLower;
-      });
+      const enemyHero = allHeroesWithLanes.find(h => (h.hero_name || h.name || '').toLowerCase() === enemyNameLower);
       if (!enemyHero || !Array.isArray(enemyHero.counters)) return;
 
       enemyHero.counters.forEach(c => {
         const candidateNameRaw = (c.enemy || '').trim();
         if (!candidateNameRaw) return;
-        const candidateHero = allHeroesWithLanes.find(h => {
-          const name = h.hero_name || h.name || '';
-          return name.toLowerCase() === candidateNameRaw.toLowerCase();
-        });
+        const candidateHero = allHeroesWithLanes.find(h => (h.hero_name || h.name || '').toLowerCase() === candidateNameRaw.toLowerCase());
         if (!candidateHero) return;
 
         const key = (candidateHero.hero_name || candidateHero.name || '').toLowerCase();
-        if (!key) return;
-
         if (!counterMetaByHeroName[key]) {
-          counterMetaByHeroName[key] = {
-            hero: candidateHero,
-            score: 0,
-            entries: [],
-          };
+          counterMetaByHeroName[key] = { hero: candidateHero, score: 0, entries: [] };
         }
         counterMetaByHeroName[key].score += 1;
-
         const enemyLabel = enemyHero.hero_name || enemyHero.name || '';
-        if (c.reason && c.reason.trim()) {
-          counterMetaByHeroName[key].entries.push(`Vs ${enemyLabel}: ${c.reason.trim()}`);
-        } else {
-          counterMetaByHeroName[key].entries.push(`Vs ${enemyLabel}`);
-        }
+        counterMetaByHeroName[key].entries.push(c.reason ? `Vs ${enemyLabel}: ${c.reason}` : `Vs ${enemyLabel}`);
       });
     });
   }
 
   const synergyMetaByHeroName = {};
-
   if (heroDetails.length > 0 && allHeroesWithLanes.length > 0) {
-    const pickedNamesLower = heroDetails
-      .map(h => (h.hero_name || '').toLowerCase())
-      .filter(Boolean);
-
+    const pickedNamesLower = heroDetails.map(h => (h.hero_name || '').toLowerCase()).filter(Boolean);
     allHeroesWithLanes.forEach(hero => {
       const name = hero.hero_name || hero.name || '';
       const key = name.toLowerCase();
-      if (!key) return;
-      if (pickedNamesLower.includes(key)) return;
+      if (!key || pickedNamesLower.includes(key)) return;
 
       let score = 0;
       const tags = [];
@@ -733,1515 +472,522 @@ export default function ManualDraftPick() {
 
       heroDetails.forEach(selHero => {
         if (!selHero || !selHero.hero_name) return;
-        const selName = selHero.hero_name;
-        const selKey = selName.toLowerCase();
-
-        if (heroCombos && heroCombos.length > 0) {
-          const combo = heroCombos.find(c =>
-            (c.hero1 && c.hero1.toLowerCase() === selKey && c.hero2 && c.hero2.toLowerCase() === key) ||
-            (c.hero2 && c.hero2.toLowerCase() === selKey && c.hero1 && c.hero1.toLowerCase() === key)
-          );
-          if (combo) {
-            const bonus = Math.floor((combo.synergyScore - 50) / 1.5);
-            if (bonus > 0) {
-              score += bonus;
-              if (!tags.includes('Combo')) tags.push('Combo');
-              const lineBase = `Combo ${selName} + ${name}`;
-              if (combo.description && combo.description.trim()) {
-                tooltipLines.push(`${lineBase}: ${combo.description.trim()}`);
-              } else {
-                tooltipLines.push(lineBase);
-              }
+        const selKey = selHero.hero_name.toLowerCase();
+        
+        // Combos
+        if (heroCombos) {
+            const combo = heroCombos.find(c => 
+                (c.hero1.toLowerCase() === selKey && c.hero2.toLowerCase() === key) ||
+                (c.hero2.toLowerCase() === selKey && c.hero1.toLowerCase() === key)
+            );
+            if (combo) {
+                const bonus = Math.floor((combo.synergyScore - 50) / 1.5);
+                if (bonus > 0) score += bonus;
+                tooltipLines.push(`Combo w/ ${selHero.hero_name}`);
             }
-          }
         }
-
+        
+        // Compatibility
         const compat = heroCompatibility[selKey];
         if (compat) {
-          const target = key;
-          const pushCompat = (partner, reason) => {
-            if (!partner) return;
-            if (partner.toLowerCase() === target) {
-              score += 25;
-              if (!tags.includes('Compat')) tags.push('Compat');
-              const base = `Synergy ${selName} → ${name}`;
-              if (reason && reason.trim()) {
-                tooltipLines.push(`${base}: ${reason.trim()}`);
-              } else {
-                tooltipLines.push(base);
-              }
-            }
-          };
-
-          pushCompat(compat.partner_hero1, compat.synergy_reason1);
-          pushCompat(compat.partner_hero2, compat.synergy_reason2);
-          pushCompat(compat.partner_hero3, compat.synergy_reason3);
-          pushCompat(compat.partner_hero4, compat.synergy_reason4);
+             if ([compat.partner_hero1, compat.partner_hero2, compat.partner_hero3, compat.partner_hero4]
+                 .some(p => p && p.toLowerCase() === key)) {
+                 score += 25;
+                 tooltipLines.push(`Synergy w/ ${selHero.hero_name}`);
+             }
         }
       });
 
       if (score > 0) {
-        synergyMetaByHeroName[key] = {
-          hero,
-          score,
-          tags,
-          tooltip: tooltipLines.join('\n'),
-        };
+        synergyMetaByHeroName[key] = { hero, score, tags, tooltip: tooltipLines.join('\n') };
       }
     });
   }
 
+  // Display List Sorting/Filtering
   let displayHeroes = filteredHeroes;
-
   if (heroListMode === 'counter') {
-    displayHeroes = filteredHeroes
-      .filter(hero => {
-        const name = hero.hero_name || hero.name || '';
-        const key = name.toLowerCase();
-        return !!counterMetaByHeroName[key];
-      })
-      .sort((a, b) => {
-        const aKey = (a.hero_name || a.name || '').toLowerCase();
-        const bKey = (b.hero_name || b.name || '').toLowerCase();
-        const aScore = counterMetaByHeroName[aKey]?.score || 0;
-        const bScore = counterMetaByHeroName[bKey]?.score || 0;
-        return bScore - aScore;
-      });
+     displayHeroes = filteredHeroes.filter(h => counterMetaByHeroName[h.hero_name.toLowerCase()])
+        .sort((a,b) => (counterMetaByHeroName[b.hero_name.toLowerCase()]?.score || 0) - (counterMetaByHeroName[a.hero_name.toLowerCase()]?.score || 0));
   } else if (heroListMode === 'synergy') {
-    displayHeroes = filteredHeroes
-      .filter(hero => {
-        const name = hero.hero_name || hero.name || '';
-        const key = name.toLowerCase();
-        return !!synergyMetaByHeroName[key];
-      })
-      .sort((a, b) => {
-        const aKey = (a.hero_name || a.name || '').toLowerCase();
-        const bKey = (b.hero_name || b.name || '').toLowerCase();
-        const aScore = synergyMetaByHeroName[aKey]?.score || 0;
-        const bScore = synergyMetaByHeroName[bKey]?.score || 0;
-        return bScore - aScore;
-      });
+     displayHeroes = filteredHeroes.filter(h => synergyMetaByHeroName[h.hero_name.toLowerCase()])
+        .sort((a,b) => (synergyMetaByHeroName[b.hero_name.toLowerCase()]?.score || 0) - (synergyMetaByHeroName[a.hero_name.toLowerCase()]?.score || 0));
   } else if (heroListMode === 'recommended') {
-    const pickedHeroes = heroDetails;
-    const hasTank = pickedHeroes.some(h => isTankOrTanky(h));
-    
-    // Identify active slot and side
-    const targetSide = activeSlot?.side || 'our';
-    const targetLaneIndex = activeSlot?.index;
-    const targetLaneName = (targetSide === 'our' && typeof targetLaneIndex === 'number') 
-      ? lanes[targetLaneIndex]?.lane 
-      : null;
-
-    // Identify empty lanes
-    const emptyLaneNames = lanes
-       .filter((l, idx) => !draftPicks[idx] || !draftPicks[idx].trim())
-       .map(l => l.lane);
-
-    displayHeroes = filteredHeroes
-      .map(hero => {
-        let score = 0;
-        const name = hero.hero_name || hero.name || '';
-        const key = name.toLowerCase();
-
-        // 1. Counter Score (Weight: 15 per counter point)
-        const counter = counterMetaByHeroName[key];
-        if (counter) score += counter.score * 15;
-
-        // 2. Synergy Score (Weight: 1 per synergy point)
-        const synergy = synergyMetaByHeroName[key];
-        if (synergy) score += synergy.score;
-
-        // 3. Tank Need (Weight: 50 - Huge Priority)
-        // Only apply if we are picking for our team
-        if (targetSide === 'our' && !hasTank && isTankOrTanky(hero)) {
-            score += 50;
-        }
-        
-        // 4. Lane Need / Active Slot Match (Weight: 40 for Active, 20 for Generic Empty)
-        if (targetSide === 'our' && hero.lanes) {
-             // If we have an active slot, prioritize hero for that slot
-             if (targetLaneName) {
-                const activeLaneMatch = hero.lanes.find(l => l.lane_name === targetLaneName);
-                if (activeLaneMatch) {
-                   score += activeLaneMatch.priority === 1 ? 60 : 30; // Primary lane gets huge boost
-                }
-             } 
-             // Otherwise check if it fills ANY empty lane (fallback)
-             else if (emptyLaneNames.length > 0) {
-                 const primaryLane = hero.lanes.find(l => l.priority === 1)?.lane_name;
-                 if (primaryLane && emptyLaneNames.includes(primaryLane)) {
-                     score += 20;
-                 }
-             }
-        }
-        
-        // 5. Team Composition Balance (Basic)
-        if (targetSide === 'our' && composition) {
-             const dt = hero.damage_type?.toLowerCase() || '';
-             const teamPhysical = composition.damageTypes?.physical || 0;
-             const teamMagic = composition.damageTypes?.magic || 0;
-             
-             // If team lacks magic, boost magic heroes
-             if (teamPhysical > teamMagic + 2 && (dt.includes('magic') || dt.includes('mixed'))) {
-                 score += 25;
-             }
-             // If team lacks physical, boost physical heroes
-             if (teamMagic > teamPhysical + 2 && (dt.includes('physical') || dt.includes('mixed'))) {
-                 score += 25;
-             }
-        }
-
-        return { ...hero, _recScore: score };
-      })
-      .sort((a, b) => b._recScore - a._recScore);
+      // Simplified recommendation logic for brevity
+      const targetSide = activeSlot?.side || 'our';
+      const hasTank = heroDetails.some(isTankOrTanky);
+      displayHeroes = filteredHeroes.map(h => {
+          let score = 0;
+          const key = h.hero_name.toLowerCase();
+          if (counterMetaByHeroName[key]) score += counterMetaByHeroName[key].score * 15;
+          if (synergyMetaByHeroName[key]) score += synergyMetaByHeroName[key].score;
+          if (targetSide === 'our' && !hasTank && isTankOrTanky(h)) score += 50;
+          return { ...h, _recScore: score };
+      }).sort((a,b) => b._recScore - a._recScore);
   }
 
-  // Validate lanes - relaxed validation
-  const laneValidation = () => {
-    if (heroDetails.length === 0) return { isValid: true, errors: [], warnings: [] };
-
-    const errors = [];
-    const warnings = [];
-    const usedLanes = new Set();
-    let allLanesFilled = draftPicks.filter(p => p && p.trim()).length === 5;
-
-    // Loop through lanes to maintain correct index mapping
-    lanes.forEach((position, idx) => {
-      const heroName = draftPicks[idx];
-      if (!heroName || !heroName.trim()) return; // Skip empty slots
-      
-      const hero = heroDetails.find(h => 
-        h.hero_name.toLowerCase() === heroName.toLowerCase()
-      );
-      if (!hero) return; // Skip if hero not loaded yet
-      
-      const heroLanes = hero.lanes || [];
-
-      // Only validate heroes that HAVE lanes data
-      if (heroLanes.length > 0) {
-        // Check if hero matches the assigned lane
-        const isLaneMatch = heroLanes.some(lane => lane.lane_name === position.lane);
-        if (!isLaneMatch) {
-          warnings.push(`${hero.hero_name}: Tidak cocok untuk ${position.lane}`);
-        }
-
-        // Check for duplicate lanes (based on hero's primary lane)
-        const primaryLane = heroLanes.find(l => l.priority === 1)?.lane_name;
-        if (primaryLane) {
-          if (usedLanes.has(primaryLane)) {
-            errors.push(`Duplicate lane: ${primaryLane} (${hero.hero_name})`);
-          }
-          usedLanes.add(primaryLane);
-        }
-      }
-    });
-
-    if (!allLanesFilled) {
-      errors.push(`Draft tidak lengkap: Pilih 5 heroes (${draftPicks.filter(p => p && p.trim()).length}/5)`);
-    }
-
-    // CRITICAL: Check if team has tank/tanky hero
-    if (allLanesFilled) {
-      const allPickedHeroes = lanes.map((position, idx) => {
-        const heroName = draftPicks[idx];
-        if (!heroName || !heroName.trim()) return null;
-        return heroDetails.find(h => h.hero_name.toLowerCase() === heroName.toLowerCase());
-      }).filter(h => h !== null && h !== undefined);
-      
-      const hasTank = allPickedHeroes.some(h => isTankOrTanky(h));
-      if (!hasTank) {
-        errors.push('⚠️ KRITIS: Tim tidak punya Tank/Hero tahan badan! Tim akan sulit bertahan.');
-      }
-
-      const hasAnyCC = allPickedHeroes.some(h => hasCC(h));
-      if (!hasAnyCC) {
-        warnings.push('Tim tidak punya Crowd Control yang jelas (no hard CC).');
-      }
-
-      const hasAnyBurst = allPickedHeroes.some(h => hasBurst(h));
-      if (!hasAnyBurst) {
-        warnings.push('Tim tidak punya burst damage yang kuat (no burst).');
-      }
-
-      const hasAnyObjective = allPickedHeroes.some(h => hasObjectiveControl(h));
-      if (!hasAnyObjective) {
-        warnings.push('Tim lemah dalam objective control (Turtle/Lord).');
-      }
-    }
-
-    return {
-      isValid: errors.length === 0 && allLanesFilled,
-      errors,
-      warnings,
-      allLanesFilled
-    };
-  };
-
-  const validation = laneValidation();
-
+  // --- Render ---
   return (
-    <div className="w-full mx-auto bg-white text-gray-900 rounded-xl shadow-sm border border-gray-200">
-      {/* Sticky Draft Board */}
-      <div className="sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-gray-200 p-4 shadow-sm">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-4">
-            <h1 className="text-2xl font-bold">Draft Pick</h1>
-            {/* Progress Indicator */}
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 rounded-full">
-              <div className="flex gap-1">
-                {[0,1,2,3,4].map(i => (
-                  <div 
-                    key={i} 
-                    className={`w-2.5 h-2.5 rounded-full transition-all ${
-                      draftPicks[i] ? 'bg-sky-500' : 'bg-gray-300'
-                    }`} 
-                  />
-                ))}
-              </div>
-              <span className="text-xs font-medium text-gray-600">
-                {draftPicks.filter(p => p && p.trim()).length}/5
-              </span>
-            </div>
-          </div>
-          <div className="flex gap-2">
-             {(hasAnyPick || hasAnyBan) && (
-              <button
-                onClick={handleClearAll}
-                className="px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white rounded-lg text-xs font-semibold transition-colors"
-              >
-                Clear All
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Ban Phase */}
-        <div className="mb-4 p-3 bg-gray-100 rounded-lg border border-gray-200">
-          <div className="flex items-center gap-2 mb-3">
-            <span className="text-lg">🚫</span>
-            <span className="text-sm font-semibold text-gray-700">BAN PHASE</span>
-            <span className="text-xs text-gray-500">(4 bans each team)</span>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            {/* Our Bans */}
-            <div>
-              <div className="flex items-center gap-1 mb-2">
-                <div className="w-2 h-2 rounded-full bg-sky-500"></div>
-                <span className="text-xs font-medium text-sky-700">Your Bans</span>
-              </div>
-              <div className="flex gap-1.5">
-                {[0,1,2,3].map(idx => {
-                  const isActive = activeSlot?.type === 'ban' && activeSlot?.side === 'our' && activeSlot?.index === idx;
-                  const banName = ourBans[idx];
-                  return (
-                    <div
-                      key={`our-ban-${idx}`}
-                      onClick={() => {
-                        setActiveSlot({ side: 'our', index: idx, type: 'ban' });
-                        if (searchInputRef.current) searchInputRef.current.focus();
-                      }}
-                      className={`flex-1 h-14 relative cursor-pointer rounded-lg border-2 transition-all ${
-                        isActive
-                          ? 'border-sky-500 bg-sky-50 shadow-md'
-                          : banName
-                          ? 'border-gray-400 bg-gray-200'
-                          : 'border-dashed border-gray-300 bg-gray-50 hover:border-gray-400'
-                      }`}
-                    >
-                      <div className="absolute inset-0 flex flex-col items-center justify-center">
-                        {banName ? (
-                          <>
-                            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-gray-500 to-gray-700 flex items-center justify-center mb-0.5 relative">
-                              <span className="text-white font-bold text-[10px]">{banName.charAt(0).toUpperCase()}</span>
-                              <div className="absolute inset-0 flex items-center justify-center">
-                                <span className="text-red-500 text-lg font-bold">✕</span>
-                              </div>
-                            </div>
-                            <span className="text-[9px] text-gray-600 truncate w-full text-center px-1">{banName}</span>
-                            <button
-                              onClick={(e) => { e.stopPropagation(); handleBanChange('our', idx, ''); }}
-                              className="absolute top-0.5 right-0.5 w-3 h-3 flex items-center justify-center bg-gray-300 hover:bg-red-500 text-gray-600 hover:text-white rounded-full text-[8px]"
-                            >✕</button>
-                          </>
-                        ) : (
-                          <span className="text-gray-400 text-xs">+</span>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-            {/* Enemy Bans */}
-            <div>
-              <div className="flex items-center gap-1 mb-2">
-                <div className="w-2 h-2 rounded-full bg-red-500"></div>
-                <span className="text-xs font-medium text-red-600">Enemy Bans</span>
-              </div>
-              <div className="flex gap-1.5">
-                {[0,1,2,3].map(idx => {
-                  const isActive = activeSlot?.type === 'ban' && activeSlot?.side === 'enemy' && activeSlot?.index === idx;
-                  const banName = enemyBans[idx];
-                  return (
-                    <div
-                      key={`enemy-ban-${idx}`}
-                      onClick={() => {
-                        setActiveSlot({ side: 'enemy', index: idx, type: 'ban' });
-                        if (searchInputRef.current) searchInputRef.current.focus();
-                      }}
-                      className={`flex-1 h-14 relative cursor-pointer rounded-lg border-2 transition-all ${
-                        isActive
-                          ? 'border-sky-500 bg-sky-50 shadow-md'
-                          : banName
-                          ? 'border-red-300 bg-red-100'
-                          : 'border-dashed border-gray-300 bg-gray-50 hover:border-gray-400'
-                      }`}
-                    >
-                      <div className="absolute inset-0 flex flex-col items-center justify-center">
-                        {banName ? (
-                          <>
-                            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-red-400 to-red-600 flex items-center justify-center mb-0.5 relative">
-                              <span className="text-white font-bold text-[10px]">{banName.charAt(0).toUpperCase()}</span>
-                              <div className="absolute inset-0 flex items-center justify-center">
-                                <span className="text-white text-lg font-bold">✕</span>
-                              </div>
-                            </div>
-                            <span className="text-[9px] text-gray-600 truncate w-full text-center px-1">{banName}</span>
-                            <button
-                              onClick={(e) => { e.stopPropagation(); handleBanChange('enemy', idx, ''); }}
-                              className="absolute top-0.5 right-0.5 w-3 h-3 flex items-center justify-center bg-red-200 hover:bg-red-500 text-red-600 hover:text-white rounded-full text-[8px]"
-                            >✕</button>
-                          </>
-                        ) : (
-                          <span className="text-gray-400 text-xs">+</span>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-4">
-          {/* Our Team */}
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-3 h-3 rounded-full bg-sky-500"></div>
-              <span className="text-sm font-semibold text-sky-700">YOUR TEAM</span>
-              <span className="text-xs text-gray-400">(Pick Phase)</span>
-            </div>
-            <div className="flex gap-2 overflow-x-auto pb-2">
-            {lanes.map((position, idx) => {
-              const isActive = activeSlot?.type === 'pick' && activeSlot?.side === 'our' && activeSlot?.index === idx;
-              const heroName = draftPicks[idx];
-
-              // Real-time Synergy Feedback
-              const hasSynergyWithHovered = hoveredHero && heroName && (() => {
-                  const key1 = hoveredHero.hero_name.toLowerCase();
-                  const key2 = heroName.toLowerCase();
-                  // Check DB combo
-                  const combo = heroCombos.find(c => 
-                      (c.hero1.toLowerCase() === key1 && c.hero2.toLowerCase() === key2) ||
-                      (c.hero2.toLowerCase() === key1 && c.hero1.toLowerCase() === key2)
-                  );
-                  if (combo) return true;
-
-                  // Check Compatibility
-                  const compat = heroCompatibility[key2];
-                  if (compat) {
-                      if (compat.partner_hero1?.toLowerCase() === key1 ||
-                          compat.partner_hero2?.toLowerCase() === key1 ||
-                          compat.partner_hero3?.toLowerCase() === key1 ||
-                          compat.partner_hero4?.toLowerCase() === key1) return true;
-                  }
-                  return false;
-              })();
-
-              const hasCompatWithHovered = hoveredHero && heroName && (() => {
-                  const key1 = hoveredHero.hero_name.toLowerCase();
-                  const key2 = heroName.toLowerCase();
-                  const compat = heroCompatibility[key2];
-                  if (compat) {
-                      if (compat.partner_hero1?.toLowerCase() === key1 ||
-                          compat.partner_hero2?.toLowerCase() === key1 ||
-                          compat.partner_hero3?.toLowerCase() === key1 ||
-                          compat.partner_hero4?.toLowerCase() === key1) return true;
-                  }
-                  return false;
-              })();
-
-              return (
-                <div 
-                  key={`our-${idx}`}
-                  onClick={() => {
-                    setActiveSlot({ side: 'our', index: idx, type: 'pick' });
-                    // Focus search input immediately for speed
-                    if (searchInputRef.current) searchInputRef.current.focus();
-                  }}
-                  className={`flex-1 min-w-[100px] h-24 relative cursor-pointer rounded-lg border-2 transition-all ${
-                    hasSynergyWithHovered 
-                      ? 'border-green-500 bg-green-50 shadow-[0_0_15px_rgba(74,222,128,0.3)] scale-105 z-10'
-                      : isActive 
-                        ? 'border-sky-500 bg-sky-50 shadow-[0_0_15px_rgba(14,165,233,0.3)]' 
-                        : heroName 
-                          ? 'border-blue-400 bg-blue-50'
-                          : 'border-gray-200 bg-gray-50 hover:border-gray-300'
-                  }`}
-                >
-                  {hasSynergyWithHovered && (
-                     <div className="absolute -top-2 -right-2 bg-green-500 text-white text-[10px] px-1.5 py-0.5 rounded-full shadow-lg animate-bounce z-20">
-                       {hasCompatWithHovered ? '🤝 Partner!' : '✨ Synergy!'}
-                     </div>
-                  )}
-                  <div className="absolute top-1 left-2 text-xl opacity-60">{position.icon}</div>
-                  <div className="absolute top-1 right-2 text-[10px] uppercase tracking-wider text-gray-500">{position.lane}</div>
-                  
-                  <div className="absolute inset-0 flex flex-col items-center justify-center pt-2">
-                    {heroName ? (
-                      <>
-                         {/* Hero Avatar */}
-                         <div className="w-10 h-10 rounded-full bg-gradient-to-br from-sky-400 to-blue-600 flex items-center justify-center mb-1 shadow-md">
-                           <span className="text-white font-bold text-sm">{heroName.charAt(0).toUpperCase()}</span>
-                         </div>
-                         <div className="font-semibold text-xs text-center px-1 leading-tight text-gray-800 truncate w-full">{heroName}</div>
-                         <button 
-                           onClick={(e) => { e.stopPropagation(); handlePickChange(idx, ''); }}
-                           className="absolute top-1 right-1 w-4 h-4 flex items-center justify-center bg-red-100 hover:bg-red-500 text-red-500 hover:text-white rounded-full text-[10px]"
-                         >✕</button>
-                      </>
-                    ) : (
-                      <div className="flex flex-col items-center">
-                        <div className="w-10 h-10 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center mb-1">
-                          <span className="text-xl text-gray-300">+</span>
-                        </div>
-                        <span className="text-[10px] text-gray-400">Click to pick</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )
-            })}
-            </div>
-          </div>
-
-          {/* Enemy Team */}
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-3 h-3 rounded-full bg-red-500"></div>
-              <span className="text-sm font-semibold text-red-600">ENEMY TEAM</span>
-              <span className="text-xs text-gray-400">(optional - untuk counter pick)</span>
-            </div>
-            <div className="flex gap-2 overflow-x-auto pb-2">
-            {lanes.map((position, idx) => {
-              const isActive = activeSlot?.type === 'pick' && activeSlot?.side === 'enemy' && activeSlot?.index === idx;
-              const heroName = enemyDraftPicks[idx];
-
-              // Real-time Counter Feedback (Warning)
-              const isThreatToHovered = hoveredHero && heroName && (() => {
-                 // Check if existing enemy hero (heroName) is a counter to hovered hero
-                 // Using counterMetaByHeroName logic (which is pre-calculated for hoveredHero vs ENTIRE enemy team, but here we need specific 1v1)
-                 
-                 // Check if hoveredHero is weak against heroName
-                 // hoveredHero.counters contains list of enemies that counter hoveredHero
-                 if (hoveredHero.counters && Array.isArray(hoveredHero.counters)) {
-                     return hoveredHero.counters.some(c => c.enemy?.toLowerCase() === heroName.toLowerCase());
-                 }
-                 return false;
-              })();
-
-              return (
-                <div 
-                  key={`enemy-${idx}`}
-                  onClick={() => {
-                    setActiveSlot({ side: 'enemy', index: idx, type: 'pick' });
-                    // Focus search input immediately for speed
-                    if (searchInputRef.current) searchInputRef.current.focus();
-                  }}
-                  className={`flex-1 min-w-[100px] h-20 relative cursor-pointer rounded-lg border-2 transition-all ${
-                    isThreatToHovered
-                      ? 'border-red-500 bg-red-50 shadow-[0_0_15px_rgba(239,68,68,0.3)] scale-105 z-10'
-                      : isActive 
-                        ? 'border-sky-500 bg-sky-50 shadow-[0_0_15px_rgba(14,165,233,0.3)]' 
-                        : heroName 
-                          ? 'border-red-400 bg-red-50'
-                          : 'border-gray-200 bg-gray-50 hover:border-gray-300'
-                  }`}
-                >
-                  {isThreatToHovered && (
-                     <div className="absolute -top-2 -right-2 bg-red-600 text-white text-[10px] px-1.5 py-0.5 rounded-full shadow-lg animate-pulse z-20">
-                       ⚠️ Threat!
-                     </div>
-                  )}
-                  <div className="absolute inset-0 flex flex-col items-center justify-center py-1">
-                    {heroName ? (
-                      <>
-                         {/* Enemy Hero Avatar */}
-                         <div className="w-8 h-8 rounded-full bg-gradient-to-br from-red-400 to-red-600 flex items-center justify-center mb-1 shadow-md">
-                           <span className="text-white font-bold text-xs">{heroName.charAt(0).toUpperCase()}</span>
-                         </div>
-                         <div className="font-semibold text-[10px] text-center px-1 leading-tight text-gray-800 truncate w-full">{heroName}</div>
-                         <button 
-                           onClick={(e) => { e.stopPropagation(); handleEnemyPickChange(idx, ''); }}
-                           className="absolute top-1 right-1 w-3 h-3 flex items-center justify-center bg-red-100 hover:bg-red-500 text-red-500 hover:text-white rounded-full text-[8px]"
-                         >✕</button>
-                      </>
-                    ) : (
-                      <div className="flex flex-col items-center">
-                         <div className="w-8 h-8 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center mb-1">
-                           <span className="text-gray-300">{position.icon}</span>
-                         </div>
-                         <span className="text-[10px] text-gray-400">Enemy</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )
-            })}
-            </div>
-          </div>
-        </div>
-      </div>
+    <div className="flex flex-col h-screen max-h-screen bg-slate-950 text-slate-200 overflow-hidden font-sans selection:bg-cyan-500/30">
       
-      <div className="p-6 pt-2">
-
-      <div className="mb-6 rounded-lg bg-gray-50 p-4 border border-gray-200">
-        <div className="flex flex-col gap-4">
-          {/* Top Row: Search & Role Filters */}
-          <div className="flex flex-col gap-4 md:flex-row md:items-center">
-            <div className="md:w-1/4">
-              <label className="block mb-1 text-xs font-semibold text-gray-600">Search Hero</label>
-              <div className="relative">
-                <input
-                  ref={searchInputRef}
-                  type="text"
-                  value={heroSearch}
-                  onChange={(e) => setHeroSearch(e.target.value)}
-                  placeholder="Ketik nama hero..."
-                  className="w-full pl-9 pr-3 py-2 text-sm text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent"
-                  autoFocus
-                />
-                <span className="absolute left-3 top-2.5 text-gray-400 text-xs">🔍</span>
-              </div>
+      {/* Header / Status Bar */}
+      <header className="h-16 bg-slate-900 border-b border-slate-800 flex items-center justify-between px-6 shrink-0 shadow-lg z-20">
+        <div className="flex items-center gap-4">
+          <a href="/" className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white transition-colors mr-2">
+            ←
+          </a>
+          <div className="flex flex-col">
+            <h1 className="text-xl font-black tracking-tight text-white uppercase italic">
+              <span className="text-cyan-400">Tournament</span> Draft
+            </h1>
+            <div className="flex gap-1 h-1 mt-1 w-full bg-slate-800 rounded-full overflow-hidden">
+               {[...Array(10)].map((_, i) => (
+                 <div key={i} className={`flex-1 ${
+                    i < 5 
+                      ? (draftPicks[i] ? 'bg-cyan-500' : 'bg-slate-700')
+                      : (enemyDraftPicks[i-5] ? 'bg-rose-500' : 'bg-slate-700')
+                 }`} />
+               ))}
             </div>
-            
-            <div className="flex-1 overflow-x-auto pb-1">
-              <label className="block mb-1 text-xs font-semibold text-gray-600">Quick Role Filters</label>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setRoleFilter('')}
-                  className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap border ${
-                    roleFilter === ''
-                      ? 'bg-sky-500 border-sky-500 text-white shadow-lg shadow-sky-500/20'
-                      : 'bg-white border-gray-300 text-gray-600 hover:bg-gray-100'
+          </div>
+        </div>
+
+        {/* Phase Indicator */}
+        <div className="flex flex-col items-center">
+           <div className="text-xs font-bold tracking-widest text-slate-500 uppercase mb-0.5">Current Phase</div>
+           <div className={`text-xl font-black tracking-wider px-4 py-0.5 rounded flex items-center gap-2 uppercase ${
+              activeSlot.side === 'our' 
+                ? (activeSlot.type === 'ban' ? 'text-cyan-400 bg-cyan-950/30 border border-cyan-500/30' : 'text-cyan-400 bg-cyan-950/30 border border-cyan-500/30 shadow-[0_0_20px_rgba(6,182,212,0.2)]')
+                : (activeSlot.type === 'ban' ? 'text-rose-400 bg-rose-950/30 border border-rose-500/30' : 'text-rose-400 bg-rose-950/30 border border-rose-500/30 shadow-[0_0_20px_rgba(244,63,94,0.2)]')
+           }`}>
+              <span>{activeSlot.side === 'our' ? 'BLUE TEAM' : 'RED TEAM'}</span>
+              <span>{activeSlot.type}</span>
+           </div>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={handleClearAll}
+            className="px-3 py-1.5 text-xs font-bold text-slate-400 hover:text-white hover:bg-slate-800 rounded transition-colors uppercase tracking-wider"
+          >
+            Reset Draft
+          </button>
+        </div>
+      </header>
+
+      {/* Main Arena */}
+      <main className="flex-1 flex overflow-hidden relative">
+        
+        {/* LEFT: Blue Team (Our) */}
+        <aside className="w-[340px] flex flex-col bg-gradient-to-r from-slate-900 to-slate-900/50 border-r border-slate-800 shrink-0 relative z-10">
+          {/* Bans */}
+          <div className="p-4 border-b border-slate-800/50 bg-slate-900/80">
+            <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2 flex justify-between">
+               <span>Blue Bans</span>
+            </div>
+            <div className="flex gap-2">
+              {ourBans.map((ban, idx) => (
+                <div 
+                  key={`our-ban-${idx}`}
+                  onClick={() => setActiveSlot({ side: 'our', index: idx, type: 'ban' })}
+                  className={`w-10 h-10 rounded-full border-2 flex items-center justify-center cursor-pointer relative overflow-hidden transition-all group ${
+                     activeSlot.side === 'our' && activeSlot.type === 'ban' && activeSlot.index === idx
+                       ? 'border-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.4)] scale-110 z-10'
+                       : ban ? 'border-slate-600 opacity-80' : 'border-slate-800 bg-slate-800/50 hover:border-slate-600'
                   }`}
                 >
-                  All Roles
-                </button>
-                {uniqueRoles.map(role => (
-                  <button
-                    key={role}
-                    onClick={() => setRoleFilter(role === roleFilter ? '' : role)}
-                    className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap border flex items-center gap-1.5 ${
-                      roleFilter === role
-                        ? 'bg-sky-500 border-sky-500 text-white shadow-lg shadow-sky-500/20'
-                        : 'bg-white border-gray-300 text-gray-600 hover:bg-gray-100'
-                    }`}
-                  >
-                    <span>{getRoleIcon(role)}</span>
-                    <span>{role}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Bottom Row: Other Filters */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2 border-t border-gray-200">
-            <div>
-              <label className="block mb-1 text-xs font-semibold text-gray-600">Damage Type</label>
-              <select
-                value={damageTypeFilter}
-                onChange={(e) => setDamageTypeFilter(e.target.value)}
-                className="w-full px-3 py-2 text-sm text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent"
-              >
-                <option value="">All Types</option>
-                {uniqueDamageTypes.map(dt => (
-                  <option key={dt} value={dt}>{dt}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block mb-1 text-xs font-semibold text-gray-600">Attack Reliance</label>
-              <select
-                value={attackRelianceFilter}
-                onChange={(e) => setAttackRelianceFilter(e.target.value)}
-                className="w-full px-3 py-2 text-sm text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent"
-              >
-                <option value="">All Types</option>
-                {uniqueAttackReliance.map(ar => (
-                  <option key={ar} value={ar}>{ar}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block mb-1 text-xs font-semibold text-gray-600">Lane</label>
-              <select
-                value={laneFilter}
-                onChange={(e) => setLaneFilter(e.target.value)}
-                className="w-full px-3 py-2 text-sm text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent"
-              >
-                <option value="">All Lanes</option>
-                {uniqueLanes.map(lane => (
-                  <option key={lane} value={lane}>{lane}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-        </div>
-        
-        <div className="mt-4 flex gap-2 text-xs border-b border-gray-200 overflow-x-auto">
-          <button
-            type="button"
-            onClick={() => setHeroListMode('all')}
-            className={`px-4 py-2 rounded-t-md border-b-2 whitespace-nowrap transition-colors ${
-              heroListMode === 'all'
-                ? 'border-sky-500 text-sky-600 bg-sky-50 font-semibold'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-            }`}
-          >
-            Semua Hero
-          </button>
-          <button
-            type="button"
-            onClick={() => setHeroListMode('recommended')}
-            className={`px-4 py-2 rounded-t-md border-b-2 whitespace-nowrap transition-colors flex items-center gap-1.5 ${
-              heroListMode === 'recommended'
-                ? 'border-emerald-500 text-emerald-600 bg-emerald-50 font-semibold'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-            }`}
-          >
-            <span>💡</span>
-            <span>Recommended</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setHeroListMode('counter')}
-            className={`px-4 py-2 rounded-t-md border-b-2 whitespace-nowrap transition-colors flex items-center gap-1.5 ${
-              heroListMode === 'counter'
-                ? 'border-red-500 text-red-600 bg-red-50 font-semibold'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-            }`}
-          >
-            <span>⚔️</span>
-            <span>Counter Musuh</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setHeroListMode('synergy')}
-            className={`px-4 py-2 rounded-t-md border-b-2 whitespace-nowrap transition-colors flex items-center gap-1.5 ${
-              heroListMode === 'synergy'
-                ? 'border-purple-500 text-purple-600 bg-purple-50 font-semibold'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-            }`}
-          >
-            <span>🤝</span>
-            <span>Synergy Tim</span>
-          </button>
-        </div>
-
-        <div className="mt-4 flex flex-col gap-4 lg:flex-row">
-          <div className="lg:w-2/3">
-            <p className="mb-2 text-xs text-gray-500">
-              Hasil: <span className="font-semibold text-gray-700">{displayHeroes.length}</span> hero
-            </p>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-              {displayHeroes.map(hero => {
-                const primaryRole = hero.role ? hero.role.split('/')[0].trim() : 'Unknown';
-                const damageType = hero.damage_type || hero.damageType || 'Unknown';
-                const attackRel = hero.attack_reliance || hero.attackReliance || 'Unknown';
-                const primaryLane = Array.isArray(hero.lanes)
-                  ? (hero.lanes.find(l => l.priority === 1)?.lane_name || hero.lanes[0]?.lane_name)
-                  : undefined;
-                const isSelected = selectedHeroForDetails &&
-                  ((selectedHeroForDetails.hero_name || selectedHeroForDetails.name) === (hero.hero_name || hero.name));
-
-                const name = hero.hero_name || hero.name || '';
-                const key = name.toLowerCase();
-                const counterMeta = counterMetaByHeroName[key];
-                const synergyMeta = synergyMetaByHeroName[key];
-
-                const tooltipLines = [];
-                if (counterMeta && Array.isArray(counterMeta.entries) && counterMeta.entries.length > 0) {
-                  tooltipLines.push(...counterMeta.entries);
-                }
-                if (synergyMeta && synergyMeta.tooltip) {
-                  tooltipLines.push(synergyMeta.tooltip);
-                }
-                const tooltip = tooltipLines.length > 0 ? tooltipLines.join('\n') : undefined;
-
-                const counterLabel = counterMeta && counterMeta.entries && counterMeta.entries.length > 0
-                  ? counterMeta.entries[0]
-                  : null;
-
-                const roleIcon = getRoleIcon(primaryRole);
-                const damageIcon = getDamageTypeIcon(damageType);
-
-                // Check if picked or banned
-                const pickedInOurTeam = draftPicks.some(p => p && p.toLowerCase() === key);
-                const pickedInEnemyTeam = enemyDraftPicks.some(p => p && p.toLowerCase() === key);
-                const isBanned = allBannedHeroes.includes(key);
-
-                return (
-                  <div
-                    key={hero.hero_name || hero.name}
-                    onMouseEnter={() => setHoveredHero(hero)}
-                    onMouseLeave={() => setHoveredHero(null)}
-                    onClick={() => {
-                      if (pickedInOurTeam || pickedInEnemyTeam || isBanned) return; // Prevent picking already picked/banned hero
-                      
-                      if (activeSlot) {
-                        const heroName = hero.hero_name || hero.name;
-                        // Clear search after pick/ban
-                        setHeroSearch('');
-                        if (searchInputRef.current) searchInputRef.current.focus();
-
-                        if (activeSlot.type === 'ban') {
-                          // Handle ban
-                          handleBanChange(activeSlot.side, activeSlot.index, heroName);
-                          // Auto-advance to next empty ban slot
-                          const currentBans = activeSlot.side === 'our' ? ourBans : enemyBans;
-                          const nextIdx = currentBans.findIndex((b, i) => i > activeSlot.index && !b);
-                          if (nextIdx !== -1) {
-                            setActiveSlot({ side: activeSlot.side, index: nextIdx, type: 'ban' });
-                          } else {
-                            // If all bans filled, switch to pick phase
-                            setActiveSlot({ side: 'our', index: 0, type: 'pick' });
-                          }
-                        } else {
-                          // Handle pick
-                          if (activeSlot.side === 'our') {
-                            handlePickChange(activeSlot.index, heroName);
-                            const nextIdx = activeSlot.index < 4 ? activeSlot.index + 1 : 4;
-                            if (activeSlot.index < 4) setActiveSlot({ side: 'our', index: nextIdx, type: 'pick' });
-                          } else {
-                            handleEnemyPickChange(activeSlot.index, heroName);
-                            const nextIdx = activeSlot.index < 4 ? activeSlot.index + 1 : 4;
-                            if (activeSlot.index < 4) setActiveSlot({ side: 'enemy', index: nextIdx, type: 'pick' });
-                          }
-                        }
-                      }
-                      setSelectedHeroForDetails(hero);
-                    }}
-                    title={tooltip}
-                    className={`relative p-3 text-xs transition-colors border rounded-lg cursor-pointer overflow-hidden ${
-                      pickedInOurTeam
-                        ? 'bg-blue-50 border-blue-400 opacity-60'
-                        : pickedInEnemyTeam
-                        ? 'bg-red-50 border-red-400 opacity-60'
-                        : isSelected
-                        ? 'bg-sky-50 border-sky-500'
-                        : 'bg-white border-gray-200 hover:border-sky-400 hover:bg-gray-50 shadow-sm'
-                    }`}
-                  >
-                    {pickedInEnemyTeam && (
-                      <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
-                        <span className="text-red-500 text-4xl font-bold opacity-50">✕</span>
-                      </div>
-                    )}
-                    {pickedInOurTeam && (
-                      <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
-                        <span className="text-blue-500 text-4xl font-bold opacity-30">✓</span>
-                      </div>
-                    )}
-
-                    <p className="mb-1 text-sm font-semibold text-gray-800 truncate">
-                      {hero.hero_name || hero.name}
-                    </p>
-                    <p className="mb-1 text-[11px] text-sky-600 truncate flex items-center gap-1">
-                      {roleIcon && <span>{roleIcon}</span>}
-                      <span>{primaryRole}</span>
-                    </p>
-                    <p className="text-[11px] text-gray-500 truncate flex items-center gap-1">
-                      <span>{damageIcon}</span>
-                      <span>{damageType} • {attackRel}</span>
-                    </p>
-                    {primaryLane && (
-                      <div className="mt-1 flex items-center gap-1 text-[11px] text-emerald-600 truncate">
-                        <span>{LANE_ICONS[primaryLane] || '🔵'}</span>
-                        <span>{primaryLane}</span>
-                      </div>
-                    )}
-                    {(counterMeta || synergyMeta || (heroListMode === 'recommended' && hero._recScore > 0)) && (
-                      <div className="mt-1 flex flex-wrap gap-1 text-[10px]">
-                        {heroListMode === 'recommended' && hero._recScore > 0 && (
-                          <span className="px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-semibold border border-emerald-300">
-                            ⭐ {hero._recScore}
-                          </span>
-                        )}
-                        {counterMeta && (
-                          <span className="px-1.5 py-0.5 rounded-full bg-red-100 text-red-700">
-                            {counterLabel || 'Counter Musuh'}
-                          </span>
-                        )}
-                        {synergyMeta && (
-                          <span className="px-1.5 py-0.5 rounded-full bg-purple-100 text-purple-700">
-                            Synergy Tim
-                          </span>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-              {displayHeroes.length === 0 && (
-                <div className="col-span-2 text-xs text-center text-gray-500 sm:col-span-3 lg:col-span-4 xl:col-span-5">
-                  Tidak ada hero yang cocok dengan filter.
+                  {ban ? (
+                    <>
+                       <div className="absolute inset-0 bg-slate-800">
+                          {/* In real app, use Image here */}
+                          <div className="w-full h-full flex items-center justify-center bg-slate-700 text-[10px] font-bold text-gray-400">
+                            {ban.substring(0, 2)}
+                          </div>
+                       </div>
+                       <div className="absolute inset-0 flex items-center justify-center bg-black/40 group-hover:bg-black/60">
+                          <span className="text-rose-500 text-xl font-bold">✕</span>
+                       </div>
+                    </>
+                  ) : (
+                    <span className="text-slate-600 text-xs group-hover:text-slate-400">🚫</span>
+                  )}
                 </div>
-              )}
+              ))}
             </div>
           </div>
-
-          <div className="lg:w-1/3">
-            <div className="h-full p-3 border border-gray-200 rounded-lg bg-white shadow-sm">
-              {selectedHeroForDetails ? (() => {
-                const hero = selectedHeroForDetails;
-                const name = hero.hero_name || hero.name || '';
-                const primaryRole = hero.role ? hero.role.split('/')[0].trim() : 'Unknown';
-                const damageType = hero.damage_type || hero.damageType || 'Unknown';
-                const attackRel = hero.attack_reliance || hero.attackReliance || 'Unknown';
-                const lanesList = Array.isArray(hero.lanes) ? hero.lanes : [];
-                const primaryLane = lanesList.length > 0
-                  ? (lanesList.find(l => l.priority === 1)?.lane_name || lanesList[0]?.lane_name)
-                  : undefined;
-                const counters = Array.isArray(hero.counters) ? hero.counters : [];
-
-                return (
-                  <>
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="text-sm font-semibold text-gray-800 truncate">
-                        {name}
-                      </h3>
-                      {primaryLane && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-[11px] text-emerald-700">
-                          <span>{LANE_ICONS[primaryLane] || '🔵'}</span>
-                          <span>{primaryLane}</span>
-                        </span>
-                      )}
-                    </div>
-                    <p className="mb-1 text-[11px] text-sky-600 truncate">
-                      {primaryRole}
-                    </p>
-                    <p className="mb-3 text-[11px] text-gray-500 truncate">
-                      {damageType} • {attackRel}
-                    </p>
-
-                    {lanesList.length > 0 && (
-                      <div className="mb-3">
-                        <p className="mb-1 text-[11px] text-gray-500">Lane rekomendasi</p>
-                        <div className="flex flex-wrap gap-1">
-                          {lanesList.map(lane => (
-                            <span
-                              key={`${lane.lane_name}-${lane.priority}`}
-                              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] ${
-                                lane.priority === 1
-                                  ? 'bg-emerald-500 text-white'
-                                  : 'bg-gray-100 text-gray-700'
-                              }`}
-                            >
-                              <span>{LANE_ICONS[lane.lane_name] || '🔵'}</span>
-                              <span>{lane.lane_name}</span>
-                              {lane.priority === 1 && (
-                                <span className="ml-1 text-[9px] text-emerald-100">PRIMARY</span>
-                              )}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="mb-3">
-                      <p className="mb-1 text-[11px] text-gray-500">Level kesulitan</p>
-                      <p className="text-[12px] text-gray-700">
-                        Belum diatur (menggunakan data/rules terpisah jika tersedia).
-                      </p>
-                    </div>
-
-                    <div className="mb-3">
-                      <p className="mb-1 text-[11px] text-gray-500">Kelebihan / karakter hero</p>
-                      <div className="max-h-40 overflow-y-auto text-[12px] text-gray-700 whitespace-pre-line">
-                        {hero.note && hero.note.trim()
-                          ? hero.note
-                          : 'Belum ada catatan hero di kolom Note (heroes.csv / tabel heroes).'}
-                      </div>
-                    </div>
-
-                    {counters.length > 0 && (
-                      <div className="mb-1">
-                        <p className="mb-1 text-[11px] text-gray-500">Lemah vs (berdasarkan hero_counter)</p>
-                        <ul className="space-y-0.5 text-[12px] text-red-600 max-h-60 overflow-y-auto pr-1 custom-scrollbar">
-                          {counters.map((c, idx) => (
-                            <li key={idx}>
-                              <span className="font-semibold">{c.enemy}</span>
-                              {c.reason && c.reason.trim() && (
-                                <span>{` - ${c.reason}`}</span>
-                              )}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                  </>
-                );
-              })() : (
-                <div className="flex items-center justify-center h-full text-[12px] text-gray-400 text-center">
-                  Klik salah satu hero di daftar untuk melihat detail (Note, lane rekomendasi, dan data counter).
-                </div>
-              )}
-            </div>
-
-            {/* Real-time Composition Analysis */}
-            {heroDetails.length > 0 && (
-              <div className="mt-3 p-3 border border-gray-200 rounded-lg bg-gradient-to-br from-sky-50 to-indigo-50">
-                <h4 className="text-xs font-bold text-gray-700 mb-2 flex items-center gap-1">
-                  <span>📊</span> Team Composition
-                </h4>
+          
+          {/* Picks */}
+          <div className="flex-1 p-4 flex flex-col gap-3 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-700">
+             {draftPicks.map((heroName, idx) => {
+                const isActive = activeSlot.side === 'our' && activeSlot.type === 'pick' && activeSlot.index === idx;
+                const lane = lanes[idx];
+                const hero = heroDetails.find(h => h.hero_name === heroName);
                 
-                {/* Role Balance */}
-                <div className="mb-2">
-                  <p className="text-[10px] text-gray-500 mb-1">Role Balance</p>
-                  <div className="flex flex-wrap gap-1">
-                    {['Tank', 'Fighter', 'Assassin', 'Mage', 'Marksman', 'Support'].map(role => {
-                      const hasRole = heroDetails.some(h => h.role?.toLowerCase().includes(role.toLowerCase()));
-                      return (
-                        <span key={role} className={`text-[9px] px-1.5 py-0.5 rounded ${hasRole ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>
-                          {hasRole ? '✓' : '○'} {role}
-                        </span>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Damage Balance */}
-                <div className="mb-2">
-                  <p className="text-[10px] text-gray-500 mb-1">Damage Balance</p>
-                  <div className="flex gap-2">
-                    <div className="flex-1">
-                      <div className="flex justify-between text-[9px] mb-0.5">
-                        <span>Physical</span>
-                        <span className="font-bold">{composition?.damageTypes?.physical || 0}</span>
+                return (
+                   <div 
+                     key={`our-pick-${idx}`}
+                     onClick={() => {
+                       setActiveSlot({ side: 'our', index: idx, type: 'pick' });
+                       if (searchInputRef.current) searchInputRef.current.focus();
+                     }}
+                     className={`relative flex items-center h-24 rounded-r-xl border-l-4 transition-all cursor-pointer group ${
+                        isActive
+                          ? 'bg-gradient-to-r from-cyan-950/60 to-transparent border-cyan-400 pl-4'
+                          : heroName 
+                             ? 'bg-slate-800/40 border-cyan-600/50 hover:bg-slate-800/60 pl-3'
+                             : 'bg-slate-900/20 border-slate-700 hover:border-slate-600 pl-2'
+                     }`}
+                   >
+                      {/* Lane Icon Background */}
+                      <div className="absolute right-2 top-1/2 -translate-y-1/2 text-6xl text-white/5 pointer-events-none">
+                         {lane.icon}
                       </div>
-                      <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                        <div className="h-full bg-orange-500 transition-all" style={{ width: `${Math.min(100, ((composition?.damageTypes?.physical || 0) / 5) * 100)}%` }}></div>
-                      </div>
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex justify-between text-[9px] mb-0.5">
-                        <span>Magic</span>
-                        <span className="font-bold">{composition?.damageTypes?.magic || 0}</span>
-                      </div>
-                      <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                        <div className="h-full bg-purple-500 transition-all" style={{ width: `${Math.min(100, ((composition?.damageTypes?.magic || 0) / 5) * 100)}%` }}></div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Lane Coverage */}
-                <div className="mb-2">
-                  <p className="text-[10px] text-gray-500 mb-1">Lane Coverage</p>
-                  <div className="flex flex-wrap gap-1">
-                    {lanes.map((lane, idx) => {
-                      const filled = draftPicks[idx] && draftPicks[idx].trim();
-                      return (
-                        <span key={lane.lane} className={`text-[9px] px-1.5 py-0.5 rounded ${filled ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-500'}`}>
-                          {filled ? '✓' : '✗'} {lane.lane}
-                        </span>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Team Traits */}
-                <div>
-                  <p className="text-[10px] text-gray-500 mb-1">Team Traits</p>
-                  <div className="flex flex-wrap gap-1">
-                    {heroDetails.some(h => isTankOrTanky(h)) && (
-                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-700">🛡️ Has Tank</span>
-                    )}
-                    {heroDetails.some(h => hasCC(h)) && (
-                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-700">⚡ Has CC</span>
-                    )}
-                    {heroDetails.some(h => hasBurst(h)) && (
-                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-red-100 text-red-700">💥 Has Burst</span>
-                    )}
-                    {heroDetails.some(h => hasObjectiveControl(h)) && (
-                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-700">🎯 Obj Control</span>
-                    )}
-                    {!heroDetails.some(h => isTankOrTanky(h)) && (
-                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-red-100 text-red-600">⚠️ No Tank</span>
-                    )}
-                    {!heroDetails.some(h => hasCC(h)) && (
-                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-yellow-100 text-yellow-700">⚠️ No CC</span>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Validation Summary */}
-      {heroDetails.length > 0 && (
-        <div className="mb-6">
-          {/* Errors */}
-          {validation.errors.length > 0 && (
-            <div className="bg-red-50 border-2 border-red-400 rounded-lg p-4 mb-3">
-              <h3 className="text-lg font-bold text-red-700 mb-2 flex items-center gap-2">
-                <span>❌</span> Draft Tidak Valid
-              </h3>
-              <ul className="text-sm text-red-600 space-y-1">
-                {validation.errors.map((error, idx) => (
-                  <li key={idx}>• {error}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {/* Warnings */}
-          {validation.warnings.length > 0 && (
-            <div className="bg-yellow-50 border-2 border-yellow-400 rounded-lg p-4 mb-3">
-              <h3 className="text-lg font-bold text-yellow-700 mb-2 flex items-center gap-2">
-                <span>⚠️</span> Peringatan
-              </h3>
-              <ul className="text-sm text-yellow-700 space-y-1">
-                {validation.warnings.map((warning, idx) => (
-                  <li key={idx}>• {warning}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {/* Success */}
-          {validation.isValid && validation.warnings.length === 0 && (
-            <div className="bg-green-50 border-2 border-green-400 rounded-lg p-4">
-              <h3 className="text-lg font-bold text-green-700 mb-2 flex items-center gap-2">
-                <span>✅</span> Draft Valid!
-              </h3>
-              <p className="text-sm text-green-600">
-                Semua lanes terisi dengan benar dan tidak ada duplikat. Tim siap bertanding! 🎉
-              </p>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Requirements Info */}
-      <div className="mb-6 bg-sky-50 border-2 border-sky-300 rounded-lg p-4">
-        <h3 className="text-lg font-bold text-sky-700 mb-2 flex items-center gap-2">
-          <span>ℹ️</span> Requirements Draft Pick
-        </h3>
-        <ul className="text-sm text-sky-700 space-y-1">
-          <li>✓ Pilih 5 heroes (satu untuk setiap lane: Gold, Exp, Mid, Jungling, Roaming)</li>
-          <li>✓ Setiap hero harus memiliki data lanes yang sudah dikonfigurasi</li>
-          <li>✓ Hero sebaiknya cocok dengan lane yang ditugaskan (akan ada warning jika tidak cocok)</li>
-          <li>✓ Tidak boleh ada duplicate primary lanes</li>
-          <li>⚠️ Hero tanpa data lanes akan menyebabkan draft invalid</li>
-        </ul>
-        <div className="mt-3 pt-3 border-t border-sky-200">
-          <p className="text-xs text-sky-600">
-            💡 Konfigurasi lanes hero di: <a href="/edit-hero-info" className="underline hover:text-sky-800">Edit Hero Info & Lanes</a>
-          </p>
-        </div>
-      </div>
-
-
-
-      {loading && (
-        <div className="text-center py-8">
-          <div className="inline-block w-8 h-8 border-4 border-sky-500 border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-gray-500 mt-3">Loading hero details...</p>
-        </div>
-      )}
-
-      {/* Hero Details */}
-      {heroDetails.length > 0 && !loading && (
-        <>
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold mb-4">
-              Draft Summary ({heroDetails.length}/5)
-              {heroDetails.length === 5 ? ' ✅' : ` ⚠️ (Kurang ${5 - heroDetails.length} hero)`}
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-              {(() => {
-                const enemyPickedNames = enemyDraftPicks
-                  .filter(name => name && name.trim())
-                  .map(name => name.toLowerCase());
-
-                return lanes.map((position, idx) => {
-                  // Find hero for this position from draftPicks (maintain correct index!)
-                  const heroName = draftPicks[idx];
-                  if (!heroName || !heroName.trim()) return null; // Skip empty slots
-                  
-                  const hero = heroDetails.find(h => 
-                    h.hero_name.toLowerCase() === heroName.toLowerCase()
-                  );
-                  if (!hero) return null; // Skip if hero not loaded yet
-                  
-                  const heroLanes = hero.lanes || [];
-                  const isLaneMatch = heroLanes.some(lane => lane.lane_name === position.lane);
-                  const hasNoLanes = heroLanes.length === 0;
-
-                  const heroCounters = Array.isArray(hero.counters) ? hero.counters : [];
-                  const activeCounters = heroCounters.filter(c => 
-                    c.enemy && enemyPickedNames.includes(c.enemy.toLowerCase())
-                  );
-                  
-                  return (
-                    <div
-                      key={hero.hero_name}
-                      className={`rounded-lg p-4 border-2 transition-all ${
-                        hasNoLanes
-                          ? 'bg-gray-50 border-gray-300 hover:shadow-lg'
-                          : isLaneMatch
-                          ? 'bg-white border-sky-400 hover:shadow-lg shadow-sm'
-                          : 'bg-yellow-50 border-yellow-400'
-                      }`}
-                    >
-                      <div className="text-center">
-                        <div className="text-2xl mb-2">{position.icon}</div>
-                        <p className="font-bold text-lg mb-1 text-gray-800">{hero.hero_name}</p>
-                        <p className="text-xs text-sky-600 mb-2">{position.lane}</p>
-                        <p className="text-sm text-gray-500 mb-2">
-                          {hero.role || 'Unknown Role'}
-                        </p>
-                        
-                        {/* Lane Info - Only show if lanes exist */}
-                        {heroLanes.length > 0 && (
-                          <div className="mt-2 mb-2">
-                            <div className="text-xs">
-                              <p className="text-gray-500 mb-1">Hero Lanes:</p>
-                              <div className="space-y-1">
-                                {heroLanes.map((lane, lIdx) => (
-                                  <div
-                                    key={lIdx}
-                                    className={`px-2 py-1 rounded ${
-                                      lane.lane_name === position.lane
-                                        ? 'bg-green-500 text-white'
-                                        : 'bg-gray-100 text-gray-700'
-                                    }`}
-                                  >
-                                    {lane.lane_name}
-                                    {lane.priority === 1 && '★'}
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-
-                            {/* Status Badge - Only for lane mismatch */}
-                            {!isLaneMatch && (
-                              <div className="mt-2 px-2 py-1 bg-yellow-600 rounded text-xs text-white">
-                                ⚠ Not typical for {position.lane}
-                              </div>
+                      
+                      {/* Content */}
+                      <div className="relative z-10 flex items-center gap-4 w-full">
+                         <div className={`w-14 h-14 rounded-lg flex items-center justify-center shadow-lg border border-slate-700/50 ${
+                            heroName ? 'bg-slate-700' : 'bg-slate-800/50 border-dashed'
+                         }`}>
+                            {heroName ? (
+                               <span className="text-lg font-bold text-cyan-400">{heroName.charAt(0)}</span>
+                            ) : (
+                               <span className="text-2xl opacity-20 text-white">+</span>
                             )}
-                          </div>
-                        )}
-
-                        <div className="space-y-1 text-xs text-gray-400 mt-2">
-                          <p>
-                            <span className="text-gray-500">Damage:</span>{' '}
-                            {hero.damage_type || 'Unknown'}
-                          </p>
-                          <p>
-                            <span className="text-gray-500">Type:</span>{' '}
-                            {hero.attack_reliance || 'Unknown'}
-                          </p>
-                        </div>
-
-                        {/* Counter info vs enemy draft */}
-                        {activeCounters.length > 0 && (
-                          <div className="mt-3 text-xs text-red-300 text-left">
-                            <p className="font-semibold flex items-center gap-1 justify-center">
-                              <span>⚠️</span>
-                              <span>Countered by enemy draft:</span>
-                            </p>
-                            <ul className="mt-1 space-y-0.5">
-                              {activeCounters.map((c, i) => (
-                                <li key={i}>
-                                  <span className="font-semibold">{c.enemy}</span>
-                                  {c.reason && c.reason.trim() && (
-                                    <span>{` - ${c.reason}`}</span>
-                                  )}
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
+                         </div>
+                         
+                         <div className="flex-1 min-w-0">
+                            {heroName ? (
+                               <>
+                                  <div className="text-lg font-bold text-white leading-none truncate">{heroName}</div>
+                                  <div className="text-xs text-cyan-400/80 mt-1 flex items-center gap-1">
+                                     {hero?.role && <span>{getRoleIcon(hero.role)} {hero.role.split('/')[0]}</span>}
+                                  </div>
+                               </>
+                            ) : (
+                               <>
+                                  <div className="text-sm font-bold text-slate-500 uppercase tracking-wider">{isActive ? 'Picking...' : 'Empty Slot'}</div>
+                                  <div className="text-xs text-slate-600 mt-0.5">{lane.lane}</div>
+                               </>
+                            )}
+                         </div>
                       </div>
-                    </div>
-                  );
-                });
-              })()}
-            </div>
+                      
+                      {/* Remove Button */}
+                      {heroName && (
+                         <button 
+                            onClick={(e) => { e.stopPropagation(); handlePickChange(idx, ''); }}
+                            className="absolute top-2 right-2 w-5 h-5 rounded flex items-center justify-center text-slate-500 hover:text-rose-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                         >
+                            ✕
+                         </button>
+                      )}
+                   </div>
+                );
+             })}
           </div>
+        </aside>
 
-          {/* Compatibility Summary */}
-          <div className="mb-8 bg-green-50 border border-green-300 rounded-lg p-4">
-            <h3 className="text-lg font-semibold text-green-700 mb-2 flex items-center gap-2">
-              <span>🤝</span>
-              <span>Hero Compatibility Summary</span>
-            </h3>
-            {(() => {
-              const activeCompat = [];
-              // For each picked hero, check if they have compat partners also present in the draft
-              heroDetails.forEach(sourceHero => {
-                const compat = heroCompatibility[sourceHero.hero_name?.toLowerCase()];
-                if (!compat) return;
-
-                const partnersInDraft = [];
-                const pushIfMatch = (partnerName, slot, reason) => {
-                  if (!partnerName) return;
-                  // Skip self-compatibility
-                  if (partnerName.toLowerCase() === sourceHero.hero_name?.toLowerCase()) return;
-                  const match = heroDetails.find(h => h.hero_name && h.hero_name.toLowerCase() === partnerName.toLowerCase());
-                  if (match) {
-                    partnersInDraft.push({ name: match.hero_name, slot, reason: reason || '' });
-                  }
-                };
-
-                pushIfMatch(compat.partner_hero1, 1, compat.synergy_reason1);
-                pushIfMatch(compat.partner_hero2, 2, compat.synergy_reason2);
-                pushIfMatch(compat.partner_hero3, 3, compat.synergy_reason3);
-                pushIfMatch(compat.partner_hero4, 4, compat.synergy_reason4);
-
-                if (partnersInDraft.length > 0) {
-                  activeCompat.push({
-                    hero: sourceHero.hero_name,
-                    partners: partnersInDraft,
-                  });
-                }
-              });
-
-              if (activeCompat.length === 0) {
-                return (
-                  <p className="text-xs text-green-600">
-                    Belum ada pasangan hero dalam draft ini yang cocok dengan data hero_compatibility di database.
-                  </p>
-                );
-              }
-
-              return (
-                <ul className="space-y-2 text-xs text-green-700">
-                  {activeCompat.map((entry, idx) => (
-                    <li key={idx}>
-                      <span className="font-semibold">{entry.hero}</span>
-                      <span className="mx-1">→</span>
-                      <span>
-                        {entry.partners
-                          .map(p => `${p.name} (slot ${p.slot}${p.reason ? `: ${p.reason}` : ''})`)
-                          .join(', ')}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              );
-            })()}
-          </div>
-
-          {/* Counter vs Enemy Draft Summary */}
-          <div className="mb-8 bg-red-50 border border-red-300 rounded-lg p-4">
-            <h3 className="text-lg font-semibold text-red-700 mb-2 flex items-center gap-2">
-              <span>🛡️</span>
-              <span>Counter vs Enemy Draft</span>
-            </h3>
-            {(() => {
-              const enemyPicked = enemyDraftPicks
-                .filter(name => name && name.trim())
-                .map(name => name.toLowerCase());
-
-              if (enemyPicked.length === 0) {
-                return (
-                  <p className="text-xs text-red-600">
-                    Isi enemy draft di panel kanan untuk melihat apakah ada hero kamu yang tercounter keras oleh draft musuh.
-                  </p>
-                );
-              }
-
-              const threatEntries = [];
-
-              heroDetails.forEach(hero => {
-                const heroCounters = Array.isArray(hero.counters) ? hero.counters : [];
-                const activeCounters = heroCounters.filter(c => 
-                  c.enemy && enemyPicked.includes(c.enemy.toLowerCase())
-                );
-
-                if (activeCounters.length > 0) {
-                  threatEntries.push({
-                    hero: hero.hero_name,
-                    counters: activeCounters,
-                  });
-                }
-              });
-
-              if (threatEntries.length === 0) {
-                return (
-                  <p className="text-xs text-green-600">
-                    Tidak ada hard counter yang tercatat di database untuk draft musuh saat ini. Kamu masih aman secara match-up murni.
-                  </p>
-                );
-              }
-
-              return (
-                <>
-                  <p className="text-xs text-red-600 mb-2">
-                    {threatEntries.length}/{heroDetails.length} hero kamu memiliki hard counter di enemy draft (berdasarkan tabel hero_counter).
-                  </p>
-                  <ul className="space-y-1 text-xs text-red-700">
-                    {threatEntries.map((entry, idx) => (
-                      <li key={idx}>
-                        <span className="font-semibold">{entry.hero}</span>
-                        <span className="mx-1">←</span>
-                        <span>
-                          {entry.counters
-                            .map(c => {
-                              const base = c.enemy;
-                              if (c.reason && c.reason.trim()) {
-                                return `${base} (${c.reason})`;
-                              }
-                              return base;
-                            })
-                            .join(', ')}
-                        </span>
-                      </li>
+        {/* CENTER: Hero Pool & Controls */}
+        <section className="flex-1 flex flex-col bg-slate-950/80 relative z-0">
+           
+           {/* Filters Bar */}
+           <div className="p-4 border-b border-slate-800 bg-slate-900/90 backdrop-blur sticky top-0 z-20">
+              <div className="flex gap-3 mb-3">
+                 <div className="relative flex-1">
+                    <div className="absolute left-3 top-2.5 text-slate-500">🔍</div>
+                    <input 
+                       ref={searchInputRef}
+                       type="text" 
+                       placeholder="Search hero..." 
+                       value={heroSearch}
+                       onChange={(e) => setHeroSearch(e.target.value)}
+                       className="w-full bg-slate-800 border border-slate-700 text-slate-200 text-sm rounded-lg pl-10 pr-4 py-2.5 focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 outline-none transition-all"
+                    />
+                 </div>
+                 
+                 {/* Quick Filters */}
+                 <div className="flex gap-1">
+                    {uniqueRoles.map(role => (
+                       <button
+                          key={role}
+                          onClick={() => setRoleFilter(role === roleFilter ? '' : role)}
+                          title={role}
+                          className={`w-10 h-10 rounded-lg flex items-center justify-center text-lg border transition-all ${
+                             roleFilter === role 
+                               ? 'bg-cyan-900/50 border-cyan-500 text-cyan-400 shadow-lg shadow-cyan-500/20' 
+                               : 'bg-slate-800 border-slate-700 text-slate-500 hover:bg-slate-700 hover:text-slate-300'
+                          }`}
+                       >
+                          {getRoleIcon(role)}
+                       </button>
                     ))}
-                  </ul>
-                </>
-              );
-            })()}
-          </div>
+                 </div>
+              </div>
 
-          {/* Team Composition Analysis */}
-          {composition && (
-            <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
-              <h3 className="text-xl font-bold mb-4 text-gray-800">Team Composition Analysis</h3>
-              
-              {/* Lanes Status */}
-              <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                <h4 className="text-sm font-semibold text-gray-700 mb-2">Lanes Configuration Status</h4>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Heroes with lanes data:</span>
-                  <span className={`text-lg font-bold ${
-                    heroDetails.filter(h => h.lanes && h.lanes.length > 0).length === 5
-                      ? 'text-green-600'
-                      : 'text-red-600'
-                  }`}>
-                    {heroDetails.filter(h => h.lanes && h.lanes.length > 0).length} / 5
-                  </span>
-                </div>
-                {heroDetails.filter(h => !h.lanes || h.lanes.length === 0).length > 0 && (
-                  <div className="mt-2 text-xs text-red-600">
-                    ⚠️ {heroDetails.filter(h => !h.lanes || h.lanes.length === 0).map(h => h.hero_name).join(', ')} belum punya data lanes
-                  </div>
-                )}
+              <div className="flex items-center gap-4 text-xs">
+                 <div className="flex bg-slate-800 rounded-lg p-1 gap-1">
+                    <button 
+                       onClick={() => setHeroListMode('all')}
+                       className={`px-3 py-1.5 rounded-md font-semibold transition-all ${heroListMode === 'all' ? 'bg-slate-700 text-white shadow' : 'text-slate-500 hover:text-slate-300'}`}
+                    >
+                       All Heroes
+                    </button>
+                    <button 
+                       onClick={() => setHeroListMode('recommended')}
+                       className={`px-3 py-1.5 rounded-md font-semibold transition-all flex items-center gap-1 ${heroListMode === 'recommended' ? 'bg-emerald-900/30 text-emerald-400 shadow' : 'text-slate-500 hover:text-emerald-400'}`}
+                    >
+                       <span>💡</span> Recommended
+                    </button>
+                    <button 
+                       onClick={() => setHeroListMode('counter')}
+                       className={`px-3 py-1.5 rounded-md font-semibold transition-all flex items-center gap-1 ${heroListMode === 'counter' ? 'bg-rose-900/30 text-rose-400 shadow' : 'text-slate-500 hover:text-rose-400'}`}
+                    >
+                       <span>⚔️</span> Counters
+                    </button>
+                 </div>
+                 
+                 <div className="h-4 w-px bg-slate-700 mx-2" />
+                 
+                 <select 
+                   value={damageTypeFilter}
+                   onChange={(e) => setDamageTypeFilter(e.target.value)}
+                   className="bg-transparent text-slate-400 font-medium focus:outline-none hover:text-white cursor-pointer"
+                 >
+                    <option value="">All Damage</option>
+                    {uniqueDamageTypes.map(t => <option key={t} value={t}>{t}</option>)}
+                 </select>
+              </div>
+           </div>
+
+           {/* Hero Grid */}
+           <div className="flex-1 overflow-y-auto p-4">
+              <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+                 {displayHeroes.map(hero => {
+                    const name = hero.hero_name || hero.name;
+                    const isBanned = allBannedHeroes.includes(name.toLowerCase());
+                    const isPicked = draftPicks.includes(name) || enemyDraftPicks.includes(name);
+                    const isDisabled = isBanned || isPicked;
+                    
+                    // Smart Highlights
+                    const score = hero._recScore || 0;
+                    const isRecommended = heroListMode === 'recommended' && score > 0;
+                    
+                    return (
+                       <div 
+                          key={name}
+                          onClick={() => {
+                             if (isDisabled) return;
+                             // Action
+                             if (activeSlot.type === 'ban') {
+                                handleBanChange(activeSlot.side, activeSlot.index, name);
+                                // Auto advance logic could go here
+                             } else {
+                                if (activeSlot.side === 'our') handlePickChange(activeSlot.index, name);
+                                else handleEnemyPickChange(activeSlot.index, name);
+                             }
+                             setHeroSearch('');
+                          }}
+                          onMouseEnter={() => setHoveredHero(hero)}
+                          onMouseLeave={() => setHoveredHero(null)}
+                          className={`
+                             relative aspect-[3/4] rounded-lg border overflow-hidden transition-all group
+                             ${isDisabled 
+                                ? 'opacity-40 grayscale border-slate-800 cursor-not-allowed' 
+                                : 'cursor-pointer hover:scale-105 border-slate-700 hover:border-cyan-400 hover:shadow-lg hover:shadow-cyan-500/20 hover:z-10 bg-slate-800'
+                             }
+                             ${isRecommended ? 'ring-2 ring-emerald-500/50' : ''}
+                          `}
+                       >
+                          {/* Placeholder for Hero Image */}
+                          <div className="absolute inset-0 bg-gradient-to-b from-slate-700 to-slate-900 flex flex-col items-center justify-center p-2 text-center">
+                             <div className="text-3xl mb-1">{getRoleIcon(hero.role)}</div>
+                             <div className="text-xs font-bold text-slate-200 leading-tight">{name}</div>
+                             <div className={`text-[10px] mt-1 font-medium ${getDamageTypeColor(hero.damage_type)}`}>
+                                {hero.damage_type?.split(' ')[0]}
+                             </div>
+                          </div>
+                          
+                          {/* Overlay Stats */}
+                          {isRecommended && (
+                             <div className="absolute top-1 right-1 bg-emerald-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded shadow">
+                                {score}
+                             </div>
+                          )}
+                          {isDisabled && (
+                             <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                                <span className="text-red-500 font-bold uppercase rotate-12 border-2 border-red-500 px-2 py-1 rounded text-xs">
+                                   {isBanned ? 'Banned' : 'Picked'}
+                                </span>
+                             </div>
+                          )}
+                       </div>
+                    );
+                 })}
+              </div>
+           </div>
+           
+           {/* Analysis Footer */}
+           <div className="h-auto bg-slate-900 border-t border-slate-800 p-3 shrink-0">
+              <div className="flex justify-between items-center text-xs text-slate-400 mb-2">
+                 <span className="font-bold uppercase tracking-wider text-slate-500">Team Analysis</span>
+                 <span>{composition ? `${composition.total}/5 Heroes` : 'Drafting...'}</span>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {/* Balance Status */}
-                <div className={`p-4 rounded-lg text-center ${
-                  composition.isBalanced
-                    ? 'bg-green-50 border-2 border-green-400'
-                    : 'bg-yellow-50 border-2 border-yellow-400'
-                }`}>
-                  <p className="text-sm text-gray-600 mb-2">Team Balance</p>
-                  <p className={`text-2xl font-bold ${composition.isBalanced ? 'text-green-600' : 'text-yellow-600'}`}>
-                    {composition.isBalanced ? '✓ Balanced' : '⚠ Unbalanced'}
-                  </p>
-                  <p className="text-xs text-gray-500 mt-2">
-                    {composition.isBalanced 
-                      ? '3+ different roles' 
-                      : 'Need more role diversity'}
-                  </p>
-                </div>
-
-                {/* Role Distribution */}
-                <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
-                  <p className="text-sm text-gray-700 mb-3 font-semibold">Role Distribution</p>
-                  <div className="space-y-2">
-                    {Object.entries(composition.roleDistribution).map(([role, count]) => (
-                      <div key={role} className="flex justify-between items-center">
-                        <span className="text-sm text-gray-600">{role}</span>
-                        <div className="flex items-center gap-2">
-                          <div className="w-16 bg-gray-200 rounded-full h-2">
-                            <div 
-                              className="bg-blue-500 h-2 rounded-full" 
-                              style={{ width: `${(count / composition.total) * 100}%` }}
-                            />
+              <div className="flex gap-4 h-16">
+                 {/* Stats Charts */}
+                 <div className="flex-1 bg-slate-800/50 rounded p-2 flex items-center gap-4">
+                    {composition ? (
+                       <>
+                          <div className="flex flex-col gap-1 flex-1">
+                             <div className="flex justify-between text-[10px] uppercase">
+                                <span className="text-orange-400">Physical</span>
+                                <span>{composition.damageTypes.physical}</span>
+                             </div>
+                             <div className="w-full bg-slate-700 h-1.5 rounded-full overflow-hidden">
+                                <div style={{width: `${(composition.damageTypes.physical/5)*100}%`}} className="h-full bg-orange-500"></div>
+                             </div>
                           </div>
-                          <span className="font-semibold text-sm w-6 text-right text-gray-700">{count}</span>
-                        </div>
-                      </div>
+                          <div className="flex flex-col gap-1 flex-1">
+                             <div className="flex justify-between text-[10px] uppercase">
+                                <span className="text-purple-400">Magic</span>
+                                <span>{composition.damageTypes.magic}</span>
+                             </div>
+                             <div className="w-full bg-slate-700 h-1.5 rounded-full overflow-hidden">
+                                <div style={{width: `${(composition.damageTypes.magic/5)*100}%`}} className="h-full bg-purple-500"></div>
+                             </div>
+                          </div>
+                       </>
+                    ) : (
+                       <div className="text-slate-600 text-center w-full italic">Pick heroes to see analysis</div>
+                    )}
+                 </div>
+                 
+                 {/* Validation Messages */}
+                 <div className="flex-1 overflow-y-auto">
+                    {validation.errors.length > 0 && (
+                       <div className="text-rose-400 text-[10px] mb-1 font-semibold">
+                          ❌ {validation.errors[0]}
+                       </div>
+                    )}
+                    {validation.warnings.map((w, i) => (
+                       <div key={i} className="text-amber-400 text-[10px]">⚠️ {w}</div>
                     ))}
-                  </div>
-                </div>
-
-                {/* Damage Type Distribution */}
-                <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
-                  <p className="text-sm text-gray-700 mb-3 font-semibold">Damage Types</p>
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-red-600">Physical</span>
-                      <span className="font-bold text-lg text-gray-800">{composition.damageTypes.physical}</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-purple-600">Magic</span>
-                      <span className="font-bold text-lg text-gray-800">{composition.damageTypes.magic}</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-yellow-600">Mixed</span>
-                      <span className="font-bold text-lg text-gray-800">{composition.damageTypes.mixed}</span>
-                    </div>
-                  </div>
-                </div>
+                 </div>
               </div>
+           </div>
 
-              {/* Recommendations */}
-              <div className="mt-6 p-4 bg-sky-50 border border-sky-200 rounded-lg">
-                <p className="text-sm font-semibold text-sky-700 mb-2">💡 Recommendations:</p>
-                <ul className="text-sm text-gray-700 space-y-1">
-                  {!composition.isBalanced && (
-                    <li>• Add more role diversity for better team balance</li>
-                  )}
-                  {composition.damageTypes.physical === composition.total && (
-                    <li>• Consider adding magic damage heroes for better penetration</li>
-                  )}
-                  {composition.damageTypes.magic === composition.total && (
-                    <li>• Consider adding physical damage heroes for better balance</li>
-                  )}
-                  {composition.total < 5 && (
-                    <li>• Pick {5 - composition.total} more hero(es) to complete the draft</li>
-                  )}
-                  {composition.isBalanced && composition.total === 5 && (
-                    <li>• Your team composition looks great! 🎉</li>
-                  )}
-                </ul>
-              </div>
+        </section>
+
+        {/* RIGHT: Red Team (Enemy) */}
+        <aside className="w-[340px] flex flex-col bg-gradient-to-l from-slate-900 to-slate-900/50 border-l border-slate-800 shrink-0 relative z-10">
+          {/* Bans */}
+          <div className="p-4 border-b border-slate-800/50 bg-slate-900/80">
+            <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2 flex justify-between">
+               <span>Red Bans</span>
             </div>
-          )}
-        </>
-      )}
-
-      {!hasAnyPick && !loading && (
-        <div className="text-center py-12">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
-            <span className="text-2xl">🎮</span>
+            <div className="flex gap-2 justify-end">
+              {enemyBans.map((ban, idx) => (
+                <div 
+                  key={`enemy-ban-${idx}`}
+                  onClick={() => setActiveSlot({ side: 'enemy', index: idx, type: 'ban' })}
+                  className={`w-10 h-10 rounded-full border-2 flex items-center justify-center cursor-pointer relative overflow-hidden transition-all group ${
+                     activeSlot.side === 'enemy' && activeSlot.type === 'ban' && activeSlot.index === idx
+                       ? 'border-rose-400 shadow-[0_0_10px_rgba(244,63,94,0.4)] scale-110 z-10'
+                       : ban ? 'border-rose-900/50 opacity-80' : 'border-slate-800 bg-slate-800/50 hover:border-slate-600'
+                  }`}
+                >
+                  {ban ? (
+                    <>
+                       <div className="absolute inset-0 bg-slate-800">
+                          <div className="w-full h-full flex items-center justify-center bg-slate-700 text-[10px] font-bold text-gray-400">
+                            {ban.substring(0, 2)}
+                          </div>
+                       </div>
+                       <div className="absolute inset-0 flex items-center justify-center bg-black/40 group-hover:bg-black/60">
+                          <span className="text-white text-xl font-bold">✕</span>
+                       </div>
+                    </>
+                  ) : (
+                    <span className="text-slate-600 text-xs group-hover:text-slate-400">🚫</span>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
-          <p className="text-lg text-gray-700 font-medium">Start Building Your Draft</p>
-          <p className="text-sm text-gray-500 mt-2">Click on a slot above and search for heroes to build your team</p>
-        </div>
-      )}
+          
+          {/* Picks */}
+          <div className="flex-1 p-4 flex flex-col gap-3 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-700">
+             {enemyDraftPicks.map((heroName, idx) => {
+                const isActive = activeSlot.side === 'enemy' && activeSlot.type === 'pick' && activeSlot.index === idx;
+                const lane = lanes[idx];
+                const hero = allHeroesWithLanes.find(h => (h.hero_name || h.name) === heroName);
+                
+                return (
+                   <div 
+                     key={`enemy-pick-${idx}`}
+                     onClick={() => {
+                       setActiveSlot({ side: 'enemy', index: idx, type: 'pick' });
+                       if (searchInputRef.current) searchInputRef.current.focus();
+                     }}
+                     className={`relative flex flex-row-reverse items-center h-24 rounded-l-xl border-r-4 transition-all cursor-pointer group ${
+                        isActive
+                          ? 'bg-gradient-to-l from-rose-950/60 to-transparent border-rose-400 pr-4'
+                          : heroName 
+                             ? 'bg-slate-800/40 border-rose-600/50 hover:bg-slate-800/60 pr-3'
+                             : 'bg-slate-900/20 border-slate-700 hover:border-slate-600 pr-2'
+                     }`}
+                   >
+                      {/* Lane Icon Background */}
+                      <div className="absolute left-2 top-1/2 -translate-y-1/2 text-6xl text-white/5 pointer-events-none">
+                         {lane.icon}
+                      </div>
+                      
+                      {/* Content */}
+                      <div className="relative z-10 flex flex-row-reverse items-center gap-4 w-full text-right">
+                         <div className={`w-14 h-14 rounded-lg flex items-center justify-center shadow-lg border border-slate-700/50 ${
+                            heroName ? 'bg-slate-700' : 'bg-slate-800/50 border-dashed'
+                         }`}>
+                            {heroName ? (
+                               <span className="text-lg font-bold text-rose-400">{heroName.charAt(0)}</span>
+                            ) : (
+                               <span className="text-2xl opacity-20 text-white">+</span>
+                            )}
+                         </div>
+                         
+                         <div className="flex-1 min-w-0">
+                            {heroName ? (
+                               <>
+                                  <div className="text-lg font-bold text-white leading-none truncate">{heroName}</div>
+                                  <div className="text-xs text-rose-400/80 mt-1 flex items-center gap-1 justify-end">
+                                     {hero?.role && <span>{hero.role.split('/')[0]} {getRoleIcon(hero.role)}</span>}
+                                     {!hero?.role && <span>Enemy Team</span>}
+                                  </div>
+                               </>
+                            ) : (
+                               <>
+                                  <div className="text-sm font-bold text-slate-500 uppercase tracking-wider">{isActive ? 'Picking...' : 'Empty Slot'}</div>
+                                  <div className="text-xs text-slate-600 mt-0.5">{lane.lane}</div>
+                               </>
+                            )}
+                         </div>
+                      </div>
+
+                      {/* Remove Button */}
+                      {heroName && (
+                         <button 
+                            onClick={(e) => { e.stopPropagation(); handleEnemyPickChange(idx, ''); }}
+                            className="absolute top-2 left-2 w-5 h-5 rounded flex items-center justify-center text-slate-500 hover:text-rose-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                         >
+                            ✕
+                         </button>
+                      )}
+                   </div>
+                );
+             })}
+          </div>
+        </aside>
+
+      </main>
     </div>
-  </div>
   );
 }

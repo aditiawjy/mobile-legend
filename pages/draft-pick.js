@@ -1,12 +1,14 @@
 import ManualDraftPick from '../components/draft/ManualDraftPick';
-import AppLayout from '../components/common/AppLayout';
+import Head from 'next/head';
 
 export default function DraftPickPage() {
   return (
-    <AppLayout>
-      <div className="min-h-screen bg-gray-50 p-6">
-        <ManualDraftPick />
-      </div>
-    </AppLayout>
+    <>
+      <Head>
+        <title>Tournament Draft Pick Simulator</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0" />
+      </Head>
+      <ManualDraftPick />
+    </>
   );
 }
