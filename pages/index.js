@@ -285,7 +285,7 @@ export default function Home() {
   return (
     <AppLayout>
       <div className="bg-gradient-to-br from-sky-50 via-white to-blue-50 min-h-screen">
-        <div className={`mx-auto px-4 sm:px-6 lg:px-8 py-8 ${showAllHeroes ? 'max-w-full' : 'max-w-7xl'}`}>
+        <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <header className="mb-8 flex items-start justify-between gap-4">
             <div>
               <h1 className="text-3xl md:text-4xl font-bold text-gray-800 flex items-center gap-3">

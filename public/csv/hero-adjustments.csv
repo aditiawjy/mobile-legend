@@ -1,4 +1,14 @@
 Hero Name,Date,Season,Description
+"Cecilion","27-11-2025","38","Optimized Cecilion's early-game skill casting experience, allowing him to cast skills more frequently.
+
+[Skill 1 Adjusments] Buff
+Mana Cost Increase Per Cast : 1.8 times at all levels >> 1.5-1.8 times"
+"Clint","27-11-2025","38","We aim to increase the hero's sustained damage output in the mid to late game
+
+[Skill 3 Adjustments] Buff
+Skill Recharge Time : 10-6s >> 10-5s
+
+Cooldown : 2-1s >> 1.5-0.5s"
 "Arlott","04-11-2025","38","Arlott's damage was too high with the defense build, so we've slightly reduced his Base Damage.
 
 [Skill 2 Adjustments] Nerf
