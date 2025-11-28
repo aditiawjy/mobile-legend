@@ -112,7 +112,7 @@ export default function ItemDetailPage() {
   return (
     <AppLayout>
       <div className="bg-gradient-to-br from-blue-50 via-white to-green-50 min-h-screen">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="mb-6 flex items-center justify-between">
             <div>
               <h1 className="text-2xl md:text-3xl font-bold text-gray-800">

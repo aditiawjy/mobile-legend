@@ -1,23 +1,17 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
-import EditNav from '../components/common/EditNav'
 import SearchBar from '../components/common/SearchBar'
-import HeroCard from '../components/hero/HeroCard'
 import DashboardOverview from '../components/common/DashboardOverview'
 import AppLayout from '../components/common/AppLayout'
 import QuickActions from '../components/QuickActions'
-
-// Backend origin for opening full PHP pages (not proxied via Next.js)
-// You can override this in .env.local as NEXT_PUBLIC_BACKEND_ORIGIN
-const BACKEND_ORIGIN = process.env.NEXT_PUBLIC_BACKEND_ORIGIN || 'http://localhost:8888'
+import HeroFilter from '../components/hero/HeroFilter'
+import HeroGrid from '../components/hero/HeroGrid'
 
 export default function Home() {
   const router = useRouter()
   const [q, setQ] = useState('')
   const [suggestions, setSuggestions] = useState([])
   const [activeIndex, setActiveIndex] = useState(-1)
-  const [detail, setDetail] = useState(null)
-  const [heroAttrs, setHeroAttrs] = useState(null)
   const [stats, setStats] = useState({
     totalHeroes: 0,
     totalItems: 0,
@@ -29,23 +23,14 @@ export default function Home() {
   const [adjustmentsLoading, setAdjustmentsLoading] = useState(true)
   const [allHeroes, setAllHeroes] = useState([])
   const [allHeroesLoading, setAllHeroesLoading] = useState(false)
-  const [allHeroesQuery, setAllHeroesQuery] = useState('')
   const [csvUpdating, setCsvUpdating] = useState(false)
   const [csvMessage, setCsvMessage] = useState('')
   const [roleDistribution, setRoleDistribution] = useState([])
+  const [heroFilters, setHeroFilters] = useState({})
   const dropdownRef = useRef(null)
   const inputRef = useRef(null)
 
   const showAllHeroes = router.query.showAll === 'true'
-
-  const filteredAllHeroes = useMemo(() => {
-    if (!allHeroesQuery.trim()) return allHeroes
-    const q = allHeroesQuery.toLowerCase()
-    return allHeroes.filter((hero) => {
-      const name = (hero.hero_name || hero.name || '').toLowerCase()
-      return name.includes(q)
-    })
-  }, [allHeroes, allHeroesQuery])
 
   function useDebounce(value, delay) {
     const [v, setV] = useState(value)
@@ -186,54 +171,6 @@ export default function Home() {
     router.push(`/hero/${encodeURIComponent(name)}`)
   }
 
-  const onKeyDown = (e) => {
-    if (!suggestions.length) return
-    switch (e.key) {
-      case 'ArrowDown':
-        e.preventDefault()
-        setActiveIndex((i) => (i + 1) % suggestions.length)
-        break
-      case 'ArrowUp':
-        e.preventDefault()
-        setActiveIndex((i) => (i - 1 + suggestions.length) % suggestions.length)
-        break
-      case 'Enter':
-        if (activeIndex >= 0) {
-          e.preventDefault()
-          onSelect(suggestions[activeIndex])
-        } else if (q.trim()) {
-          onSelect(q.trim())
-        }
-        break
-      case 'Escape':
-        setSuggestions([])
-        break
-    }
-  }
-
-  const skills = useMemo(() => {
-    if (!detail) return []
-    const s = [
-      { key: 'skill1', title: 'Basic Attack', name: detail.skill1_name, desc: detail.skill1_desc },
-      { key: 'skill2', title: 'Skill 1', name: detail.skill2_name, desc: detail.skill2_desc },
-      { key: 'skill3', title: 'Skill 2', name: detail.skill3_name, desc: detail.skill3_desc },
-      { key: 'ultimate', title: 'Ultimate', name: detail.ultimate_name, desc: detail.ultimate_desc },
-      { key: 'skill4', title: 'Skill 4', name: detail.skill4_name, desc: detail.skill4_desc },
-    ].filter(s => (s.name && s.name.trim()) || (s.desc && s.desc.trim()))
-    return s
-  }, [detail])
-
-  useEffect(() => {
-    if (detail?.hero_name) {
-      fetch(`/api/heroes/${encodeURIComponent(detail.hero_name)}/attributes`)
-        .then(r => r.ok ? r.json() : null)
-        .then(a => setHeroAttrs(a || null))
-        .catch(() => setHeroAttrs(null))
-    } else {
-      setHeroAttrs(null)
-    }
-  }, [detail?.hero_name])
-
   useEffect(() => {
     const onDocClick = (e) => {
       if (!dropdownRef.current) return
@@ -348,7 +285,7 @@ export default function Home() {
   return (
     <AppLayout>
       <div className="bg-gradient-to-br from-sky-50 via-white to-blue-50 min-h-screen">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className={`mx-auto px-4 sm:px-6 lg:px-8 py-8 ${showAllHeroes ? 'max-w-full' : 'max-w-7xl'}`}>
           <header className="mb-8 flex items-start justify-between gap-4">
             <div>
               <h1 className="text-3xl md:text-4xl font-bold text-gray-800 flex items-center gap-3">
@@ -559,96 +496,15 @@ export default function Home() {
             </>
           ) : (
             <div className="mb-8">
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <div>
-                    <h2 className="text-2xl font-bold text-gray-900">All Heroes</h2>
-                    <p className="text-gray-600 mt-1">
-                      {allHeroesQuery.trim()
-                        ? `Menampilkan ${filteredAllHeroes.length} dari ${allHeroes.length} heroes dari database`
-                        : `Menampilkan semua ${allHeroes.length} heroes dari database`}
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => router.push('/')}
-                    className="px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-                  >
-                    Kembali ke Search
-                  </button>
-                </div>
-
-                <div className="mb-4">
-                  <div className="relative max-w-sm">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                      </svg>
-                    </div>
-                    <input
-                      type="text"
-                      value={allHeroesQuery}
-                      onChange={(e) => setAllHeroesQuery(e.target.value)}
-                      placeholder="Search cepat nama hero..."
-                      className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 text-sm bg-white"
-                    />
-                  </div>
-                </div>
-
-                {allHeroesLoading ? (
-                  <div className="flex items-center justify-center py-12">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sky-600"></div>
-                    <span className="ml-2 text-gray-600">Memuat heroes...</span>
-                  </div>
-                ) : allHeroes.length > 0 ? (
-                  filteredAllHeroes.length > 0 ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-                      {filteredAllHeroes.map((hero, index) => (
-                        <div
-                          key={index}
-                          className="bg-gray-50 rounded-lg p-4 hover:shadow-md transition-all border border-gray-200"
-                        >
-                          <div 
-                            className="text-center cursor-pointer mb-3"
-                            onClick={() => onSelect(hero.hero_name || hero.name)}
-                          >
-                            <div className="w-16 h-16 bg-gradient-to-br from-sky-400 to-blue-500 rounded-full mx-auto mb-3 flex items-center justify-center">
-                              <span className="text-white font-bold text-lg">
-                                {hero.hero_name ? hero.hero_name.charAt(0).toUpperCase() : hero.name.charAt(0).toUpperCase()}
-                              </span>
-                            </div>
-                            <h3 className="font-semibold text-gray-900 text-sm mb-1">
-                              {hero.hero_name || hero.name}
-                            </h3>
-                            <p className="text-xs text-gray-500">{hero.role || 'Hero'}</p>
-                          </div>
-                          <div className="flex gap-2 pt-3 border-t border-gray-200">
-                            <button
-                              onClick={() => router.push(`/hero/${encodeURIComponent(hero.hero_name || hero.name)}`)}
-                              className="flex-1 text-xs px-2 py-1.5 bg-sky-100 text-sky-700 rounded hover:bg-sky-200 transition-colors"
-                            >
-                              Detail
-                            </button>
-                            <button
-                              onClick={() => router.push(`/edit-skills?name=${encodeURIComponent(hero.hero_name || hero.name)}`)}
-                              className="flex-1 text-xs px-2 py-1.5 bg-purple-100 text-purple-700 rounded hover:bg-purple-200 transition-colors"
-                            >
-                              Edit
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-12">
-                      <p className="text-gray-600">Tidak ada hero dengan nama yang cocok.</p>
-                    </div>
-                  )
-                ) : (
-                  <div className="text-center py-12">
-                    <p className="text-gray-600">Tidak ada heroes ditemukan di database.</p>
-                  </div>
-                )}
-              </div>
+              {/* Hero Filter */}
+              <HeroFilter onFilterChange={setHeroFilters} />
+              
+              {/* Hero Grid with Pagination */}
+              <HeroGrid 
+                heroes={allHeroes} 
+                loading={allHeroesLoading} 
+                filters={heroFilters}
+              />
             </div>
           )}
 
@@ -657,13 +513,4 @@ export default function Home() {
       </div>
     </AppLayout>
   )
-}
-
-function useDebounce(value, delay) {
-  const [v, setV] = useState(value)
-  useEffect(() => {
-    const t = setTimeout(() => setV(value), delay)
-    return () => clearTimeout(t)
-  }, [value, delay])
-  return v
 }

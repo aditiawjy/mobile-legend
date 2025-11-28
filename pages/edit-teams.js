@@ -57,7 +57,7 @@ export default function EditTeamsPage() {
   return (
     <AppLayout>
       <div className="bg-gradient-to-br from-yellow-50 via-white to-emerald-50 min-h-screen">
-        <div className="max-w-4xl mx-auto px-4 py-8">
+        <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <header className="mb-6 flex items-center justify-between">
           <h1 className="text-2xl font-bold text-gray-800">Master Teams</h1>
           <div className="flex items-center gap-2">

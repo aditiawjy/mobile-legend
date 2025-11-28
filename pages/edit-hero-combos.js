@@ -126,7 +126,7 @@ export default function EditHeroCombos() {
   return (
     <AppLayout>
       <div className="min-h-screen bg-gray-900 text-white p-6">
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-full mx-auto px-2">
           {/* Header */}
           <div className="mb-8 flex items-center justify-between">
             <div>

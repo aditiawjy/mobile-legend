@@ -49,7 +49,7 @@ export default function EmblemsPage() {
   return (
     <AppLayout>
       <div className="bg-gradient-to-br from-amber-50 via-white to-rose-50 min-h-screen">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <header className="mb-8 flex items-start justify-between gap-4">
             <div>
               <h1 className="text-3xl md:text-4xl font-bold text-gray-800 flex items-center gap-3">
