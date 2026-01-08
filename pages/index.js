@@ -14,7 +14,6 @@ export default function Home() {
   const router = useRouter()
   const [q, setQ] = useState('')
   const [suggestions, setSuggestions] = useState([])
-  const [activeIndex, setActiveIndex] = useState(-1)
   const [stats, setStats] = useState({
     totalHeroes: 0,
     totalItems: 0,
@@ -46,15 +45,12 @@ export default function Home() {
 
   const debouncedQuery = useDebounce(q, 200)
 
-  // Homepage no longer loads hero detail inline; navigate to /hero/[name]
-
   useEffect(() => {
     const fetchStats = async () => {
       try {
         const response = await fetch(`/api/stats?t=${Date.now()}`)
         if (response.ok) {
           const data = await response.json()
-          console.log('Stats received:', data)
           setStats(data)
         }
       } catch (error) {
@@ -66,29 +62,22 @@ export default function Home() {
     fetchStats()
   }, [])
 
-  // Fetch role distribution for dashboard widget
   useEffect(() => {
     const fetchRoleDistribution = async () => {
       try {
         const response = await fetch('/api/heroes')
         if (response.ok) {
           const heroes = await response.json()
-          // Calculate role distribution
           const roleCounts = {}
-          // Standard role names for normalization
           const standardRoles = ['Tank', 'Fighter', 'Assassin', 'Mage', 'Marksman', 'Support']
           
           heroes.forEach(hero => {
-            // Get primary role and normalize
             let primaryRole = hero.role?.split('/')[0].trim() || 'Unknown'
-            // Normalize to standard case (first letter uppercase)
             primaryRole = primaryRole.charAt(0).toUpperCase() + primaryRole.slice(1).toLowerCase()
-            // Match to standard role if possible
             const matchedRole = standardRoles.find(r => r.toLowerCase() === primaryRole.toLowerCase()) || primaryRole
             roleCounts[matchedRole] = (roleCounts[matchedRole] || 0) + 1
           })
           
-          // Convert to array, filter out Unknown if empty, and sort by standard order then count
           const roleOrder = { Tank: 1, Fighter: 2, Assassin: 3, Mage: 4, Marksman: 5, Support: 6 }
           const distribution = Object.entries(roleCounts)
             .filter(([role]) => role !== 'Unknown' || roleCounts[role] > 0)
@@ -109,15 +98,10 @@ export default function Home() {
         const response = await fetch('/api/heroes/adjustments?limit=10&sort=date_desc')
         if (response.ok) {
           const data = await response.json()
-          console.log('Adjustments data:', data)
           setHeroAdjustments(Array.isArray(data) ? data : [])
-        } else {
-          console.error('Failed to fetch adjustments:', response.status)
-          setHeroAdjustments([])
         }
       } catch (error) {
         console.error('Error fetching adjustments:', error)
-        setHeroAdjustments([])
       } finally {
         setAdjustmentsLoading(false)
       }
@@ -128,7 +112,6 @@ export default function Home() {
   useEffect(() => {
     const fetchAllHeroes = async () => {
       if (!showAllHeroes) return
-
       setAllHeroesLoading(true)
       try {
         const response = await fetch('/api/heroes')
@@ -138,148 +121,42 @@ export default function Home() {
         }
       } catch (error) {
         console.error('Error fetching all heroes:', error)
-        setAllHeroes([])
       } finally {
         setAllHeroesLoading(false)
       }
     }
-
     fetchAllHeroes()
   }, [showAllHeroes])
 
-  useEffect(() => {
-    let ignore = false
-    const search = async () => {
-      if (!debouncedQuery) {
-        setSuggestions([])
-        return
-      }
-      try {
-        const res = await fetch(`/api/heroes_search?q=${encodeURIComponent(debouncedQuery)}`)
-        if (!res.ok) throw new Error('Network error')
-        const data = await res.json()
-        if (!ignore) setSuggestions(Array.isArray(data) ? data : [])
-      } catch (e) {
-        console.error(e)
-      }
-    }
-    search()
-    return () => { ignore = true }
-  }, [debouncedQuery])
   const onSelect = (name) => {
     if (!name) return
-    setQ(name)
-    setSuggestions([])
-    // Navigate to dedicated hero detail page
     router.push(`/hero/${encodeURIComponent(name)}`)
   }
 
-  useEffect(() => {
-    const onDocClick = (e) => {
-      if (!dropdownRef.current) return
-      if (!dropdownRef.current.contains(e.target) && e.target !== inputRef.current) {
-        setSuggestions([])
-      }
-    }
-    document.addEventListener('click', onDocClick)
-    return () => document.removeEventListener('click', onDocClick)
-  }, [])
-
-  const handleUpdateCSV = async () => {
+  const handleUpdateCSV = async (type) => {
     setCsvUpdating(true)
     setCsvMessage('')
-    try {
-      const response = await fetch('/api/export/heroes-csv', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-      })
-      
-      if (response.ok) {
-        const data = await response.json()
-        setCsvMessage(`✓ Heroes CSV updated! (${data.heroCount} heroes)`)
-        setTimeout(() => setCsvMessage(''), 3000)
-      } else {
-        const error = await response.json()
-        setCsvMessage(`✗ Error: ${error.error}`)
-      }
-    } catch (error) {
-      console.error('Error updating CSV:', error)
-      setCsvMessage('✗ Error updating CSV')
-    } finally {
-      setCsvUpdating(false)
-    }
-  }
+    let endpoint = ''
+    let label = ''
 
-  const handleUpdateAdjustmentsCSV = async () => {
-    setCsvUpdating(true)
-    setCsvMessage('')
-    try {
-      const response = await fetch('/api/export/hero-adjustments-csv', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-      })
-      
-      if (response.ok) {
-        const data = await response.json()
-        setCsvMessage(`✓ Hero Adjustments CSV updated! (${data.adjustmentCount} adjustments)`)
-        setTimeout(() => setCsvMessage(''), 3000)
-      } else {
-        const error = await response.json()
-        setCsvMessage(`✗ Error: ${error.error}`)
-      }
-    } catch (error) {
-      console.error('Error updating Adjustments CSV:', error)
-      setCsvMessage('✗ Error updating Adjustments CSV')
-    } finally {
-      setCsvUpdating(false)
+    switch(type) {
+      case 'heroes': endpoint = '/api/export/heroes-csv'; label = 'Heroes'; break;
+      case 'adjustments': endpoint = '/api/export/hero-adjustments-csv'; label = 'Hero Adjustments'; break;
+      case 'emblems': endpoint = '/api/export/emblems-csv'; label = 'Emblems'; break;
+      case 'spells': endpoint = '/api/export/battle-spells-csv'; label = 'Battle Spells'; break;
+      default: return;
     }
-  }
 
-  const handleUpdateEmblemsCSV = async () => {
-    setCsvUpdating(true)
-    setCsvMessage('')
     try {
-      const response = await fetch('/api/export/emblems-csv', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-      })
-      
+      const response = await fetch(endpoint, { method: 'POST' })
       if (response.ok) {
-        const data = await response.json()
-        setCsvMessage(`✓ Emblems CSV updated! (${data.emblemCount} emblems)`)
+        setCsvMessage(`✓ ${label} CSV updated!`)
         setTimeout(() => setCsvMessage(''), 3000)
       } else {
-        const error = await response.json()
-        setCsvMessage(`✗ Error: ${error.error}`)
+        setCsvMessage(`✗ Error updating ${label}`)
       }
     } catch (error) {
-      console.error('Error updating Emblems CSV:', error)
-      setCsvMessage('✗ Error updating Emblems CSV')
-    } finally {
-      setCsvUpdating(false)
-    }
-  }
-
-  const handleUpdateSpellsCSV = async () => {
-    setCsvUpdating(true)
-    setCsvMessage('')
-    try {
-      const response = await fetch('/api/export/battle-spells-csv', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-      })
-      
-      if (response.ok) {
-        const data = await response.json()
-        setCsvMessage(`✓ Battle Spells CSV updated! (${data.spellCount} spells)`)
-        setTimeout(() => setCsvMessage(''), 3000)
-      } else {
-        const error = await response.json()
-        setCsvMessage(`✗ Error: ${error.error}`)
-      }
-    } catch (error) {
-      console.error('Error updating Battle Spells CSV:', error)
-      setCsvMessage('✗ Error updating Battle Spells CSV')
+      setCsvMessage('✗ Error connection')
     } finally {
       setCsvUpdating(false)
     }
@@ -287,83 +164,139 @@ export default function Home() {
 
   return (
     <AppLayout>
-      <div className="bg-gradient-to-br from-sky-50 via-white to-blue-50 min-h-screen">
-        <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <header className="mb-8 flex items-start justify-between gap-4">
-            <div>
-              <h1 className="text-3xl md:text-4xl font-bold text-gray-800 flex items-center gap-3">
-                <span className="text-sky-600">ML</span> Helper
-                {showAllHeroes && <span className="text-lg font-normal text-gray-500">- All Heroes</span>}
-              </h1>
-              <p className="text-gray-600 mt-2">
-                {showAllHeroes
-                  ? `Menampilkan semua ${allHeroes.length} heroes dari database Mobile Legends.`
-                  : 'Cari dan kelola data hero Mobile Legends dengan mudah dan efisien.'
-                }
-              </p>
-            </div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <a href="/" className="text-sm inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-gray-200 text-gray-700 bg-white hover:bg-gray-100">
-                {showAllHeroes ? 'Dashboard' : 'Home'}
-              </a>
-            </div>
-          </header>
-
-          {!showAllHeroes ? (
-            <>
-              {/* 1. Search Bar (Top Priority) */}
-              <div className="mb-8">
-                <SearchBar
-                  onSearch={(heroName) => { if (heroName) onSelect(heroName) }}
-                  placeholder="Cari hero Mobile Legends..."
-                />
-              </div>
-
-              {/* 2. Stats Overview */}
-              {statsLoading ? (
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
-                  <div className="flex items-center justify-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sky-600"></div>
-                    <span className="ml-2 text-gray-600">Memuat statistik...</span>
-                  </div>
+      <div className="bg-gray-50 min-h-screen">
+        {/* Hero Section */}
+        <div className="bg-gradient-to-br from-sky-700 via-blue-800 to-indigo-900 text-white pb-24 pt-12">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
+              <div className="max-w-2xl">
+                <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-4">
+                  {showAllHeroes ? 'All Mobile Legends Heroes' : 'ML Helper Dashboard'}
+                </h1>
+                <p className="text-blue-100 text-lg md:text-xl font-light opacity-90 mb-8">
+                  {showAllHeroes 
+                    ? `Explore database lengkap hero Mobile Legends (${allHeroes.length} heroes).`
+                    : 'Pusat komando analisis data hero, item, dan strategi Mobile Legends Anda.'
+                  }
+                </p>
+                
+                <div className="flex items-center gap-3">
+                  <button 
+                    onClick={() => router.push(showAllHeroes ? '/' : '/?showAll=true')}
+                    className="px-6 py-3 bg-white text-blue-700 font-bold rounded-2xl shadow-lg hover:bg-blue-50 transition-all active:scale-95"
+                  >
+                    {showAllHeroes ? 'Back to Dashboard' : 'View All Heroes'}
+                  </button>
+                  <button 
+                    onClick={() => router.push('/draft-pick')}
+                    className="px-6 py-3 bg-blue-600/30 text-white font-bold rounded-2xl border border-white/20 backdrop-blur-sm hover:bg-blue-600/50 transition-all active:scale-95"
+                  >
+                    Open Draft Pick
+                  </button>
                 </div>
-              ) : (
-                <StatsOverview stats={stats} />
-              )}
-
-              {/* 3. Main Features & Navigation */}
-              <FeatureNavigation />
-
-              {/* 4. Role Distribution */}
-              <RoleDistribution 
-                roleDistribution={roleDistribution} 
-                totalHeroes={stats.totalHeroes} 
-              />
-
-              {/* 5. Latest Hero Adjustments */}
-              <LatestAdjustments 
-                adjustments={heroAdjustments} 
-                loading={adjustmentsLoading} 
-              />
-
-              {/* 6. Admin Console (Quick Actions) */}
-              <div className="mb-8">
-                <QuickActions 
-                   csvUpdating={csvUpdating}
-                   csvMessage={csvMessage}
-                   handleUpdateCSV={handleUpdateCSV}
-                   handleUpdateAdjustmentsCSV={handleUpdateAdjustmentsCSV}
-                   handleUpdateEmblemsCSV={handleUpdateEmblemsCSV}
-                   handleUpdateSpellsCSV={handleUpdateSpellsCSV}
-                />
               </div>
-            </>
+
+              {!showAllHeroes && (
+                <div className="w-full md:w-96 bg-white/10 backdrop-blur-md rounded-3xl p-6 border border-white/20 shadow-2xl">
+                  <h3 className="text-sm font-semibold uppercase tracking-wider text-blue-200 mb-4">Quick Hero Search</h3>
+                  <SearchBar
+                    onSearch={(heroName) => { if (heroName) onSelect(heroName) }}
+                    placeholder="Type hero name..."
+                    className="!bg-white/90"
+                  />
+                  <p className="mt-4 text-xs text-blue-200/70 italic">
+                    Example: Lancelot, Gusion, or Tigreal
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Content Section - Negative Margin for "Overlap" effect */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-16">
+          {!showAllHeroes ? (
+            <div className="space-y-8">
+              {/* Stats Grid */}
+              <div className="relative z-10">
+                {statsLoading ? (
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 animate-pulse">
+                    {[1,2,3,4].map(i => (
+                      <div key={i} className="h-32 bg-white/50 backdrop-blur-sm rounded-2xl border border-white/20 shadow-sm"></div>
+                    ))}
+                  </div>
+                ) : (
+                  <StatsOverview stats={stats} />
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 pb-12">
+                {/* Left Column - Main Content */}
+                <div className="lg:col-span-8 space-y-8">
+                  {/* Feature Cards */}
+                  <section>
+                    <FeatureNavigation />
+                  </section>
+
+                  {/* Latest Adjustments */}
+                  <section className="bg-white rounded-3xl shadow-sm border border-gray-100 p-1 overflow-hidden">
+                    <div className="p-6 border-b border-gray-50 flex items-center justify-between">
+                      <h2 className="text-xl font-bold text-gray-900">Latest Hero Adjustments</h2>
+                      <button 
+                        onClick={() => router.push('/hero/adjustments')}
+                        className="text-sm text-blue-600 font-medium hover:underline"
+                      >
+                        View all
+                      </button>
+                    </div>
+                    <div className="p-2">
+                      <LatestAdjustments 
+                        adjustments={heroAdjustments} 
+                        loading={adjustmentsLoading} 
+                        compact={true}
+                      />
+                    </div>
+                  </section>
+                </div>
+
+                {/* Right Column - Sidebar Widgets */}
+                <div className="lg:col-span-4 space-y-8">
+                  {/* Role Distribution */}
+                  <section className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6">
+                    <RoleDistribution 
+                      roleDistribution={roleDistribution} 
+                      totalHeroes={stats.totalHeroes} 
+                      layout="vertical"
+                    />
+                  </section>
+
+                  {/* Admin Console */}
+                  <section className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6">
+                    <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                      <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      Admin Console
+                    </h3>
+                    <QuickActions 
+                       csvUpdating={csvUpdating}
+                       csvMessage={csvMessage}
+                       handleUpdateCSV={() => handleUpdateCSV('heroes')}
+                       handleUpdateAdjustmentsCSV={() => handleUpdateCSV('adjustments')}
+                       handleUpdateEmblemsCSV={() => handleUpdateCSV('emblems')}
+                       handleUpdateSpellsCSV={() => handleUpdateCSV('spells')}
+                    />
+                  </section>
+                </div>
+              </div>
+            </div>
           ) : (
-            <div className="mb-8">
-              {/* Hero Filter */}
-              <HeroFilter onFilterChange={setHeroFilters} />
+            <div className="bg-white rounded-3xl shadow-xl p-8 mb-12 min-h-[600px]">
+              <div className="mb-8 border-b border-gray-100 pb-6">
+                <HeroFilter onFilterChange={setHeroFilters} />
+              </div>
               
-              {/* Hero Grid with Pagination */}
               <HeroGrid 
                 heroes={allHeroes} 
                 loading={allHeroesLoading} 
@@ -372,7 +305,13 @@ export default function Home() {
             </div>
           )}
 
-          <footer className="mt-10 text-center text-xs text-gray-400">{new Date().getFullYear()} ML Helper</footer>
+          <footer className="pb-10 pt-10 border-t border-gray-100 flex flex-col items-center gap-4">
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 bg-sky-600 rounded flex items-center justify-center text-[10px] font-bold text-white">M</div>
+              <span className="text-gray-900 font-semibold">ML Helper</span>
+            </div>
+            <p className="text-sm text-gray-500">© {new Date().getFullYear()} Mobile Legends Database & Helper Tool. Built for players.</p>
+          </footer>
         </div>
       </div>
     </AppLayout>
