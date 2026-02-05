@@ -1,15 +1,17 @@
-import { query } from '../../lib/db'
+import { getHeroByNameFromCSV } from '../../lib/heroesCSV';
 
 export default async function handler(req, res) {
-  if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' })
-  const name = typeof req.query.name === 'string' ? req.query.name.trim() : ''
-  if (!name) return res.status(200).json({})
+  if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
+
+  const name = typeof req.query.name === 'string' ? req.query.name.trim() : '';
+  if (!name) return res.status(200).json({});
+
   try {
-    const rows = await query('SELECT * FROM heroes WHERE hero_name = ? LIMIT 1', [name])
-    if (!rows || rows.length === 0) return res.status(200).json({})
-    return res.status(200).json(rows[0])
+    const hero = getHeroByNameFromCSV(name);
+    if (!hero) return res.status(200).json({});
+    return res.status(200).json(hero);
   } catch (e) {
-    console.error(e)
-    return res.status(200).json({})
+    console.error('[get_hero_detail] Error:', e);
+    return res.status(200).json({});
   }
 }
