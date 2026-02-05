@@ -1,36 +1,39 @@
-import { query } from '../../lib/db'
+import { searchHeroesFromCSV, getHeroesByRoleFromCSV } from '../../lib/heroesCSV';
 
 export default async function handler(req, res) {
-  if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' })
-  
-  const q = typeof req.query.q === 'string' ? req.query.q.trim() : ''
-  const role = typeof req.query.role === 'string' ? req.query.role.trim() : ''
-  
+  if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
+
+  const q = typeof req.query.q === 'string' ? req.query.q.trim() : '';
+  const role = typeof req.query.role === 'string' ? req.query.role.trim() : '';
+
   // Return empty if no query AND no role filter
-  if (!q && !role) return res.status(200).json([])
-  
+  if (!q && !role) return res.status(200).json([]);
+
   try {
-    let sql = 'SELECT hero_name, role FROM heroes WHERE 1=1'
-    const params = []
+    let heroes;
 
-    // Add name filter if query provided
-    if (q) {
-      sql += ' AND hero_name LIKE ?'
-      params.push(`%${q}%`)
+    // Apply filters
+    if (q && role) {
+      // Both name search and role filter
+      heroes = searchHeroesFromCSV(q);
+      heroes = heroes.filter((hero) => hero.role.toLowerCase().includes(role.toLowerCase()));
+    } else if (q) {
+      // Only name search
+      heroes = searchHeroesFromCSV(q);
+    } else if (role) {
+      // Only role filter
+      heroes = getHeroesByRoleFromCSV(role);
     }
 
-    // Add role filter if provided
-    if (role) {
-      sql += ' AND role LIKE ?'
-      params.push(`%${role}%`)
-    }
+    // Format response
+    const formattedHeroes = heroes.slice(0, 20).map((hero) => ({
+      hero_name: hero.hero_name,
+      role: hero.role,
+    }));
 
-    sql += ' ORDER BY hero_name ASC LIMIT 20'
-
-    const rows = await query(sql, params)
-    res.status(200).json(rows)
+    res.status(200).json(formattedHeroes);
   } catch (e) {
-    console.error('Heroes search error:', e)
-    res.status(200).json([])
+    console.error('Heroes search error:', e);
+    res.status(200).json([]);
   }
 }

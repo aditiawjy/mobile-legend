@@ -1,85 +1,61 @@
-import { query } from '../../../lib/db'
+import {
+  getAllItemsFromCSV,
+  getItemsByCategoryFromCSV,
+  getUniqueCategoriesFromCSV,
+} from '../../../lib/itemsCSV';
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
-    return res.status(405).json({ message: 'Method not allowed' })
+    return res.status(405).json({ message: 'Method not allowed' });
   }
 
   try {
-    // Support pagination
-    const fetchAll = req.query.fetchAll === 'true' // New parameter to fetch all items
-    const limit = fetchAll ? 10000 : (parseInt(req.query.limit) || 20)
-    const offset = parseInt(req.query.offset) || 0
+    // Get query parameters
+    const category = typeof req.query.category === 'string' ? req.query.category.trim() : '';
+    const sortBy = req.query.sortBy || 'name'; // name, price
+    const sortOrder = req.query.sortOrder === 'desc' ? 'desc' : 'asc';
+    const minPrice = req.query.minPrice ? parseInt(req.query.minPrice) : null;
+    const maxPrice = req.query.maxPrice ? parseInt(req.query.maxPrice) : null;
 
-    // Filter & Sort parameters
-    const category = typeof req.query.category === 'string' ? req.query.category.trim() : ''
-    const sortBy = req.query.sortBy || 'name' // name, price
-    const sortOrder = req.query.sortOrder === 'desc' ? 'DESC' : 'ASC'
-    const minPrice = req.query.minPrice ? parseInt(req.query.minPrice) : null
-    const maxPrice = req.query.maxPrice ? parseInt(req.query.maxPrice) : null
+    // Get items from CSV
+    let items = category ? getItemsByCategoryFromCSV(category) : getAllItemsFromCSV();
 
-    // Build WHERE clause
-    const whereConditions = []
-    const params = []
-
-    if (category) {
-      whereConditions.push('category = ?')
-      params.push(category)
-    }
-
+    // Apply price filter
     if (minPrice !== null) {
-      whereConditions.push('price >= ?')
-      params.push(minPrice)
+      items = items.filter((item) => item.price >= minPrice);
     }
-
     if (maxPrice !== null) {
-      whereConditions.push('price <= ?')
-      params.push(maxPrice)
+      items = items.filter((item) => item.price <= maxPrice);
     }
 
-    const whereClause = whereConditions.length > 0 
-      ? `WHERE ${whereConditions.join(' AND ')}`
-      : ''
-
-    // Build ORDER BY clause
-    let orderByClause = 'ORDER BY '
-    if (sortBy === 'price') {
-      orderByClause += `price ${sortOrder}, item_name ASC`
-    } else {
-      orderByClause += `item_name ${sortOrder}`
-    }
-
-    // Get total count with filters
-    const countQuery = `SELECT COUNT(*) as total FROM items ${whereClause}`
-    const countResult = await query(countQuery, params)
-    const total = countResult[0]?.total || 0
-
-    // Get paginated items with filters and sorting
-    const selectQuery = `
-      SELECT * 
-      FROM items 
-      ${whereClause}
-      ${orderByClause}
-      LIMIT ? OFFSET ?
-    `
-    const rows = await query(selectQuery, [...params, limit, offset])
+    // Sort items
+    items.sort((a, b) => {
+      let comparison = 0;
+      if (sortBy === 'price') {
+        comparison = a.price - b.price;
+      } else {
+        comparison = a.item_name.localeCompare(b.item_name);
+      }
+      return sortOrder === 'desc' ? -comparison : comparison;
+    });
 
     res.status(200).json({
-      items: rows,
-      total,
-      limit,
-      offset,
-      hasMore: offset + rows.length < total,
+      items,
+      total: items.length,
       filters: {
         category,
         sortBy,
         sortOrder,
         minPrice,
-        maxPrice
-      }
-    })
+        maxPrice,
+      },
+    });
   } catch (error) {
-    console.error('Error fetching all items:', error)
-    res.status(200).json({ items: [], total: 0, limit: 20, offset: 0, hasMore: false })
+    console.error('Error fetching items from CSV:', error);
+    res.status(200).json({
+      items: [],
+      total: 0,
+      filters: {},
+    });
   }
 }

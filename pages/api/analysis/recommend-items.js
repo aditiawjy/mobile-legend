@@ -1,70 +1,77 @@
-import { query } from '../../../lib/db'
+import { getAllItemsFromCSV } from '../../../lib/itemsCSV';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' })
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    const { threatType, limit = 8 } = req.body
-    
+    const { threatType, limit = 8 } = req.body;
+
     if (!threatType || !['physical', 'magic', 'true'].includes(threatType)) {
-      return res.status(400).json({ error: 'Valid threatType required: physical, magic, or true' })
+      return res.status(400).json({ error: 'Valid threatType required: physical, magic, or true' });
     }
 
-    // Query items with defense stats based on threat type
-    let items = []
-    
+    // Get all items from CSV
+    const allItems = getAllItemsFromCSV();
+    let items = [];
+
     if (threatType === 'physical') {
       // Items with high armor or physical defense
-      items = await query(
-        `SELECT item_name, price, armor, hp, category, description, cooldown_reduction
-         FROM items 
-         WHERE armor > 0 OR (hp > 0 AND armor IS NOT NULL)
-         ORDER BY (COALESCE(armor, 0) + COALESCE(hp, 0) / 10) / price DESC
-         LIMIT ?`,
-        [limit]
-      )
+      items = allItems
+        .filter((item) => item.armor > 0 || item.hp > 0)
+        .sort((a, b) => {
+          const aDefense = (a.armor || 0) + (a.hp || 0) / 10;
+          const bDefense = (b.armor || 0) + (b.hp || 0) / 10;
+          const aEfficiency = a.price > 0 ? aDefense / a.price : 0;
+          const bEfficiency = b.price > 0 ? bDefense / b.price : 0;
+          return bEfficiency - aEfficiency;
+        })
+        .slice(0, limit);
     } else if (threatType === 'magic') {
       // Items with high magic resist or magic defense
-      items = await query(
-        `SELECT item_name, price, magic_resist, hp, category, description, cooldown_reduction
-         FROM items 
-         WHERE magic_resist > 0 OR (hp > 0 AND magic_resist IS NOT NULL)
-         ORDER BY (COALESCE(magic_resist, 0) + COALESCE(hp, 0) / 10) / price DESC
-         LIMIT ?`,
-        [limit]
-      )
+      items = allItems
+        .filter((item) => item.magic_resist > 0 || item.hp > 0)
+        .sort((a, b) => {
+          const aDefense = (a.magic_resist || 0) + (a.hp || 0) / 10;
+          const bDefense = (b.magic_resist || 0) + (b.hp || 0) / 10;
+          const aEfficiency = a.price > 0 ? aDefense / a.price : 0;
+          const bEfficiency = b.price > 0 ? bDefense / b.price : 0;
+          return bEfficiency - aEfficiency;
+        })
+        .slice(0, limit);
     } else if (threatType === 'true') {
       // Items that counter true damage (heal/regen items)
-      items = await query(
-        `SELECT item_name, price, hp_regen, mana_regen, cooldown_reduction, category, description
-         FROM items 
-         WHERE hp_regen > 0 OR mana_regen > 0 OR cooldown_reduction > 0
-         ORDER BY (COALESCE(hp_regen, 0) + COALESCE(cooldown_reduction, 0)) / price DESC
-         LIMIT ?`,
-        [limit]
-      )
+      items = allItems
+        .filter((item) => item.hp_regen > 0 || item.mana_regen > 0 || item.cooldown_reduction > 0)
+        .sort((a, b) => {
+          const aDefense = (a.hp_regen || 0) + (a.cooldown_reduction || 0);
+          const bDefense = (b.hp_regen || 0) + (b.cooldown_reduction || 0);
+          const aEfficiency = a.price > 0 ? aDefense / a.price : 0;
+          const bEfficiency = b.price > 0 ? bDefense / b.price : 0;
+          return bEfficiency - aEfficiency;
+        })
+        .slice(0, limit);
     }
 
     if (!items || items.length === 0) {
-      return res.status(200).json([])
+      return res.status(200).json([]);
     }
 
     // Calculate efficiency for each item
-    const formattedItems = items.map(item => {
-      let defense_stat = 0
-      let stat_name = ''
-      
+    const formattedItems = items.map((item) => {
+      let defense_stat = 0;
+      let stat_name = '';
+
       if (threatType === 'physical') {
-        defense_stat = (item.armor || 0) + (item.hp || 0) / 10
-        stat_name = 'Physical Defense'
+        defense_stat = (item.armor || 0) + (item.hp || 0) / 10;
+        stat_name = 'Physical Defense';
       } else if (threatType === 'magic') {
-        defense_stat = (item.magic_resist || 0) + (item.hp || 0) / 10
-        stat_name = 'Magic Defense'
+        defense_stat = (item.magic_resist || 0) + (item.hp || 0) / 10;
+        stat_name = 'Magic Defense';
       } else if (threatType === 'true') {
-        defense_stat = (item.hp_regen || 0) + (item.cooldown_reduction || 0)
-        stat_name = 'True Defense'
+        defense_stat = (item.hp_regen || 0) + (item.cooldown_reduction || 0);
+        stat_name = 'True Defense';
       }
 
       return {
@@ -74,13 +81,13 @@ export default async function handler(req, res) {
         defense_stat: Math.round(defense_stat * 10) / 10,
         stat_name: stat_name,
         efficiency: item.price > 0 ? Math.round((defense_stat / item.price) * 100) / 100 : 0,
-        description: item.description || ''
-      }
-    })
+        description: item.description || '',
+      };
+    });
 
-    return res.status(200).json(formattedItems)
+    return res.status(200).json(formattedItems);
   } catch (e) {
-    console.error('[RECOMMEND-ITEMS] error:', e)
-    return res.status(500).json({ error: 'Server error' })
+    console.error('[RECOMMEND-ITEMS] error:', e);
+    return res.status(500).json({ error: 'Server error' });
   }
 }

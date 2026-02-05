@@ -1,9 +1,9 @@
 import { useState, useMemo, useEffect } from 'react';
-import HeroCard, { HeroCardSkeleton } from './HeroCard';
+import HeroCardModern, { HeroCardModernSkeleton } from './HeroCardModern';
 
-const ITEMS_PER_PAGE = 48;
+const ITEMS_PER_PAGE = 40;
 
-export default function HeroGrid({ heroes, loading, filters = {} }) {
+export default function HeroGridModern({ heroes, loading, filters = {} }) {
   const [currentPage, setCurrentPage] = useState(1);
 
   // Filter and sort heroes
@@ -94,7 +94,7 @@ export default function HeroGrid({ heroes, loading, filters = {} }) {
     return (
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-4">
         {[...Array(24)].map((_, i) => (
-          <HeroCardSkeleton key={i} />
+          <HeroCardModernSkeleton key={i} />
         ))}
       </div>
     );
@@ -102,10 +102,10 @@ export default function HeroGrid({ heroes, loading, filters = {} }) {
 
   if (filteredHeroes.length === 0) {
     return (
-      <div className="text-center py-16 bg-white rounded-xl border border-gray-200">
-        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+      <div className="text-center py-16 bg-white rounded-2xl border border-gray-200/80 shadow-sm">
+        <div className="w-20 h-20 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-6">
           <svg
-            className="w-8 h-8 text-gray-400"
+            className="w-10 h-10 text-gray-400"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -118,45 +118,37 @@ export default function HeroGrid({ heroes, loading, filters = {} }) {
             />
           </svg>
         </div>
-        <p className="text-gray-600 font-medium">No heroes found</p>
-        <p className="text-gray-400 text-sm mt-1">Try adjusting your filters</p>
+        <h3 className="text-xl font-bold text-gray-900 mb-2">No heroes found</h3>
+        <p className="text-gray-500 mb-6">
+          Try adjusting your search or filters to find what you're looking for.
+        </p>
+        <button
+          onClick={() => window.location.reload()}
+          className="px-6 py-3 bg-sky-500 text-white font-semibold rounded-xl hover:bg-sky-600 transition-colors"
+        >
+          Clear Filters
+        </button>
       </div>
     );
   }
 
   return (
-    <div>
-      {/* Results Count */}
-      <div className="flex items-center justify-between mb-4 px-1">
-        <p className="text-sm text-gray-600">
-          Showing{' '}
-          <span className="font-medium text-gray-900">
-            {startIndex + 1}-{Math.min(endIndex, filteredHeroes.length)}
-          </span>{' '}
-          of <span className="font-medium text-gray-900">{filteredHeroes.length}</span> heroes
-        </p>
-        {totalPages > 1 && (
-          <p className="text-sm text-gray-500">
-            Page {currentPage} of {totalPages}
-          </p>
-        )}
-      </div>
-
+    <div className="space-y-6">
       {/* Hero Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-4 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-4">
         {paginatedHeroes.map((hero, index) => (
-          <HeroCard key={hero.hero_name || hero.name || index} hero={hero} />
+          <HeroCardModern key={hero.hero_name || hero.name || index} hero={hero} />
         ))}
       </div>
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-1 pt-4 border-t border-gray-200">
+        <div className="flex items-center justify-center gap-2 pt-6">
           {/* First Page */}
           <button
             onClick={() => goToPage(1)}
             disabled={currentPage === 1}
-            className="p-2 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="p-2.5 rounded-xl hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             title="First Page"
           >
             <svg
@@ -178,7 +170,7 @@ export default function HeroGrid({ heroes, loading, filters = {} }) {
           <button
             onClick={() => goToPage(currentPage - 1)}
             disabled={currentPage === 1}
-            className="p-2 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="p-2.5 rounded-xl hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             title="Previous Page"
           >
             <svg
@@ -197,14 +189,14 @@ export default function HeroGrid({ heroes, loading, filters = {} }) {
           </button>
 
           {/* Page Numbers */}
-          <div className="flex items-center gap-1 mx-2">
+          <div className="flex items-center gap-1.5">
             {getPageNumbers().map((page) => (
               <button
                 key={page}
                 onClick={() => goToPage(page)}
-                className={`w-10 h-10 rounded-lg text-sm font-medium transition-colors ${
+                className={`w-11 h-11 rounded-xl text-sm font-bold transition-all ${
                   currentPage === page
-                    ? 'bg-blue-600 text-white shadow-md'
+                    ? 'bg-sky-500 text-white shadow-lg shadow-sky-500/30'
                     : 'text-gray-600 hover:bg-gray-100'
                 }`}
               >
@@ -217,7 +209,7 @@ export default function HeroGrid({ heroes, loading, filters = {} }) {
           <button
             onClick={() => goToPage(currentPage + 1)}
             disabled={currentPage === totalPages}
-            className="p-2 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="p-2.5 rounded-xl hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             title="Next Page"
           >
             <svg
@@ -234,7 +226,7 @@ export default function HeroGrid({ heroes, loading, filters = {} }) {
           <button
             onClick={() => goToPage(totalPages)}
             disabled={currentPage === totalPages}
-            className="p-2 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="p-2.5 rounded-xl hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             title="Last Page"
           >
             <svg

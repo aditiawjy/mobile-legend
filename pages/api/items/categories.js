@@ -1,24 +1,19 @@
-import { query } from '../../../lib/db'
+import { getUniqueCategoriesFromCSV } from '../../../lib/itemsCSV';
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
-    return res.status(405).json({ message: 'Method not allowed' })
+    return res.status(405).json({ message: 'Method not allowed' });
   }
 
   try {
-    // Get distinct categories from items table
-    const rows = await query(
-      'SELECT DISTINCT category FROM items WHERE category IS NOT NULL AND category != "" ORDER BY category ASC'
-    )
-
-    const categories = rows.map(row => row.category)
+    const categories = getUniqueCategoriesFromCSV();
 
     res.status(200).json({
       categories,
-      count: categories.length
-    })
+      count: categories.length,
+    });
   } catch (error) {
-    console.error('Error fetching categories:', error)
-    res.status(200).json({ categories: [], count: 0 })
+    console.error('Error fetching categories from CSV:', error);
+    res.status(200).json({ categories: [], count: 0 });
   }
 }
