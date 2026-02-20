@@ -15,7 +15,7 @@ const navigation = [
   },
   {
     name: 'Heroes',
-    href: '/?showAll=true',
+    href: '/heroes',
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -78,61 +78,79 @@ const navigation = [
   },
 ]
 
-const editNavigation = [
-  // Management section is now empty
-]
+const editNavigation = []
 
 export default function Sidebar({ children }) {
   const router = useRouter()
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   const isActive = (href) => {
-    // Special case for Heroes (/?showAll=true)
-    if (href === '/?showAll=true') {
-      return router.pathname === '/' && router.query.showAll === 'true'
-    }
-    // Special case for Dashboard (/ without showAll)
     if (href === '/') {
-      return router.pathname === '/' && router.query.showAll !== 'true'
+      return router.pathname === '/'
     }
-    // For other routes, check if pathname starts with href
     return router.pathname.startsWith(href.split('?')[0]) && router.pathname !== '/'
   }
 
   const NavItem = ({ item }) => (
     <Link
       href={item.href}
-      className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-150 ${
-        isActive(item.href)
-          ? 'bg-sky-100 text-sky-700 border-r-2 border-sky-700'
-          : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-      }`}
+      className={`relative group flex items-center px-4 py-3 my-1 text-sm font-medium rounded-xl transition-all duration-300 ease-out overflow-hidden ${isActive(item.href)
+        ? 'bg-blue-600/10 text-blue-400 border border-blue-500/20 shadow-[0_0_20px_rgba(37,99,235,0.05)]'
+        : 'text-gray-400 border border-transparent hover:bg-[#21262D] hover:text-gray-100'
+        }`}
     >
-      <span className={`mr-3 ${isActive(item.href) ? 'text-sky-700' : 'text-gray-400 group-hover:text-gray-500'}`}>
+      {/* Animated Left Indicator Line */}
+      <span
+        className={`absolute left-0 top-1/2 -translate-y-1/2 w-1.5 bg-blue-500 rounded-r-md transition-all duration-300 ease-out origin-left ${isActive(item.href) ? 'h-3/4 opacity-100 scale-x-100' : 'h-1/2 opacity-0 scale-x-0 group-hover:scale-x-50 group-hover:opacity-40'
+          }`}
+      />
+
+      {/* Icon Styling with Scale and Translation */}
+      <span className={`mr-4 relative z-10 transition-all duration-300 ease-out ${isActive(item.href)
+        ? 'text-blue-500 scale-110 drop-shadow-[0_0_8px_rgba(59,130,246,0.5)]'
+        : 'text-gray-500 group-hover:text-blue-400 group-hover:scale-110 group-hover:translate-x-1'
+        }`}>
         {item.icon}
       </span>
-      {item.name}
+
+      {/* Text Styling with Slide Effect on Hover */}
+      <span className={`relative z-10 tracking-wide transition-all duration-300 ease-out ${isActive(item.href)
+        ? 'font-bold'
+        : 'group-hover:translate-x-1 group-hover:font-medium'
+        }`}>
+        {item.name}
+      </span>
+
+      {/* Subtle Hover Background Shine */}
+      <span className="absolute inset-0 bg-gradient-to-r from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
     </Link>
   )
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      {/* Sidebar */}
-      <div className="hidden lg:flex lg:w-64 lg:flex-col">
-        <div className="flex flex-col flex-grow pt-5 pb-4 overflow-y-auto bg-white border-r border-gray-200">
-          <div className="flex items-center flex-shrink-0 px-4">
-            <div className="flex items-center">
-              <div className="w-8 h-8 bg-gradient-to-br from-sky-500 to-blue-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-lg">M</span>
+    <div className="flex h-screen bg-[#0E1117] selection:bg-blue-500/30">
+      {/* --- Desktop Sidebar --- */}
+      <div className="hidden lg:flex lg:w-[280px] lg:flex-col relative z-20 shadow-[4px_0_24px_-12px_rgba(0,0,0,0.8)] border-r border-gray-800/60 bg-[#161B22]">
+        <div className="flex flex-col flex-grow pt-6 pb-4 overflow-y-auto">
+
+          {/* Brand Header with Hover Effects */}
+          <div className="flex items-center flex-shrink-0 px-8 mb-6 mt-2 group cursor-pointer transition-transform duration-500 hover:scale-[1.02]">
+            <div className="relative">
+              {/* Glow effect behind the logo */}
+              <div className="absolute inset-0 bg-blue-500 rounded-xl blur-md opacity-20 group-hover:opacity-60 transition-all duration-500"></div>
+              <div className="relative w-11 h-11 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center border border-white/10 shadow-lg">
+                <span className="text-white font-black text-xl tracking-tighter">ML</span>
               </div>
-              <span className="ml-3 text-xl font-semibold text-gray-900">ML Helper</span>
+            </div>
+            <div className="ml-4 flex flex-col justify-center">
+              <span className="text-xl font-extrabold text-white tracking-tight group-hover:text-blue-400 transition-colors duration-300">Helper.Gg</span>
+              <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-0.5">Database</span>
             </div>
           </div>
 
-          <nav className="mt-8 flex-1 px-4 space-y-1">
+          <nav className="flex-1 px-4 space-y-1">
             <div className="space-y-1">
-              <h3 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                Main
+              <h3 className="px-4 text-[11px] font-black text-gray-600 uppercase tracking-[0.2em] mb-4 mt-4">
+                Main Menu
               </h3>
               {navigation.map((item) => (
                 <NavItem key={item.name} item={item} />
@@ -141,7 +159,7 @@ export default function Sidebar({ children }) {
 
             {editNavigation.length > 0 && (
               <div className="mt-8 space-y-1">
-                <h3 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                <h3 className="px-4 text-[11px] font-black text-gray-600 uppercase tracking-[0.2em] mb-4 mt-8">
                   Management
                 </h3>
                 {editNavigation.map((item) => (
@@ -153,48 +171,42 @@ export default function Sidebar({ children }) {
         </div>
       </div>
 
-      {/* Mobile sidebar overlay */}
+      {/* --- Mobile Sidebar Overlay --- */}
       {sidebarOpen && (
         <div className="lg:hidden">
-          <div className="fixed inset-0 flex z-40">
-            <div className="fixed inset-0 bg-gray-600 bg-opacity-75" onClick={() => setSidebarOpen(false)} />
-            <div className="relative flex-1 flex flex-col max-w-xs w-full bg-white">
-              <div className="absolute top-0 right-0 -mr-12 pt-2">
+          <div className="fixed inset-0 flex z-50">
+            {/* Backdrop Blur Overlay */}
+            <div
+              className="fixed inset-0 bg-[#0E1117]/80 backdrop-blur-md transition-opacity duration-300"
+              onClick={() => setSidebarOpen(false)}
+            />
+            {/* Mobile Sidebar Panel */}
+            <div className="relative flex-1 flex flex-col max-w-[280px] w-full bg-[#161B22] border-r border-gray-800 shadow-2xl transform transition-transform duration-300 ease-out">
+              <div className="absolute top-0 right-0 -mr-14 pt-3">
                 <button
                   type="button"
-                  className="ml-1 flex items-center justify-center h-10 w-10 rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
+                  className="ml-1 flex items-center justify-center p-2 rounded-xl focus:outline-none bg-gray-900/50 hover:bg-gray-800 backdrop-blur border border-white/5 transition-all text-gray-400 hover:text-white group"
                   onClick={() => setSidebarOpen(false)}
                 >
                   <span className="sr-only">Close sidebar</span>
-                  <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="h-6 w-6 transform group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
               </div>
-              <div className="flex-1 h-0 pt-5 pb-4 overflow-y-auto">
-                <div className="flex-shrink-0 flex items-center px-4">
-                  <div className="w-8 h-8 bg-gradient-to-br from-sky-500 to-blue-600 rounded-lg flex items-center justify-center">
-                    <span className="text-white font-bold text-lg">M</span>
+              <div className="flex-1 h-0 pt-6 pb-4 overflow-y-auto">
+                <div className="flex-shrink-0 flex items-center px-6 mb-8">
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-[0_0_15px_rgba(59,130,246,0.5)]">
+                    <span className="text-white font-black text-xl">ML</span>
                   </div>
-                  <span className="ml-3 text-xl font-semibold text-gray-900">ML Helper</span>
+                  <span className="ml-4 text-xl font-bold text-white tracking-tight">Helper.Gg</span>
                 </div>
-                <nav className="mt-8 flex-1 px-4 space-y-1">
+                <nav className="flex-1 px-4 space-y-1">
+                  <h3 className="px-4 text-[11px] font-black text-gray-500 uppercase tracking-[0.2em] mb-4">
+                    Menu
+                  </h3>
                   {[...navigation, ...editNavigation].map((item) => (
-                    <Link
-                      key={item.name}
-                      href={item.href}
-                      className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-150 ${
-                        isActive(item.href)
-                          ? 'bg-sky-100 text-sky-700'
-                          : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                      }`}
-                      onClick={() => setSidebarOpen(false)}
-                    >
-                      <span className={`mr-3 ${isActive(item.href) ? 'text-sky-700' : 'text-gray-400 group-hover:text-gray-500'}`}>
-                        {item.icon}
-                      </span>
-                      {item.name}
-                    </Link>
+                    <NavItem key={item.name} item={item} />
                   ))}
                 </nav>
               </div>
@@ -203,30 +215,31 @@ export default function Sidebar({ children }) {
         </div>
       )}
 
-      {/* Main content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <div className="relative z-10 flex-shrink-0 flex h-16 bg-white shadow-sm border-b border-gray-200 lg:hidden">
-          <button
-            type="button"
-            className="px-4 border-r border-gray-200 text-gray-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-sky-500"
-            onClick={() => setSidebarOpen(true)}
-          >
-            <span className="sr-only">Open sidebar</span>
-            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
-            </svg>
-          </button>
-          <div className="flex-1 px-4 flex justify-between">
-            <div className="flex-1 flex">
-              <div className="w-8 h-8 bg-gradient-to-br from-sky-500 to-blue-600 rounded-lg flex items-center justify-center mr-3">
-                <span className="text-white font-bold text-lg">M</span>
+      {/* --- Main Content Area --- */}
+      <div className="flex-1 flex flex-col overflow-hidden relative">
+        {/* Mobile Header (Hidden on Desktop) */}
+        <div className="relative z-30 flex-shrink-0 flex items-center justify-between h-16 bg-[#161B22]/95 backdrop-blur-xl border-b border-gray-800 lg:hidden px-4 shadow-sm">
+          <div className="flex items-center">
+            <button
+              type="button"
+              className="p-2 border border-transparent bg-gray-900/50 rounded-lg text-gray-400 hover:text-white hover:border-gray-700 hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all mr-3 active:scale-95"
+              onClick={() => setSidebarOpen(true)}
+            >
+              <span className="sr-only">Open sidebar</span>
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6h16M4 12h16M4 18h7" />
+              </svg>
+            </button>
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-lg shadow-blue-500/20">
+                <span className="text-white font-black text-sm">ML</span>
               </div>
-              <span className="text-xl font-semibold text-gray-900">ML Helper</span>
+              <span className="text-lg font-bold text-white tracking-tight leading-none pt-0.5">Helper</span>
             </div>
           </div>
         </div>
 
-        <main className="flex-1 relative overflow-y-auto focus:outline-none">
+        <main className="flex-1 overflow-y-auto focus:outline-none bg-[#0E1117] scroll-smooth">
           {children}
         </main>
       </div>
