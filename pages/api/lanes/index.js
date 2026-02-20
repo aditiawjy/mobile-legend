@@ -1,14 +1,8 @@
-import { query } from '../../../lib/db'
+import { getDefaultLanes } from '../../../lib/laneConstants';
 
 export default async function handler(req, res) {
   if (req.method === 'GET') {
-    try {
-      const lanes = await query('SELECT * FROM lanes ORDER BY id')
-      return res.status(200).json(lanes)
-    } catch (e) {
-      console.error('[lanes GET] error:', e)
-      return res.status(200).json([])
-    }
+    return res.status(200).json(getDefaultLanes())
   }
 
   res.setHeader('Allow', 'GET')

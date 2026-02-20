@@ -1,4 +1,6 @@
-import { query } from '../../lib/db';
+import fs from 'fs';
+import path from 'path';
+import { parse } from 'csv-parse/sync';
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
@@ -6,40 +8,33 @@ export default async function handler(req, res) {
   }
 
   try {
-    console.log('Fetching hero combos from database...');
+    const filePath = path.join(process.cwd(), 'public/csv/hero-combos.csv');
+    if (!fs.existsSync(filePath)) {
+      return res.status(200).json({ success: true, totalCombos: 0, combos: [] });
+    }
 
-    // Fetch all combos
-    const combos = await query(`
-      SELECT 
-        id,
-        hero1,
-        hero2,
-        combo_type,
-        synergy_score,
-        description,
-        created_at,
-        updated_at
-      FROM hero_combos
-      ORDER BY synergy_score DESC
-    `);
+    const fileContent = fs.readFileSync(filePath, 'utf-8');
+    const records = parse(fileContent, { columns: true, trim: true, skip_empty_lines: true });
 
-    console.log(`✓ Fetched ${combos.length} combos from database`);
+    const combos = records.map((r, i) => ({
+      ...r,
+      id: i + 1,
+      hero1: r['Hero1'] || r['hero1'],
+      hero2: r['Hero2'] || r['hero2'],
+      combo_type: r['Combo Type'] || r['combo_type'],
+      synergy_score: parseInt(r['Synergy Score'] || r['synergy_score'] || '0', 10),
+      description: r['Description'] || r['description']
+    }));
+
+    combos.sort((a, b) => b.synergy_score - a.synergy_score);
 
     res.status(200).json({
       success: true,
       totalCombos: combos.length,
       combos: combos
     });
-
   } catch (error) {
     console.error('Error fetching hero combos:', error);
-    
-    // Return empty array on error (graceful degradation)
-    res.status(200).json({
-      success: false,
-      totalCombos: 0,
-      combos: [],
-      error: error.message
-    });
+    res.status(200).json({ success: false, totalCombos: 0, combos: [], error: error.message });
   }
 }
